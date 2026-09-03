@@ -3,6 +3,7 @@ import { CrowdinValidationError } from '@crowdin/crowdin-api-client';
 import { pollUntilFinished } from '@/lib/api/pollStatus.ts';
 import CliError from '../errors/CliError.ts';
 import { toCliError } from '../errors/toCliError.ts';
+import { normalizeBranchName } from '../utils/parsing.ts';
 
 // Reports each poll's percentage so the command can render its own progress (Java updates a spinner).
 export type ProgressCallback = (progress: number) => void;
@@ -18,6 +19,8 @@ export class BranchService {
       return undefined;
     }
 
+    name = normalizeBranchName(name);
+
     try {
       const branches = await this.apiClient.sourceFilesApi.withFetchAll().listProjectBranches(this.projectId, { name });
       return branches.data.find((branch) => branch.data.name === name)?.data;
@@ -30,6 +33,8 @@ export class BranchService {
     if (!name || name === 'none') {
       return { created: false };
     }
+
+    name = normalizeBranchName(name);
 
     try {
       const branches = await this.apiClient.sourceFilesApi.withFetchAll().listProjectBranches(this.projectId, { name });
@@ -72,7 +77,6 @@ export class BranchService {
   async list(): Promise<SourceFilesModel.Branch[]> {
     try {
       const response = await this.apiClient.sourceFilesApi.withFetchAll().listProjectBranches(this.projectId);
-
       return response.data.map((entry) => entry.data);
     } catch (error) {
       throw toCliError(error, 'Failed to list branches');
