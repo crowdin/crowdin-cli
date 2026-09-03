@@ -1004,6 +1004,56 @@ describe('UploadTranslationsCommand', () => {
     );
   });
 
+  test('uploads one multilingual translation file for all languages when multilingual is set without a scheme', async () => {
+    await Bun.write(`${tempDir}/src/Localizable.xcstrings`, '{}');
+    await Bun.write(`${tempDir}/Localizable.xcstrings`, '{}');
+
+    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const projectService = {
+      loadProject: mock(async () => ({
+        data: {
+          id: 123,
+          languageMapping: {},
+          targetLanguages: [language('es', 'es', 'spa'), language('fr', 'fr', 'fra')],
+        },
+      })),
+    };
+    const fileService = {
+      ...baseFileServiceMock(),
+      loadProjectFiles: mock(async () => ({
+        data: [{ data: { id: 90, path: '/src/Localizable.xcstrings' } }],
+      })),
+    };
+    const translationService = baseTranslationServiceMock();
+    const command = createUploadCommand(
+      tempDir,
+      createOutputMock(),
+      projectService,
+      storageService,
+      baseBranchServiceMock(),
+      baseDirectoryServiceMock(),
+      fileService,
+      baseLabelServiceMock(),
+      translationService,
+      { source: '/src/*.xcstrings', translation: '/%original_file_name%', multilingual: true },
+      { preserveHierarchy: true },
+    );
+
+    await command.uploadTranslationsAction(commandContext({}));
+
+    expect(translationService.importProjectTranslation).toHaveBeenCalledTimes(1);
+    expect(translationService.importProjectTranslation).toHaveBeenCalledWith(
+      expect.any(Number),
+      90,
+      ['es', 'fr'],
+      'Localizable.xcstrings',
+      undefined,
+      undefined,
+      undefined,
+      expect.any(Function),
+    );
+  });
+
   test('reports an error and continues when a source pattern matches no files during translation upload', async () => {
     const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
     const projectService = {
