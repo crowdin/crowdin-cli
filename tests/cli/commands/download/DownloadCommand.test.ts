@@ -647,7 +647,7 @@ describe('DownloadCommand', () => {
       expect(await savedArchive.exists()).toBe(true);
     });
 
-    test('warns and aborts when translations build fails', async () => {
+    test('rejects when translations build fails', async () => {
       const downloadCommand = createDownloadCommand();
       const buildId = 999;
 
@@ -664,12 +664,10 @@ describe('DownloadCommand', () => {
       spyOn(apiClient.translationsApi, 'checkBuildStatus').mockResolvedValue({
         data: { id: buildId, status: 'failed', progress: 0 },
       } as never);
-      const warningSpy = spyOn(output, 'warning');
 
-      // Build failure warns and aborts gracefully (Java ProjectBuildFailedException parity).
-      await downloadCommand.translationsAction(commandContext);
-
-      expect(warningSpy).toHaveBeenCalledWith("Didn't manage to build translations");
+      // A build failure (or any other build-step error, e.g. a transient 5xx) must propagate and
+      // fail the process (#1102) instead of being swallowed into a warning with a 0 exit code.
+      await expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow('Translations build failed');
     });
   });
 
