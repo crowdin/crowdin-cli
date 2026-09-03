@@ -15,14 +15,6 @@ import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.t
  * Distribution hashes are server-generated and different on every run (`96b56107ddccaf8270616b7du20`),
  * and `normalize` does not mask them - it only masks `#123`-style ids. Snapshots therefore go
  * through `maskHash` first, mirroring `bundle.test.ts`'s `maskBundleId`.
- *
- * KNOWN BUG, asserted as it actually behaves rather than as it should:
- * `distribution release` prints `Releasing distribution <hash>: null%`. `DistributionService`'s
- * poll loop guards the progress callback with `release.progress !== undefined`, but the API returns
- * `progress: null` on this endpoint, and `null !== undefined`, so the null reaches the message and
- * renders as "null%". The guard wants a `!= null` (or an explicit null check). The test below
- * asserts the release SUCCEEDS and does not pin that line, so fixing the guard will not break it -
- * but the behaviour is recorded here so the next reader knows it was observed, not overlooked.
  */
 
 /** Distribution hashes are per-run values, so snapshots see a stable placeholder instead. */
@@ -222,11 +214,12 @@ describe('distribution', () => {
   });
 
   test('releases the distribution', async () => {
-    // Last: this polls a real build to completion. The progress line it prints along the way is the
-    // "null%" bug described at the top of this file, so only the terminal outcome is asserted.
+    // Last: polls a real build to completion. Whether any poll catches a percentage is a timing
+    // race, so only the terminal outcome is pinned.
     const result = await ctx.runner.run(['distribution', 'release', hash]);
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain(`Distribution '${hash}' has been successfully released`);
+    expect(result.stdout).not.toContain('null%');
   });
 });
