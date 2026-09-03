@@ -61,7 +61,8 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Build all platform binaries
+      - name: Build cross-compilable platform binaries
+        # win32-x64 is built by the windows-installer job - the PE metadata flags need a Windows host
         run: bun run build:all
 
   windows-installer:
@@ -88,6 +89,15 @@ jobs:
 
       - name: Smoke test binary
         run: packages\npm\win32-x64\bin\crowdin.exe --version
+
+      - name: Verify PE metadata
+        # Catches the --windows-* flags silently falling out of the build script
+        run: |
+          $vi = (Get-Item packages\npm\win32-x64\bin\crowdin.exe).VersionInfo
+          $vi | Format-List CompanyName, ProductName, FileDescription, FileVersion, LegalCopyright
+          foreach ($field in 'CompanyName', 'ProductName', 'FileDescription', 'FileVersion') {
+            if (-not $vi.$field) { throw "PE metadata field $field is empty" }
+          }
 
       - name: Compile .ISS to .EXE Installer
         # Inno Setup is preinstalled on the windows runner image
