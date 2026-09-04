@@ -36,19 +36,15 @@ describe('invalid files config', () => {
       '/translations/%two_letters_code%/android.xml',
     ]);
 
-    // Confirmed at UploadSourcesCommand.ts: zero matches for a file group throws a CliError
-    // immediately (unguarded inside the per-group loop), which lands in cli.ts's top-level catch
-    // with the default CliError exit code (1) -- matching the PHP original's assertion.
+    // Zero matches for the only file group flags the run and closes with PHP's "Current execution
+    // finished with errors" as a CliError (default exit code 1) -- both lines on stderr.
     expect(result.exitCode).toBe(1);
     expect(result.stdout).toContain('Fetching project info');
     // Literal wording confirmed at UploadSourcesCommand.ts -- matches the PHP original verbatim.
     expect(result.stderr).toContain(
       "No sources found for '/sources/android-not-exists.xml' pattern. Check the source paths in your configuration file",
     );
-    // Known CLI bug (see file-groups.test.ts): because this is a thrown CliError rather than the
-    // separate hasErrors/reportFailures path, the closing "Current execution finished with errors"
-    // line the PHP original expects is NEVER printed here. Do not assert it.
-    expect(result.stdout).not.toContain('Current execution finished with errors');
+    expect(result.stderr).toContain('Current execution finished with errors');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -62,13 +58,13 @@ describe('invalid files config', () => {
       '/translations/%two_letters_code%/android.xml',
     ]);
 
-    // Same zero-match-group abort as above -- a nonexistent base folder also globs to zero matches.
+    // Same zero-match group as above -- a nonexistent base folder also globs to zero matches.
     expect(result.exitCode).toBe(1);
     expect(result.stdout).toContain('Fetching project info');
     expect(result.stderr).toContain(
       "No sources found for '/not-exists/**/*.*' pattern. Check the source paths in your configuration file",
     );
-    expect(result.stdout).not.toContain('Current execution finished with errors');
+    expect(result.stderr).toContain('Current execution finished with errors');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -124,8 +120,8 @@ describe('invalid files config', () => {
       '/translations/%two_letters_code%/android-not-exists.xml',
     ]);
 
-    // No prior test in this suite ever completes an actual upload (1-2 abort on zero matches, 3-4
-    // fail config validation before touching the API), so the project is still empty here --
+    // No prior test in this suite ever completes an actual upload (1-2 match zero files, 3-4 fail
+    // config validation before touching the API), so the project is still empty here --
     // 'sources/android.xml' was never pushed. UploadTranslationsCommand.ts's buildTranslationEntries
     // resolves the *source* pattern against the local disk first (it exists), then looks up that
     // project path in the (empty) file list and errors there -- before ever checking whether the
@@ -138,9 +134,8 @@ describe('invalid files config', () => {
     expect(result.exitCode).toBe(1);
     expect(result.stdout).toContain('Fetching project info');
     expect(result.stderr).toContain("Source file 'sources/android.xml' does not exist in the project");
-    // Unlike the upload-sources zero-match case above, this goes through the entriesHaveErrors path
-    // (not a thrown-mid-loop CliError), so the closing line IS printed here -- confirmed at
-    // UploadTranslationsCommand.ts and uploadFailures.ts's EXECUTION_FINISHED_WITH_ERRORS constant.
+    // entriesHaveErrors path -- UploadTranslationsCommand.ts and uploadFailures.ts's
+    // EXECUTION_FINISHED_WITH_ERRORS constant.
     expect(result.stderr).toContain('Current execution finished with errors');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
