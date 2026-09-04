@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { ProjectsGroupsModel, type ResponseObject, type TranslationsModel } from '@crowdin/crowdin-api-client';
+import { ProjectsGroupsModel, type TranslationsModel } from '@crowdin/crowdin-api-client';
 import AdmZip from 'adm-zip';
 import type { Command } from 'commander';
 import { printDryRunPaths } from '@/cli/commands/common/dryRunPaths.ts';
@@ -396,17 +396,9 @@ export default class DownloadCommand {
           skipUntranslatedFilesUsed = true;
         }
 
-        let build: ResponseObject<TranslationsModel.Build>;
-
-        try {
-          build = group.pseudo
-            ? await translationService.buildProjectTranslations(group.pseudo)
-            : await translationService.buildProjectTranslations(group.request);
-        } catch {
-          // Mirrors Java's ProjectBuildFailedException handling: warn and abort gracefully.
-          output.warning("Didn't manage to build translations");
-          return;
-        }
+        const build = group.pseudo
+          ? await translationService.buildProjectTranslations(group.pseudo)
+          : await translationService.buildProjectTranslations(group.request);
 
         const downloadUrl = await translationService.getTranslationDownloadUrl(build.data.id);
 
