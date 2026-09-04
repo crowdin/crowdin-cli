@@ -119,11 +119,12 @@ jobs:
       - name: Update npm
         run: npm install -g npm@11.18.0
 
-      - name: Publish
-        run: npm publish packages/npm/cli
+      - name: Stage publish
+        # Staged, not published: the launcher reaches the registry only once a maintainer approves it with 2FA
+        run: npm stage publish packages/npm/cli
 
   assets:
-    # Builds the standalone binaries and creates the GitHub release once the npm packages are published
+    # Builds the standalone binaries and creates the GitHub release once the platform packages are published and the launcher is staged
     needs: publish-cli
     runs-on: ubuntu-latest
     permissions:
