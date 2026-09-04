@@ -1,0 +1,36 @@
+name: Feature request
+description: Suggest an idea for Crowdin CLI
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your suggestion! Before proceeding:
+        - Check the [docs](https://crowdin.github.io/crowdin-cli/) to see if this already exists.
+        - Search [existing issues](https://github.com/crowdin/crowdin-cli/issues) for similar requests.
+        - If it needs a Crowdin API change rather than a CLI change, consider the [Crowdin Community](https://community.crowdin.com) instead.
+  - type: textarea
+    attributes:
+      label: Problem Description
+      description: What problem are you trying to solve? E.g. I'm always frustrated when...
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Proposed Solution
+      description: Describe your suggested solution. If it's a new command or option, show how you'd expect to call it.
+      placeholder: |
+        ```bash
+        crowdin download --skip-untranslated-files
+        ```
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Alternatives Considered
+      description: What alternative solutions or workarounds have you considered?
+  - type: textarea
+    attributes:
+      label: Additional Context
+      description: Any other context, examples, or links?

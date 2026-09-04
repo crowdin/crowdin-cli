@@ -1,0 +1,83 @@
+name: Bug report
+description: Report a problem with Crowdin CLI
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! Please note:
+        - For usage questions, ask on [GitHub Discussions](https://github.com/crowdin/crowdin-cli/discussions) or the [Crowdin Community](https://community.crowdin.com).
+        - Bug reports without reproduction steps may be closed.
+        - Remove API tokens and other secrets from any config or output you paste.
+  - type: checkboxes
+    attributes:
+      label: Verifications
+      options:
+        - label: I've searched [existing issues](https://github.com/crowdin/crowdin-cli/issues) and this hasn't been reported yet.
+          required: true
+        - label: I've checked [the docs](https://crowdin.github.io/crowdin-cli/) and this isn't expected behavior.
+          required: true
+        - label: I'm using the latest version of Crowdin CLI, and the problem still occurs.
+          required: true
+  - type: textarea
+    attributes:
+      label: Description
+      description: A clear description of the bug, including what actually happens.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Reproduction Steps
+      description: The command you ran and the relevant part of your `crowdin.yml`. Keep it minimal.
+      placeholder: |
+        1. Configuration:
+
+        ```yaml
+        files:
+          - source: /src/**/*.json
+            translation: /locales/%two_letters_code%/%original_file_name%
+        ```
+
+        2. Run `crowdin download --debug`.
+        3. Observe that ...
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Expected Behavior
+      description: What you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Output
+      description: Full output of the failing command, ideally with `--debug`. Redact tokens and project identifiers if needed.
+      render: shell
+  - type: input
+    attributes:
+      label: Crowdin CLI Version
+      description: Output of `crowdin --version`
+      placeholder: 5.0.2
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Installation Method
+      options:
+        - npm
+        - Homebrew
+        - Docker
+        - WinGet / Chocolatey / Windows installer
+        - Debian / RPM package
+        - Standalone binary
+        - GitHub Action
+        - Other
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Operating System
+      placeholder: macOS 15, Ubuntu 24.04, Windows 11
+    validations:
+      required: true

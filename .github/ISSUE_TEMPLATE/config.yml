@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://crowdin.github.io/crowdin-cli/
+    about: Installation, configuration, and command reference
+  - name: Ask a question
+    url: https://github.com/crowdin/crowdin-cli/discussions
+    about: Usage questions and help with your setup
+  - name: Crowdin Community
+    url: https://community.crowdin.com
+    about: Questions about Crowdin itself rather than the CLI
