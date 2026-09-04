@@ -1,0 +1,50 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`comment reports no comments before any exist 1`] = `"●  No comments found"`;
+
+exports[`comment uploads sources 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'strings.xml'"
+`;
+
+exports[`comment adds a plain comment 1`] = `"◆  #id Plain comment on welcome"`;
+
+exports[`comment adds an issue with a translation_mistake type 1`] = `"◆  #id Wrong translation of farewell"`;
+
+exports[`comment adds an issue with a source_mistake type 1`] = `"◆  #id Typo in the source of farewell"`;
+
+exports[`comment lists every comment 1`] = `
+"◆  #id Plain comment on welcome
+◆  #id Typo in the source of farewell
+◆  #id Wrong translation of farewell"
+`;
+
+exports[`comment lists comments filtered by string id 1`] = `"◆  #id Plain comment on welcome"`;
+
+exports[`comment lists only issues when filtered by type 1`] = `
+"◆  #id Typo in the source of farewell
+◆  #id Wrong translation of farewell"
+`;
+
+exports[`comment infers the issue type when only --issue-type is given 1`] = `"◆  #id Wrong translation of farewell"`;
+
+exports[`comment infers the issue type when only --status is given 1`] = `
+"◆  #id Typo in the source of farewell
+◆  #id Wrong translation of farewell"
+`;
+
+exports[`comment lists comments with the verbose view 1`] = `
+"●  Loading configuration from '<workspace>/comment/crowdin.yml' file
+◆  #id Typo in the source of farewell it source_mistake unresolved
+◆  #id Wrong translation of farewell uk translation_mistake unresolved"
+`;
+
+exports[`comment resolves a string issue 1`] = `
+"◆  A string issue #id has been successfully resolved
+#id Wrong translation of farewell"
+`;
+
+exports[`comment lists the resolved issue under the resolved status 1`] = `"◆  #id Wrong translation of farewell"`;
