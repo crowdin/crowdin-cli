@@ -122,12 +122,9 @@ describe('download sources', () => {
   test('downloads sources again with --output plain', async () => {
     await removeDownloadedSources(ctx);
 
-    // NOTE: unlike the PHP/Java CLI's `--plain` (which lists bare downloaded paths), the TS rewrite's
-    // real (non-dryrun) `download sources` path never checks `options.output` at all -- only the
-    // `--dryrun` branch does (DownloadCommand.ts ~line 166: `options.output === 'plain'` is inside
-    // `if (options.dryrun)`). Every `output.success/info/warning` call is additionally gated on
-    // `format === 'text'` (output.ts), so with `--output plain` those calls become silent no-ops and
-    // this real download is expected to print nothing at all, even though it still downloads correctly.
+    // `--output plain` stands in for the PHP/Java `--plain` flag: the per-file `output.success`
+    // lines are gated on `format === 'text'`, and the machine formats get the closing summary
+    // instead (DownloadCommand.ts), so plain lists the bare downloaded paths like the original.
     const result = await ctx.runner.run(['download', 'sources', '--output', 'plain']);
 
     expect(result.exitCode).toBe(0);

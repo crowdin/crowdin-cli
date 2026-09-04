@@ -7,8 +7,7 @@ import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.t
  *
  * `project browse` is not covered: `browseAction` calls `openUrl`, which spawns a real
  * `open`/`xdg-open`, so a test would pop a browser tab on every run. Nothing in the command is
- * injectable - covering it needs an opener seam in `cli/utils/open.ts`. While it stays untested,
- * note `browseAction` discards `openUrl`'s boolean and claims success even where nothing opened.
+ * injectable - covering it needs an opener seam in `cli/utils/open.ts`.
  *
  * Both subcommands are account-scoped. `project list` returns every project the token manages, so
  * it is never snapshotted - assertions anchor on the suite's own project instead. `project add`
@@ -170,8 +169,8 @@ describe('project', () => {
   });
 
   test('creates a project with no target languages when --language is omitted', async () => {
-    // Real behaviour, not intended: `--language` carries `required: true`, but `buildOption` never
-    // reads that field, so nothing enforces it. Enforcing it should flip this test.
+    // `--language` is deliberately optional (`cli/commands/project/options.ts`) - `buildOption` now
+    // enforces `required`, so an omitted language would fail at parse time if it were still set.
     const id = await addProject(projectName('nolang'), []);
 
     expect((await ctx.client.projectsGroupsApi.getProject(id)).data.targetLanguageIds).toEqual([]);

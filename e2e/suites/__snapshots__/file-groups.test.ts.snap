@@ -1,6 +1,6 @@
 // Bun Snapshot v1, https://bun.sh/docs/test/snapshots
 
-exports[`file groups uploads sources across overlapping file groups, then aborts on the empty pattern 1`] = `
+exports[`file groups uploads sources across overlapping file groups, then reports the empty pattern 1`] = `
 "●  Fetching project files
 ●  Fetching project info
 ●  Project files fetched
