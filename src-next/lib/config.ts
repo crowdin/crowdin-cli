@@ -39,6 +39,14 @@ const coercedBoolean = z.preprocess((value) => {
   return value;
 }, z.boolean());
 
+/**
+ * A file is multilingual via a `scheme` or an explicit `multilingual: true`, the rule Java's
+ * FileBean applies when it decides a language placeholder is not required.
+ */
+export function isMultilingualFile(file: { scheme?: unknown; multilingual?: boolean }): boolean {
+  return file.scheme !== undefined || file.multilingual === true;
+}
+
 export const ConfigSchema = z
   .object({
     // Optional here because the base tier (glossary, tm) talks to the API without a project context,
@@ -52,8 +60,8 @@ export const ConfigSchema = z
         .optional(),
     ),
     // Java only rejects an empty token (BaseProperties: isEmpty → missed_api_token); token length/
-    // validity is the API's job (401), not the config's. A local min-length check wrongly blamed the
-    // config file for a short --token flag, so match Java: reject only empty, let the API judge the rest.
+    // validity is the API's job (401), not the config's - a local min-length check blamed the config
+    // file for a short --token flag.
     apiToken: z.string().min(1, "Required option 'api_token' is missing").optional(),
     basePath: z.string().default('.'),
     baseUrl: z
@@ -104,9 +112,8 @@ export const ConfigSchema = z
             context: z.string().optional(),
             scheme: z.union([z.string(), z.record(z.string(), z.number())]).optional(),
             multilingual: coercedBoolean.optional(),
-            // Parsed for Java config parity but inert (Java reads `multilingual` only; this field is never consumed).
+            // Parsed for Java config parity but inert: Java reads `multilingual` only.
             multilingual_spreadsheet: coercedBoolean.optional(),
-            // Java parity: only the documented config values are accepted, normalized to the API enum.
             update_option: z
               .enum(Object.keys(UPDATE_OPTION_MAP) as [keyof typeof UPDATE_OPTION_MAP])
               .transform((value) => UPDATE_OPTION_MAP[value])
@@ -132,7 +139,7 @@ export const ConfigSchema = z
           // (FileBean.populateWithDefaultValues); every consumer then reads settled values.
           .transform((file) => {
             const translation = collapseSeparators(file.translation);
-            const isMultilingual = file.scheme !== undefined || file.multilingual === true;
+            const isMultilingual = isMultilingualFile(file);
             const hasLanguagePlaceholder = languagePatterns.some((pattern) => translation.includes(pattern));
 
             const normalized = {
@@ -200,13 +207,8 @@ export const ConfigSchema = z
         });
       }
 
-      // A language placeholder is required unless the file is multilingual — either via a `scheme`
-      // or an explicit `multilingual: true` (mirrors Java FileBean.checkProperties).
-      if (
-        file.scheme === undefined &&
-        !file.multilingual &&
-        !languagePatterns.some((pattern) => file.translation.includes(pattern))
-      ) {
+      // Mirrors Java FileBean.checkProperties.
+      if (!isMultilingualFile(file) && !languagePatterns.some((pattern) => file.translation.includes(pattern))) {
         ctx.addIssue({
           code: 'custom',
           message: "The 'translation' parameter should contain at least one language placeholder (e.g. %locale%)",
@@ -238,9 +240,8 @@ export function assertProjectConfigured(config: Config): asserts config is Proje
   }
 }
 
-// `files` is optional in the schema so credential-only commands (project list, browse, etc.) work.
-// File commands (upload/download/config lint) must call this to restore Java's parity error
-// (PropertiesWithFiles.checkProperties -> error.config.empty_or_missed_section_files).
+// File commands (upload/download/config lint) call this to restore Java's parity error, which the
+// optional `files` section drops (PropertiesWithFiles.checkProperties -> empty_or_missed_section_files).
 export function assertFilesConfigured(config: Config): void {
   if (config.files.length === 0) {
     throw new InvalidConfigurationError("Required section 'files' is missing (or empty) in the configuration file");

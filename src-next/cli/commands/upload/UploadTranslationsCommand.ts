@@ -19,8 +19,8 @@ import { isMachineFormat, isStructuredFormat } from '@/cli/utils/formatter.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import SourceFileLoader from '@/lib/config/SourceFileLoader.ts';
 import { resolveTranslationPath } from '@/lib/config/translationPathResolver.ts';
-import { assertFilesConfigured, type Config } from '@/lib/config.ts';
-import { languagePatterns } from '@/lib/export/patterns.ts';
+import { assertFilesConfigured, type Config, isMultilingualFile } from '@/lib/config.ts';
+import { containsLanguagePlaceholder } from '@/lib/export/languagePlaceholders.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
 import { getCommonPath, resolveProjectPath } from '@/lib/upload/fileOptions.ts';
@@ -199,8 +199,8 @@ export default class UploadTranslationsCommand {
    * Builds the list of translation uploads from local source files, mirroring Java's
    * UploadTranslationsAction: sources are resolved to project paths (honoring dest /
    * preserve_hierarchy / ignore), and each source expands to one entry per target language —
-   * or a single multi-language entry when a `scheme` is set and the translation pattern has no
-   * language placeholder.
+   * or a single multi-language entry for a multilingual file (a `scheme` or `multilingual: true`)
+   * whose translation pattern has no language placeholder.
    */
   private buildTranslationEntries(
     config: Config,
@@ -255,12 +255,10 @@ export default class UploadTranslationsCommand {
         }
 
         const firstLanguage = targetLanguages[0];
-        // A file is multilingual via a `scheme` or an explicit `multilingual: true` — the same
-        // rule config.ts applies when it decides a language placeholder is not required.
         const isMultilingual =
-          (patterns.scheme !== undefined || patterns.multilingual === true) &&
+          isMultilingualFile(patterns) &&
           firstLanguage !== undefined &&
-          !this.translationHasLanguagePlaceholder(patterns.translation);
+          !containsLanguagePlaceholder(patterns.translation);
 
         if (isMultilingual) {
           const translationPath = stripLeadingSlashes(
@@ -290,10 +288,6 @@ export default class UploadTranslationsCommand {
     }
 
     return { entries, hasErrors };
-  }
-
-  private translationHasLanguagePlaceholder(translation: string): boolean {
-    return languagePatterns.some((pattern) => translation.includes(pattern));
   }
 
   /**
