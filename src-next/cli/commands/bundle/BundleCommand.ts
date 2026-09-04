@@ -5,6 +5,7 @@ import type { Command } from 'commander';
 import { projectConfigGroup } from '@/cli/commands/common/options.ts';
 import { pathView } from '@/cli/commands/common/views.ts';
 import CliError from '@/cli/errors/CliError.ts';
+import NotFoundError from '@/cli/errors/NotFoundError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { AddBundlePayload, BundleView } from '@/cli/services/BundleService.ts';
 import type { GetBundleService, GetConfig, GetLabelService, GetOutput } from '@/cli/services.ts';
@@ -259,11 +260,7 @@ export default class BundleCommand {
     const bundle = await bundleService.get(id);
 
     if (!bundle) {
-      output.warning("Couldn't find bundle by the specified ID");
-      // An early exit still owes the machine formats a document: 'bailed' is carried by the exit
-      // code and the stderr diagnostic, not by an absent stdout, which reads as an empty result.
-      output.list([], pathView);
-      return;
+      throw new NotFoundError("Couldn't find bundle by the specified ID");
     }
 
     // Trigger the export and wait for the server to finish (the service owns the poll).
@@ -287,6 +284,7 @@ export default class BundleCommand {
     const downloadUrl = await bundleService.getDownloadUrl(id, exportId);
 
     await downloadToFile(downloadUrl, archivePath);
+
     output.success(`#${bundle.id} '${bundle.name}' has been successfully downloaded`);
 
     const zip = new AdmZip(archivePath);

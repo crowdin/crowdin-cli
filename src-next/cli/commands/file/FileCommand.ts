@@ -3,6 +3,7 @@ import path from 'node:path';
 import type { ResponseObject, SourceFilesModel, UploadStorageModel } from '@crowdin/crowdin-api-client';
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
+import { reportNoManagerAccess } from '@/cli/commands/common/managerAccess.ts';
 import { branch as branchOption, projectConfigGroup, tree as treeOption } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import FileExistsError from '@/cli/errors/FileExistsError.ts';
@@ -348,10 +349,7 @@ export default class FileCommand {
 
     // Manager/developer role is exposed as `languageMapping` only on the settings-bearing response.
     if (!hasManagerAccess(project)) {
-      output.warning('You must have manager or developer role in the project to perform this action');
-      // An early exit still owes the machine formats a document: 'bailed' is carried by the exit
-      // code and the stderr diagnostic, not by an absent stdout, which reads as an empty result.
-      this.reportFiles(output, options, [] as UploadedFile[], uploadedFileView);
+      reportNoManagerAccess(output, options.output);
       return;
     }
 
@@ -609,8 +607,8 @@ export default class FileCommand {
 
     if (project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED) {
       output.warning('File management is not available for string-based projects');
-      // An early exit still owes the machine formats a document: 'bailed' is carried by the exit
-      // code and the stderr diagnostic, not by an absent stdout, which reads as an empty result.
+      // An early exit still owes the machine formats a document; an absent stdout would read as an
+      // empty result either way.
       this.reportDownloaded(output, options, []);
       return;
     }
@@ -664,8 +662,8 @@ export default class FileCommand {
 
     if (project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED) {
       output.warning('File management is not available for string-based projects');
-      // An early exit still owes the machine formats a document: 'bailed' is carried by the exit
-      // code and the stderr diagnostic, not by an absent stdout, which reads as an empty result.
+      // An early exit still owes the machine formats a document; an absent stdout would read as an
+      // empty result either way.
       this.reportDownloaded(output, options, []);
       return;
     }
