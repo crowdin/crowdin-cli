@@ -244,13 +244,9 @@ describe('download translations --all', () => {
     expect(await Bun.file(join(ctx.workspace, 'files', zipName as string)).exists()).toBe(true);
   });
 
-  // `--plain` (PHP/Java) has no equivalent flag in src-next - the only machine-readable output
-  // switch is `--output <format>` (`cli/commands/global/options.ts`), which this substitutes with
-  // `--output plain`. That format gates `output.success`/`output.info` on `format === 'text'`
-  // (`cli/utils/output.ts`), and the real (non-dryrun) download path never calls `output.table(...)`
-  // - so unlike the PHP CLI (which lists the zip filename + extracted paths in plain text), this
-  // command likely prints nothing at all under `--output plain`. Assert on-disk effects only; let
-  // the snapshot capture whatever stdout actually is instead of guessing.
+  // `--output plain` stands in for the PHP/Java `--plain` flag: `output.success`/`output.info` are
+  // gated on `format === 'text'` (`cli/utils/output.ts`), and the machine formats get the closing
+  // summary instead - the kept zip plus the extracted paths, as the PHP CLI listed them.
   test('keeps the downloaded archive with plain output', async () => {
     await removeKeptArchive(ctx);
 
