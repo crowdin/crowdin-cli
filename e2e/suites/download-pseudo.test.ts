@@ -24,17 +24,10 @@ describe('download pseudo', () => {
   let ctx: SuiteContext;
 
   beforeAll(async () => {
-    // The pseudo-build's target language is derived server-side purely from
-    // `character_transformation` (crowdin-backend `Pseudolocalization::LANGUAGE_TO_TRANSFORMATION`:
-    // none -> en, asian -> zh-TW, european -> fr, cyrillic -> uk, arabic -> ar) - independent of the
-    // project's configured target languages (confirmed by reading `PseudoExport.php`, which builds a
-    // `language` object straight from that mapping). But the CLI's local archive-to-path mapping for
-    // `--pseudo` downloads (`DownloadCommand.translationsAction`) only ever iterates
-    // `project.data.targetLanguages` (src-next/cli/commands/download/DownloadCommand.ts ~L279-284),
-    // so a pseudo language that isn't a real target of the project would never get mapped/extracted
-    // locally. Using a non-English source lets `en` join `uk`/`zh-TW`/`fr`/`ar` as real targets,
-    // sidestepping that gap entirely - the original PHP test never had to worry about this because
-    // it ran against the old Java CLI.
+    // The pseudo build's language comes from `character_transformation` alone (none -> en, asian ->
+    // zh-TW, european -> fr, cyrillic -> uk, arabic -> ar), but the CLI only maps archive entries for
+    // the project's own target languages. A non-English source language lets `en` be a real target
+    // too, so every transformation has somewhere to land.
     ctx = await setupSuite('download-pseudo', {
       sourceLanguageId: 'de',
       targetLanguageIds: ['en', 'uk', 'zh-TW', 'fr', 'ar'],
@@ -166,12 +159,8 @@ describe('download pseudo', () => {
 
     expect(result.exitCode).toBe(2);
     expect(result.stderr).toContain('Invalid option: expected one of "asian"|"european"|"arabic"|"cyrillic"');
-    // The field path is NOT asserted: `cli/config.ts` maps zod issues with
-    // `issues.map((issue) => issue.message)`, which drops `issue.path`. Commit 047df3e3
-    // ("fix(config): updated api_token validation") replaced `z.prettifyError(parsed.error)` - whose
-    // output carries a `-> at <path>` line - with that mapping, so a config error no longer names the
-    // offending key. Restoring the path (e.g. appending `issue.path.join('.')`) should bring back an
-    // `at pseudoLocalization.<field>` assertion here.
+    // The offending key is not asserted: config errors report the message only, `issue.path` having
+    // been dropped when the pretty-printer was replaced.
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -182,12 +171,8 @@ describe('download pseudo', () => {
 
     expect(result.exitCode).toBe(2);
     expect(result.stderr).toContain('Invalid input: expected string, received number');
-    // The field path is NOT asserted: `cli/config.ts` maps zod issues with
-    // `issues.map((issue) => issue.message)`, which drops `issue.path`. Commit 047df3e3
-    // ("fix(config): updated api_token validation") replaced `z.prettifyError(parsed.error)` - whose
-    // output carries a `-> at <path>` line - with that mapping, so a config error no longer names the
-    // offending key. Restoring the path (e.g. appending `issue.path.join('.')`) should bring back an
-    // `at pseudoLocalization.<field>` assertion here.
+    // The offending key is not asserted: config errors report the message only, `issue.path` having
+    // been dropped when the pretty-printer was replaced.
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -198,12 +183,8 @@ describe('download pseudo', () => {
 
     expect(result.exitCode).toBe(2);
     expect(result.stderr).toContain('Too big: expected number to be <=100');
-    // The field path is NOT asserted: `cli/config.ts` maps zod issues with
-    // `issues.map((issue) => issue.message)`, which drops `issue.path`. Commit 047df3e3
-    // ("fix(config): updated api_token validation") replaced `z.prettifyError(parsed.error)` - whose
-    // output carries a `-> at <path>` line - with that mapping, so a config error no longer names the
-    // offending key. Restoring the path (e.g. appending `issue.path.join('.')`) should bring back an
-    // `at pseudoLocalization.<field>` assertion here.
+    // The offending key is not asserted: config errors report the message only, `issue.path` having
+    // been dropped when the pretty-printer was replaced.
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 });

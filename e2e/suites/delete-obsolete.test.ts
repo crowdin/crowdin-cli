@@ -22,13 +22,9 @@ async function projectDirectoryPaths(ctx: SuiteContext): Promise<string[]> {
 describe('delete obsolete', () => {
   let ctx: SuiteContext;
 
-  // PHP's `{$basePath}` placeholder is re-rendered per test step to point at a different fixture
-  // revision (sources/, sources_rev2/, ...). `renderConfig` only supports `{{projectId}}`/`{{token}}`,
-  // so instead of templating `base_path` we keep it fixed at "." in the fixture and drive the
-  // revision switch as a CLI flag (`--base-path <subdir>`) on every run - this resolves against the
-  // workspace root (where crowdin.yml lives), exactly matching what PHP's placeholder swap achieved.
-  // The two steps that also change the file-pattern `dest` (rev4, rev5) additionally swap the whole
-  // config via `switchConfig`, mirroring PHP's `prepareConfig($ymlConfig, self::file('config/crowdin_revN.yml'))`.
+  // PHP re-renders `base_path` per step to walk the fixture revisions; here `base_path` stays "." and
+  // each run passes `--base-path <revision>` instead. The two steps that also change a `dest` swap
+  // the whole config.
   beforeAll(async () => {
     ctx = await setupSuite('delete-obsolete', { targetLanguageIds: ['it', 'uk'] });
   });
@@ -75,9 +71,8 @@ describe('delete obsolete', () => {
       '--dryrun',
     ]);
 
-    // Exit 1 is correct: the fixture's second file group is '/*.csv' and sources_rev2/ has no CSV,
-    // so that group matches nothing and the run is flagged as failed. Java does the same in the
-    // default view (UploadSourcesAction sets errorsPresented and throws for an empty group).
+    // sources_rev2/ has no CSV, so the fixture's '/*.csv' group matches nothing and flags the run -
+    // as Java does.
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("No sources found for '/*.csv' pattern");
     expect(normalize(result.stdout)).toMatchSnapshot();

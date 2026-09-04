@@ -25,12 +25,10 @@ async function removeDownloadedSources(ctx: SuiteContext): Promise<void> {
 
 describe('download sources', () => {
   let ctx: SuiteContext;
-  // Captured once, right after setup, so test 'rejects --reviewed...' can switch back to it after the
-  // 'warns when a source pattern matches nothing' test swaps in alt-configs/no-sources.yml.
+  // Captured so a later test can switch back after the no-sources config is swapped in.
   let originalConfig: string;
-  // Captured from the fixture files before the first `download sources` test deletes the local copies.
-  // Reused by every later re-download/branch-download test since both the master upload and the `b1`
-  // branch upload came from the exact same fixture files (all byte-identical content anyway).
+  // Captured before the first download deletes the local copies; the branch upload used the same
+  // fixture files, so every later test compares against these bytes.
   const sourceContent = new Map<string, string>();
 
   beforeAll(async () => {
@@ -47,15 +45,14 @@ describe('download sources', () => {
 
     expect(result.exitCode).toBe(0);
 
-    // Captured before the output assertions below: these bytes are the baseline every later
-    // re-download test compares against, and an assertion failing here must not leave the map empty
-    // and cascade into 'No content was captured' across the whole suite.
+    // Captured before the assertions below, so a failure here does not cascade as 'No content was
+    // captured' through the rest of the suite.
     for (const relativePath of SOURCE_RELATIVE_PATHS) {
       sourceContent.set(relativePath, await Bun.file(join(ctx.workspace, relativePath)).text());
     }
 
-    // Directory and file success lines print the cumulative PROJECT path, so folder_1's group -
-    // which has a `dest` under `root/` - shows up prefixed, while folder_2's group does not.
+    // Success lines print the project path, so folder_1's `dest` prefix shows up and folder_2's
+    // group has none.
     expect(result.stdout).toContain("Directory 'folder_2'");
     expect(result.stdout).toContain("Directory 'root'");
     expect(result.stdout).toContain("Directory 'root/folder_1'");
@@ -73,9 +70,6 @@ describe('download sources', () => {
   });
 
   test('uploads the same nested source files to a brand-new branch', async () => {
-    // First upload to a brand-new branch always takes the create path (the existing-file map starts
-    // empty), so nothing here depends on how server paths are keyed; this suite never does a second
-    // upload to an already-existing branch.
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'b1']);
 
     expect(result.exitCode).toBe(0);
@@ -92,19 +86,14 @@ describe('download sources', () => {
     expect(result.exitCode).toBe(0);
     // Download success lines report the server-side project path (DownloadCommand.ts ~line 239:
     // `File '${download.relativePath}'`), which is `dest`-mapped for the folder_1 group.
-    //
-    // folder_1's `dest` uses `%original_path%`, which resolves to the source file's parent directory
-    // (`translationPathResolver.ts` / `fileOptions.ts` both return `parsed.dir`) - so
-    // `folder_1/f1/android.xml` lands on `root/folder_1/f1/android.xml`, with no doubled filename
-    // segment.
+    // folder_1's `dest` uses `%original_path%`, the source file's parent directory - so no doubled
+    // filename segment in the result.
     expect(result.stdout).toContain("File 'root/folder_1/android.xml'");
     expect(result.stdout).toContain("File 'root/folder_1/f1/android.xml'");
     expect(result.stdout).toContain("File 'root/folder_1/f1/f2/android.xml'");
     expect(result.stdout).toContain("File 'folder_2/android_1.xml'");
-    // `globToRegex` (lib/config/projectFileMatch.ts) translates `[...]` into a real regex character
-    // class, so the `/folder_2/android_[2-3].xml` source pattern matches server-side during download
-    // exactly as Bun's Glob matches it locally during upload. The same matcher backs
-    // `download translations` (lib/download/translationMapping.ts).
+    // A `[...]` class in the source pattern matches server-side during download exactly as it does
+    // locally during upload.
     expect(result.stdout).toContain("File 'folder_2/android_2.xml'");
     expect(result.stdout).toContain("File 'folder_2/android_3.xml'");
     expect(result.stdout).toContain("File 'folder_2/android_4a.xml'");
@@ -122,16 +111,13 @@ describe('download sources', () => {
   test('downloads sources again with --output plain', async () => {
     await removeDownloadedSources(ctx);
 
-    // `--output plain` stands in for the PHP/Java `--plain` flag: the per-file `output.success`
-    // lines are gated on `format === 'text'`, and the machine formats get the closing summary
-    // instead (DownloadCommand.ts), so plain lists the bare downloaded paths like the original.
+    // `--output plain` stands in for Java's `--plain`: bare downloaded paths instead of messages.
     const result = await ctx.runner.run(['download', 'sources', '--output', 'plain']);
 
     expect(result.exitCode).toBe(0);
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    // Same set of files as the previous test: `--output plain` only silences the messages, it does
-    // not change which files are matched or written.
+    // `--output plain` changes the messages, never which files are written.
     await expectFilesExist(ctx.workspace, ...SOURCE_RELATIVE_PATHS);
 
     for (const relativePath of SOURCE_RELATIVE_PATHS) {
@@ -144,12 +130,8 @@ describe('download sources', () => {
   test('downloads sources from the b1 branch', async () => {
     await removeDownloadedSources(ctx);
 
-    // `fileService.loadProjectFiles(branchId)` returns branch-scoped file paths *prefixed* with the
-    // branch name (e.g. `b1/folder_2/android_1.xml`), while `collectSourceDownloads` matches against
-    // the branch-agnostic `source`/`dest` patterns from crowdin.yml with an exact, non-prefixed regex
-    // under `preserve_hierarchy: true`. `DownloadCommand.stripBranchFromPaths` removes the prefix
-    // before the match (DownloadCommand.ts ~line 163), so every pattern group resolves on a branch
-    // exactly as it does on master - this asserts the same 7 files as the master download tests.
+    // Server paths carry the branch name; the download strips it before matching, so a branch
+    // resolves the same 7 files as master.
     const result = await ctx.runner.run(['download', 'sources', '-b', 'b1']);
 
     expect(result.exitCode).toBe(0);
@@ -170,7 +152,6 @@ describe('download sources', () => {
     const result = await ctx.runner.run(['download', 'sources']);
 
     expect(result.exitCode).toBe(0);
-    // Confirmed verbatim at DownloadCommand.ts ~line 743-745.
     expect(result.stderr).toContain(
       "No sources found for '/folder_not_exists/**/*.xml' pattern. Check the source paths in your configuration file",
     );
@@ -178,15 +159,13 @@ describe('download sources', () => {
   });
 
   test('rejects --reviewed on a non-Enterprise (SaaS) account', async () => {
-    // Restores the bytes captured in `beforeAll` - already rendered, so it goes straight to disk
-    // rather than back through `switchConfig`/`renderConfig`.
+    // Restores the bytes captured in `beforeAll`, already rendered.
     await Bun.write(join(ctx.workspace, 'crowdin.yml'), originalConfig);
 
     const result = await ctx.runner.run(['download', 'sources', '--reviewed']);
 
     expect(result.exitCode).toBe(0);
-    // Confirmed verbatim at DownloadCommand.ts:140 -- this e2e account is SaaS, not Enterprise, so this
-    // hits the same branch the PHP test's `else` (non-ENTERPRISE_MODE) arm expects.
+    // This account is SaaS, so this hits the PHP test's non-Enterprise arm.
     expect(result.stderr).toContain('Operation is available only for Crowdin Enterprise');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });

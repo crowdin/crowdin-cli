@@ -6,54 +6,22 @@ import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Ported from `crowdin-backend/tests/Cli/Common/CliTranslationReplaceTest.php` (13 `@depends`-chained
- * methods, all ported 1:1 below). Exercises `upload sources` / `upload translations` / `download
- * translations` against a small nested Android-resources source tree, both on the default branch and
- * on a brand-new branch ('test-branch') - the real subject is what happens on a second `upload
- * sources` call to a file that already exists (update, not create) and how translations behave
- * around that, plus the same cycle repeated on a branch.
+ * Ported from `crowdin-backend/tests/Cli/Common/CliTranslationReplaceTest.php`. Exercises upload
+ * sources / upload translations / download translations over a nested Android-resources tree, on the
+ * default branch and on a new one - the real subject being a second `upload sources` to a file that
+ * already exists, and how translations behave around it.
  *
- * Two deliberate deviations from a literal 1:1 port:
+ * Two deliberate deviations from a literal port:
  *
- * 1. `testUploadTranslationsBranch` in the PHP original calls `self::$cli->uploadTranslations()` with
- *    NO `-b test-branch` (unlike every other "Branch" method in the same file, which all pass it).
- *    Read literally, twice, to make sure it wasn't a transcription slip on this port's part - it
- *    really is the bare call in the original. Ported literally below (`'re-uploads translations to
- *    the already-translated master files ...'`): since the branch's OWN source files (uploaded in
- *    the previous test) never receive any translation this way, the two subsequent
- *    "...OnTheBranch"/"Branch" download tests are building a translation archive for files that have
- *    no translations at all - Crowdin's build endpoint still includes such files (falling back to
- *    source content) unless `skip_untranslated_files` is set, which this config never sets, so the
- *    download tests should still succeed structurally. This suite therefore only asserts file
- *    existence and stdout for the branch download step, NOT downloaded-content equality (unlike the
- *    master download test below, which does assert content) - flagged here for a human to double
- *    check on the first live run whether that reasoning holds or whether this was actually a bug in
- *    the original PHP test that happened to go unnoticed because its own assertions are equally weak
- *    at that point.
+ * 1. PHP's `testUploadTranslationsBranch` calls the upload with no `-b test-branch`, unlike every
+ *    other branch method in that file. Ported literally, so the branch's own sources never receive
+ *    translations and the branch download builds from source fallback - which is why the branch
+ *    download asserts existence and stdout only, not content equality.
+ * 2. The per-language translation content is genuinely distinct between it/uk; PHP's fixture uses
+ *    byte-identical text for every language, which would make a content assertion meaningless.
  *
- * 2. Per-language translation content was made genuinely distinct between it/uk (and different from
- *    the English source) so downloaded content can actually be verified; the real PHP fixture
- *    (`tests/var/Cli/Common/CliTranslationReplaceTest/`) uses byte-identical placeholder text
- *    ("first string"/"second string") for every language, which would make a content-equality
- *    assertion meaningless.
- *
- * The config is otherwise a literal port, `translation_replace` included - see the comment in
- * `../fixtures/translation-replace/config/crowdin.yml`. It used to carry a `**`-based stand-in
- * pattern with `translation_replace` dropped, because `%original_path%` then resolved to the full
- * source path *including* the filename; it now resolves to the parent directory
- * (`translationPathResolver.ts`), which is exactly what makes `translation_replace` load-bearing
- * again - the resolved path keeps the source pattern's fixed `en/` prefix for the replace to strip.
- *
- * Both the non-branch and the branch "update sources" tests are expected to PASS (no "created"
- * lines, successful update): the existing-file lookup that once ignored Crowdin's branch-name path
- * prefix now routes through `stripBranchPrefix` in both `UploadSourcesCommand.ts` and
- * `UploadTranslationsCommand.ts`.
- *
- * `upload sources -b <branch>` prints no branch-creation/already-exists message at all (confirmed by
- * reading `UploadSourcesCommand.ts`/`BranchService.getOrCreateBranch` - fully silent, matching this
- * effort's established finding from `file-tree.test.ts`), and directory/file success messages use the
- * LOCAL path with no branch-name prefix - so branch-upload output text is identical to the
- * non-branch upload's, confirmed by the same source read.
+ * `upload sources -b <branch>` prints no branch message at all, and directory/file success lines use
+ * the local path with no branch prefix, so branch output is identical to the non-branch upload's.
  */
 
 const MASTER_SOURCE_FILE_PATHS = [

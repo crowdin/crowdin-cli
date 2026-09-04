@@ -4,44 +4,23 @@ import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.t
 
 /**
  * Port of crowdin-backend/tests/Cli/Common/CliUploadSingleFileTest.php: uploading one file via a
- * single-file `-s`/`-t` (or `--source`/`--translation`) pair, on its own, combined with a config
- * file, combined with a config file plus `--dest`, with an empty file, with an empty `files:`
- * config group, with an empty file uploaded to a branch, and with `--preserve-hierarchy`.
+ * single-file `-s`/`-t` pair, alone and in combination with a config file, `--dest`, an empty file,
+ * an empty `files:` group, a branch, and `--preserve-hierarchy`.
  *
- * Two things confirmed directly from source this session, both load-bearing for how this suite
- * reads:
+ * Two rules shape how the whole suite reads:
  *
- * 1. `cli/config.ts`'s `cliLayer()` treats a CLI-given `--source`+`--translation` pair as a full
- *    REPLACEMENT of `config.files`, not a merge -- confirmed by reading `cliLayer()` directly
- *    (`if (options.source && options.translation) { layer.files = [{ source, translation, ...dest
- *    }] }`, unconditionally overwriting whatever `config.files` the file/other layers produced).
- *    So every test below that passes both flags (all except "uploads every file from the config's
- *    own file group") exercises the *identical* single-file upload regardless of whether a config
- *    file is also present -- the "combined with a config file" tests only differ from the
- *    no-config tests in *where the credentials/base_path/base_url come from*, never in which file
- *    gets uploaded or how. This mirrors the same rule already confirmed by
- *    invalid-files-config.test.ts.
- * 2. `preserve_hierarchy` resolves to `true` for *every* upload in this suite, so the local
- *    `sources/` prefix is carried into the project path from the very first test - not deferred to
- *    the `--dest` test the way the PHP original assumes (PHP's Java-descended CLI defaults
- *    `preserve_hierarchy` to `false`, stripping the single file's containing directory). It is the
- *    fixture's own `preserve_hierarchy: true` that does this, not a flag default: `--preserve-hierarchy`
- *    and `--no-preserve-hierarchy` are two separate options (`cli/commands/common/options.ts`) with
- *    no default, so `options.preserveHierarchy` is `undefined` unless one is passed and
- *    `assembleConfig` never lets it clobber the yaml value. And the fixture applies even to the
- *    `noConfig: true` runs: that option only drops the explicit `-c` flag, after which
- *    `resolveConfigPath` finds `<workspace>/crowdin.yml` by auto-discovery anyway. Consequences:
- *    (a) the project ends up with a `sources` directory created by the very first test, so no later
- *    test in this file ever prints a `Directory sources created` line; (b) the final test's explicit
- *    `--preserve-hierarchy` matches the value already in effect throughout - included to keep 1:1
- *    method parity with the PHP original, not because it changes anything observable here.
+ * 1. A CLI `--source`+`--translation` pair REPLACES `config.files` rather than merging into it, so
+ *    every test passing both uploads the same single file whether or not a config file is present -
+ *    the config only supplies credentials and paths.
+ * 2. `preserve_hierarchy` is true for every upload here (the fixture's own value; `noConfig: true`
+ *    only drops the `-c` flag, and the config is still auto-discovered). So the local `sources/`
+ *    prefix reaches the project path from the first test on, the `sources` directory is created
+ *    once and never again, and the final test's explicit `--preserve-hierarchy` changes nothing -
+ *    it exists for 1:1 parity with the PHP original.
  *
- * Also note: `output.success`/`output.warning` for `upload sources` always report the local file
- * path (confirmed at UploadSourcesCommand.ts, and by every prior suite that upload sources), never
- * the project-side path `--dest` or `preserve_hierarchy` computes -- so unlike the PHP original,
- * this suite's assertions never change shape between the plain-path and `--dest`/branch tests; only
- * `toMatchSnapshot()` and the one direct API check in the `--dest` test observe the project-side
- * path at all.
+ * `upload sources` always reports the LOCAL file path, so the assertions never change shape between
+ * the plain and `--dest`/branch tests; only the snapshots and the one API check observe the
+ * project-side path.
  */
 describe('upload single file', () => {
   let ctx: SuiteContext;
@@ -83,9 +62,7 @@ describe('upload single file', () => {
     expect(result.stdout).toContain('Fetching project info');
     // Success echoes the project path; with no `--dest` here it equals the local one.
     expect(result.stdout).toContain("File 'sources/1_android.xml'");
-    // First upload in the suite: the project has no `sources` directory yet, and the fixture's
-    // `preserve_hierarchy: true` (see this file's top comment) carries the local `sources/` prefix
-    // straight into the project path, so the directory has to be created here.
+    // First upload in the suite, so the `sources` directory is created here and nowhere else.
     expect(result.stdout).toContain("Directory 'sources'");
 
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -119,18 +96,14 @@ describe('upload single file', () => {
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('Fetching project info');
     expect(result.stdout).toContain("File 'sources/1_android.xml'");
-    // The project's `sources` directory and the file itself both already exist from the previous
-    // test, so this is an update, not a create -- no second directory-creation line.
+    // Both the directory and the file already exist, so this is an update.
     expect(result.stdout).not.toContain("Directory 'sources'");
 
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('uploads the same file combined with a config file, replacing its files entry', async () => {
-    // The fixture's crowdin.yml has its own `files:` entry ('/sources/*.xml'), but per this file's
-    // top comment, a CLI-given --source/--translation pair fully replaces it -- so this exercises
-    // the identical single-file upload as the previous two tests, just sourcing credentials/
-    // base_path/base_url from the config file instead of -i/-T/--base-url.
+    // Same single-file upload as above; only the credentials now come from the config file.
     const result = await ctx.runner.run([
       'upload',
       'sources',
@@ -170,16 +143,12 @@ describe('upload single file', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('Fetching project info');
-    // The `--dest`-resolved PROJECT path, not the local one: success messages echo the project path,
-    // so `--dest sources/androidDest.xml` shows up here directly. The `sources` directory already
-    // exists (created by the first test), so no directory-creation line either.
     expect(result.stdout).toContain("File 'sources/androidDest.xml'");
     expect(result.stdout).not.toContain("Directory 'sources'");
 
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    // The only way to actually observe the `--dest`-resolved project path is via the API -- stdout
-    // never shows it (see above).
+    // stdout never shows the `--dest`-resolved project path, so the API is the only witness.
     const files = await ctx.client.sourceFilesApi.listProjectFiles(ctx.project.id, { recursion: '1' });
     const destFile = files.data.find((file) => file.data.path === '/sources/androidDest.xml');
     expect(destFile).toBeDefined();
@@ -199,27 +168,17 @@ describe('upload single file', () => {
       console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
     }
 
-    // A CLI warning does not set a non-zero exit code (confirmed by prior ports): the per-file task
-    // just warns and returns, never touching `hasErrors`.
+    // A skipped file warns without failing the run.
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('Fetching project info');
-    // Confirmed wording at UploadSourcesCommand.ts: `output.warning(\`File '${localFilePath}' was
-    // skipped since it is empty\`)`, hit before any existing-file/directory logic runs.
     expect(result.stderr).toContain("File 'sources/empty_android.xml' was skipped since it is empty");
 
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test("uploads every file from the config's own file group, skipping the empty ones", async () => {
-    // No -s/-t here, so this is the one test in the suite actually driven by the fixture's
-    // `files:` entry ('/sources/*.xml'), matching 4 local files: the two already-uploaded
-    // 1_android.xml (update) and androidDest.xml's source 1_android.xml again, plus 2_android.xml
-    // (brand new, create) and the two empty files (skipped with a warning each).
-    //
-    // The group's pattern matches 4 real local files, so it never trips the zero-match branch in
-    // `UploadSourcesCommand.ts` ("No sources found for '<pattern>' pattern", which flags an error
-    // and skips just that group). The empty-file skip below happens per-file, inside each task,
-    // well after that check.
+    // The one test driven by the fixture's own `files:` group: 1_android.xml updates, 2_android.xml
+    // is created, and the two empty files are skipped with a warning each.
     const result = await ctx.runner.run(['upload', 'sources']);
 
     if (result.exitCode !== 0) {
@@ -232,8 +191,6 @@ describe('upload single file', () => {
     expect(result.stderr).toContain("File 'sources/empty_android2.xml' was skipped since it is empty");
     expect(result.stdout).toContain("File 'sources/1_android.xml'");
     expect(result.stdout).toContain("File 'sources/2_android.xml'");
-    // 2_android.xml is new; 1_android.xml already exists -- but the `sources` directory itself was
-    // already created by the very first test in this file, so no directory-creation line either way.
     expect(result.stdout).not.toContain("Directory 'sources'");
 
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -257,19 +214,15 @@ describe('upload single file', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('Fetching project info');
-    // No branch-creation message at all -- `branchService.getOrCreateBranch()` silently creates the
-    // brand-new 'test' branch (confirmed at BranchService.ts and by branches.test.ts's equivalent
-    // finding). The empty-file warning also carries no branch prefix -- it is always the bare local
-    // path, unlike the PHP original's project-path-based "test/empty_android.xml".
+    // The branch is created silently, and the empty-file warning names the bare local path - not
+    // the PHP original's branch-prefixed project path.
     expect(result.stderr).toContain("File 'sources/empty_android.xml' was skipped since it is empty");
 
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('uploads the same file again with --preserve-hierarchy explicitly set', async () => {
-    // `--preserve-hierarchy` here matches the fixture's `preserve_hierarchy: true` (this file's top
-    // comment), so it changes nothing. Kept only for 1:1 parity with the PHP original's method
-    // count -- it does not exercise anything the earlier tests didn't already.
+    // Matches the value already in effect; kept for parity with the PHP original.
     const result = await ctx.runner.run([
       'upload',
       'sources',

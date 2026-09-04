@@ -5,12 +5,8 @@ import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * `crowdin.yml` here (fixtures/identity/config/crowdin.yml) carries only `base_path` /
- * `preserve_hierarchy` / `files:` - no `project_id`/`api_token`/`base_url`. Those four credentials
- * come exclusively from a second file passed via `--identity`, written here with real post-setup
- * values (same shape as env-variables.test.ts's dynamically-written `.env` file - setupSuite's
- * `writeConfig` only substitutes `{{projectId}}`/`{{token}}` in crowdin.yml, so it can't populate an
- * identity file for us).
+ * The fixture's `crowdin.yml` carries no credentials at all: they come from a second file passed
+ * via `--identity`, written here with the real post-setup values.
  *
  * Per cli/config.ts's assembleConfig, layers apply lowest-priority-first:
  * envFallbackLayer -> mapConfig(raw config file) -> envKeyLayer -> identityLayer -> cliLayer.
