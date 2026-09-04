@@ -1,0 +1,44 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`custom segmentation rejects an invalid SRX file for every source file 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory 'sources'"
+`;
+
+exports[`custom segmentation rejects an SRX file with an invalid regular expression 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched"
+`;
+
+exports[`custom segmentation uploads sources once a valid SRX file is supplied 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/sample.docx'
+◆  File 'sources/strings.xml'"
+`;
+
+exports[`custom segmentation updates sources after the SRX rules change 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/sample.docx'
+◆  File 'sources/strings.xml'"
+`;
+
+exports[`custom segmentation uploads sources to a dest path and reflects the earlier SRX rules update on the original docx 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory 'Folder'
+◆  File 'Folder/sample.docx'
+◆  File 'Folder/strings.xml'"
+`;

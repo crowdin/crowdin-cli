@@ -1,0 +1,28 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`bundle uploads sources for the bundle 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sample.json'
+◆  File 'sample.xml'"
+`;
+
+exports[`bundle adds a bundle 1`] = `"◆ #id macosx all.string RegularBundle"`;
+
+exports[`bundle adds a bundle with plain output 1`] = `"<id> BundleCreatedWithPlainOutput"`;
+
+exports[`bundle downloads the bundle 1`] = `
+"●  Building bundle
+●  Building bundle: 100%
+●  Building bundle: 100%
+●  Building bundle: 100%
+◆  #id 'RegularBundle' has been successfully downloaded
+◆  it/all.string
+◆  uk/all.string"
+`;
+
+exports[`bundle reports an empty bundle list 1`] = `"●  No bundles found"`;
+
+exports[`bundle deletes a bundle 1`] = `"◆  Bundle #id deleted"`;

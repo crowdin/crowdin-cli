@@ -1,0 +1,153 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`download translations --all uploads sources 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory 'root'
+◆  Directory 'root/folder'
+◆  Directory 'root/{{cookiecutter.module_name}}'
+◆  File 'root/android.xml'
+◆  File 'root/folder/android.xml'
+◆  File 'root/{{cookiecutter.module_name}}/android.xml'"
+`;
+
+exports[`download translations --all previews downloading all translations (dry run) 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  translations/it/android.xml
+◆  translations/it/folder/android.xml
+◆  translations/it/{{cookiecutter.module_name}}/android.xml
+◆  translations/uk/android.xml
+◆  translations/uk/folder/android.xml
+◆  translations/uk/{{cookiecutter.module_name}}/android.xml"
+`;
+
+exports[`download translations --all downloads all translations 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File 'translations/it/android.xml' extracted
+◆  File 'translations/it/folder/android.xml' extracted
+◆  File 'translations/it/{{cookiecutter.module_name}}/android.xml' extracted
+◆  File 'translations/uk/android.xml' extracted
+◆  File 'translations/uk/folder/android.xml' extracted
+◆  File 'translations/uk/{{cookiecutter.module_name}}/android.xml' extracted"
+`;
+
+exports[`download translations --all uploads sources to a new branch 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Branch 'b1'
+◆  Directory 'root'
+◆  Directory 'root/folder'
+◆  Directory 'root/{{cookiecutter.module_name}}'
+◆  File 'root/android.xml'
+◆  File 'root/folder/android.xml'
+◆  File 'root/{{cookiecutter.module_name}}/android.xml'"
+`;
+
+exports[`download translations --all downloads translations for the branch 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File 'translations/it/android.xml' extracted
+◆  File 'translations/it/folder/android.xml' extracted
+◆  File 'translations/it/{{cookiecutter.module_name}}/android.xml' extracted
+◆  File 'translations/uk/android.xml' extracted
+◆  File 'translations/uk/folder/android.xml' extracted
+◆  File 'translations/uk/{{cookiecutter.module_name}}/android.xml' extracted"
+`;
+
+exports[`download translations --all reports an empty archive when skipping untranslated files 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done"
+`;
+
+exports[`download translations --all keeps the downloaded archive for the branch 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+●  Translations built
+◆  Archive saved to '<workspace>/files/crowdin-translations.zip'
+◆  Done
+◆  File 'translations/it/android.xml' extracted
+◆  File 'translations/it/folder/android.xml' extracted
+◆  File 'translations/it/{{cookiecutter.module_name}}/android.xml' extracted
+◆  File 'translations/uk/android.xml' extracted
+◆  File 'translations/uk/folder/android.xml' extracted
+◆  File 'translations/uk/{{cookiecutter.module_name}}/android.xml' extracted"
+`;
+
+exports[`download translations --all deletes the branch 1`] = `"◆  Branch 'b1' deleted"`;
+
+exports[`download translations --all keeps the downloaded archive 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+●  Translations built
+◆  Archive saved to '<workspace>/files/crowdin-translations.zip'
+◆  Done
+◆  File 'translations/it/android.xml' extracted
+◆  File 'translations/it/folder/android.xml' extracted
+◆  File 'translations/it/{{cookiecutter.module_name}}/android.xml' extracted
+◆  File 'translations/uk/android.xml' extracted
+◆  File 'translations/uk/folder/android.xml' extracted
+◆  File 'translations/uk/{{cookiecutter.module_name}}/android.xml' extracted"
+`;
+
+exports[`download translations --all keeps the downloaded archive for a single language 1`] = `
+"●  Building translations for languages: uk
+●  Building translations...
+●  Downloading translations
+●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+●  Translations built
+◆  Archive saved to '<workspace>/files/crowdin-translations.zip'
+◆  Done
+◆  File 'translations/uk/android.xml' extracted
+◆  File 'translations/uk/folder/android.xml' extracted
+◆  File 'translations/uk/{{cookiecutter.module_name}}/android.xml' extracted"
+`;
+
+exports[`download translations --all keeps the downloaded archive with plain output 1`] = `
+"crowdin-translations.zip
+translations/it/android.xml
+translations/it/folder/android.xml
+translations/it/{{cookiecutter.module_name}}/android.xml
+translations/uk/android.xml
+translations/uk/folder/android.xml
+translations/uk/{{cookiecutter.module_name}}/android.xml"
+`;

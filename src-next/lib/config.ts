@@ -25,8 +25,22 @@ function normalizeBaseUrl(url: string): string {
   return url.replace(/\/(api(\/|\/v2\/?)?)?$/, '');
 }
 
-// Java coerces booleans via setBooleanPropertyIfExists ("1" -> true, else Boolean.valueOf),
-// so accept 0/1 and their string forms in addition to real booleans.
+/**
+ * Separators collapse to '/', and the pattern gets a * leading '/' unless it belongs to a multilingual file
+ * with no language placeholder. The leading separator matters on the wire — Crowdin silently ignores a file
+ * export pattern that doesn't start with '/' and falls back to the default '/%locale%/%original_path%'.
+ */
+function normalizeTranslation(file: { translation: string; scheme?: unknown; multilingual?: boolean }): string {
+  const normalized = file.translation.replace(/[\\/]+/g, '/');
+  const multilingual = file.scheme !== undefined || file.multilingual === true;
+
+  if (multilingual && !languagePatterns.some((pattern) => normalized.includes(pattern))) {
+    return normalized.replace(/^\/+/, '');
+  }
+
+  return normalized.startsWith('/') ? normalized : `/${normalized}`;
+}
+
 const coercedBoolean = z.preprocess((value) => {
   if (value === 1 || value === '1' || value === true || value === 'true') {
     return true;
@@ -226,14 +240,14 @@ export const ConfigSchema = z
     });
   });
 
-// Mirrors Java's BaseProperties: credentials and file rules, no project context required.
+// Credentials and file rules, no project context required.
 export type Config = z.infer<typeof ConfigSchema>;
 
-// Mirrors Java's ProjectProperties: a Config whose project_id has been validated. Only the
+// Config whose project_id has been validated. Only the
 // project-scoped services ask for this; everything else is happy with a plain Config.
 export type ProjectConfig = Config & { projectId: number };
 
-// Project-scoped commands (Java ProjectProperties.checkProperties -> error.config.missed_project_id).
+// Project-scoped commands.
 export function assertProjectConfigured(config: Config): asserts config is ProjectConfig {
   if (config.projectId === undefined) {
     throw new InvalidConfigurationError("Required option 'project_id' is missing");

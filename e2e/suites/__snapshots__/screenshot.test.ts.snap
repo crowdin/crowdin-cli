@@ -1,0 +1,12 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`screenshot reports a project with no screenshots 1`] = `"●  No screenshot found"`;
+
+exports[`screenshot rejects a file that is not an allowed image format 1`] = `"■  Wrong format of the file. Supported formats: jpeg, jpg, png, gif"`;
+
+exports[`screenshot uploads a screenshot and attaches a label 1`] = `"◆  #id 0 screenshot.png"`;
+
+exports[`screenshot lists both screenshots with id and tag count 1`] = `
+"◆  #id 0 screenshot.png
+◆  #id 0 second.png"
+`;

@@ -1,0 +1,266 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`full CLI project workflow previews the source upload 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  File 'sources/alpha.md' would be created
+●  File 'sources/beta.md' would be created
+●  File 'sources/gamma.md' would be created
+●  Project files fetched
+●  Project info fetched"
+`;
+
+exports[`full CLI project workflow previews the source upload as a tree 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+.
+╰─ sources
+   ├─ alpha.md
+   ├─ beta.md
+   ╰─ gamma.md"
+`;
+
+exports[`full CLI project workflow previews the source upload as plain output 1`] = `
+"sources/alpha.md
+sources/beta.md
+sources/gamma.md"
+`;
+
+exports[`full CLI project workflow uploads all source files to a fresh project 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory 'sources'
+◆  File 'sources/alpha.md'
+◆  File 'sources/beta.md'
+◆  File 'sources/gamma.md'"
+`;
+
+exports[`full CLI project workflow updates existing source files 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/alpha.md'
+◆  File 'sources/beta.md'
+◆  File 'sources/gamma.md'"
+`;
+
+exports[`full CLI project workflow previews the translation upload 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  File 'translations/it/alpha.md' would be queued for translations import
+●  File 'translations/it/beta.md' would be queued for translations import
+●  File 'translations/it/gamma.md' would be queued for translations import
+●  File 'translations/uk/alpha.md' would be queued for translations import
+●  File 'translations/uk/beta.md' would be queued for translations import
+●  File 'translations/uk/gamma.md' would be queued for translations import
+●  Project files fetched
+●  Project info fetched"
+`;
+
+exports[`full CLI project workflow previews the translation upload as a tree 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+.
+╰─ translations
+   ├─ it
+   │  ├─ alpha.md
+   │  ├─ beta.md
+   │  ╰─ gamma.md
+   ╰─ uk
+      ├─ alpha.md
+      ├─ beta.md
+      ╰─ gamma.md"
+`;
+
+exports[`full CLI project workflow previews the translation upload as plain output 1`] = `
+"translations/it/alpha.md
+translations/it/beta.md
+translations/it/gamma.md
+translations/uk/alpha.md
+translations/uk/beta.md
+translations/uk/gamma.md"
+`;
+
+exports[`full CLI project workflow uploads translations for every target language 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Importing translations for file 'translations/it/alpha.md'
+●  Importing translations for file 'translations/it/beta.md'
+●  Importing translations for file 'translations/it/gamma.md'
+●  Importing translations for file 'translations/uk/alpha.md'
+●  Importing translations for file 'translations/uk/beta.md'
+●  Importing translations for file 'translations/uk/gamma.md'
+●  Project files fetched
+●  Project info fetched
+◆  File 'translations/it/alpha.md'
+◆  File 'translations/it/beta.md'
+◆  File 'translations/it/gamma.md'
+◆  File 'translations/uk/alpha.md'
+◆  File 'translations/uk/beta.md'
+◆  File 'translations/uk/gamma.md'"
+`;
+
+exports[`full CLI project workflow uploads translations for a single language 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Importing translations for file 'translations/uk/alpha.md'
+●  Importing translations for file 'translations/uk/beta.md'
+●  Importing translations for file 'translations/uk/gamma.md'
+●  Project files fetched
+●  Project info fetched
+◆  File 'translations/uk/alpha.md'
+◆  File 'translations/uk/beta.md'
+◆  File 'translations/uk/gamma.md'"
+`;
+
+exports[`full CLI project workflow previews the translation download 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  translations/it/alpha.md
+◆  translations/it/beta.md
+◆  translations/it/gamma.md
+◆  translations/uk/alpha.md
+◆  translations/uk/beta.md
+◆  translations/uk/gamma.md"
+`;
+
+exports[`full CLI project workflow previews the translation download as a tree 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+.
+╰─ translations
+   ├─ it
+   │  ├─ alpha.md
+   │  ├─ beta.md
+   │  ╰─ gamma.md
+   ╰─ uk
+      ├─ alpha.md
+      ├─ beta.md
+      ╰─ gamma.md"
+`;
+
+exports[`full CLI project workflow previews the translation download as plain output 1`] = `
+"translations/it/alpha.md
+translations/it/beta.md
+translations/it/gamma.md
+translations/uk/alpha.md
+translations/uk/beta.md
+translations/uk/gamma.md"
+`;
+
+exports[`full CLI project workflow downloads translations for every target language 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File 'translations/it/alpha.md' extracted
+◆  File 'translations/it/beta.md' extracted
+◆  File 'translations/it/gamma.md' extracted
+◆  File 'translations/uk/alpha.md' extracted
+◆  File 'translations/uk/beta.md' extracted
+◆  File 'translations/uk/gamma.md' extracted"
+`;
+
+exports[`full CLI project workflow downloads translations for a single language 1`] = `
+"●  Building translations for languages: uk
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File 'translations/uk/alpha.md' extracted
+◆  File 'translations/uk/beta.md' extracted
+◆  File 'translations/uk/gamma.md' extracted"
+`;
+
+exports[`full CLI project workflow lists project source files as a tree 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+.
+╰─ sources
+   ├─ alpha.md
+   ├─ beta.md
+   ╰─ gamma.md"
+`;
+
+exports[`full CLI project workflow lists configured source files 1`] = `
+"●  Fetching project info
+●  Project info fetched
+◆  sources/alpha.md
+◆  sources/beta.md
+◆  sources/gamma.md"
+`;
+
+exports[`full CLI project workflow lists configured source files as a tree 1`] = `
+"●  Fetching project info
+●  Project info fetched
+.
+╰─ sources
+   ├─ alpha.md
+   ├─ beta.md
+   ╰─ gamma.md"
+`;
+
+exports[`full CLI project workflow lists configured translation files 1`] = `
+"●  Fetching project info
+●  Project info fetched
+◆  translations/it/alpha.md
+◆  translations/it/beta.md
+◆  translations/it/gamma.md
+◆  translations/uk/alpha.md
+◆  translations/uk/beta.md
+◆  translations/uk/gamma.md"
+`;
+
+exports[`full CLI project workflow lists configured translation files as a tree 1`] = `
+"●  Fetching project info
+●  Project info fetched
+.
+╰─ translations
+   ├─ it
+   │  ├─ alpha.md
+   │  ├─ beta.md
+   │  ╰─ gamma.md
+   ╰─ uk
+      ├─ alpha.md
+      ├─ beta.md
+      ╰─ gamma.md"
+`;
+
+exports[`full CLI project workflow lists target languages 1`] = `
+"●  Fetching project info
+●  Project info fetched
+◆  it Italian
+◆  uk Ukrainian"
+`;
+
+exports[`full CLI project workflow downloads sources 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/alpha.md'
+◆  File 'sources/beta.md'
+◆  File 'sources/gamma.md'"
+`;
+
+exports[`full CLI project workflow validates a correct configuration file 1`] = `"◆  Your configuration file looks good"`;
+
+exports[`full CLI project workflow reports an invalid configuration file 1`] = `""`;

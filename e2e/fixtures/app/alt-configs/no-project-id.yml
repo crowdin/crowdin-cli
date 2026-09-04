@@ -1,0 +1,5 @@
+# `app` sits in the project tier (`projectConfigGroup` in cli/commands/common/options.ts), so
+# `project_id` is required even though none of the three subcommands sends one to the API.
+api_token: "{{token}}"
+base_path: "."
+base_url: "https://api.crowdin.com"

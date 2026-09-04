@@ -1,0 +1,44 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`file uploads a file, creating its directory 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  #id sources/app.xml
+◆  Directory 'sources'"
+`;
+
+exports[`file skips an existing file with --no-auto-update 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project already contains the file 'sources/app.xml'
+●  Project files fetched
+●  Project info fetched"
+`;
+
+exports[`file uploads a file into a branch it creates 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  #id feature/sources/extra.xml
+◆  Branch 'feature'
+◆  Directory 'feature/sources'"
+`;
+
+exports[`file downloads a source file back to its own path 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File '/sources/app.xml'"
+`;
+
+exports[`file deletes a file inside a branch 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File '/sources/extra.xml' deleted"
+`;

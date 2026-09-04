@@ -1,0 +1,153 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`string uploads sources 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'android.xml'
+◆  File 'text.txt'"
+`;
+
+exports[`string lists all source strings 1`] = `
+"◆  #id First text string.
+◆  #id Second text string.
+◆  #id str1 first string
+◆  #id str2 second string
+◆  #id str_with_quote first string source' with quotes
+◆  #id str_with_tag <span>first string source\` with tag</span>"
+`;
+
+exports[`string lists source strings authenticating via -T/-i against a config without an api_token 1`] = `
+"◆  #id First text string.
+◆  #id Second text string.
+◆  #id str1 first string
+◆  #id str2 second string
+◆  #id str_with_quote first string source' with quotes
+◆  #id str_with_tag <span>first string source\` with tag</span>"
+`;
+
+exports[`string lists source strings filtered by file 1`] = `
+"◆  #id str1 first string
+◆  #id str2 second string
+◆  #id str_with_quote first string source' with quotes
+◆  #id str_with_tag <span>first string source\` with tag</span>"
+`;
+
+exports[`string lists source strings filtered by identifier/text/context 1`] = `"◆  #id str1 first string"`;
+
+exports[`string lists source strings verbosely, including file and context 1`] = `
+"●  Loading configuration from '<workspace>/string/crowdin.yml' file
+◆  #id First text string.
+◆  #id Second text string.
+◆  #id str1 first string
+◆  #id str2 second string
+◆  #id str_with_quote first string source' with quotes
+◆  #id str_with_tag <span>first string source\` with tag</span>
+	- context: str1
+	- context: str2
+	- context: str_with_quote
+	- context: str_with_tag
+	- file: /android.xml
+	- file: /android.xml
+	- file: /android.xml
+	- file: /android.xml
+	- file: /text.txt
+	- file: /text.txt"
+`;
+
+exports[`string adds a new source string 1`] = `"◆  #id str3 third string"`;
+
+exports[`string adds a new source string with all parameters 1`] = `"◆  #id str4 fourth string"`;
+
+exports[`string edits a source string 1`] = `
+"◆  #id str3 third string edited
+◆  Source string #id was updated successfully"
+`;
+
+exports[`string edits a source string with all parameters 1`] = `
+"◆  #id str4 fourth string edited
+◆  Source string #id was updated successfully"
+`;
+
+exports[`string deletes a source string 1`] = `"◆  Source string #id was deleted successfully"`;
+
+exports[`string uploads sources to a new branch 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Branch 'test-branch'
+◆  File 'android.xml'
+◆  File 'text.txt'"
+`;
+
+exports[`string adds a source string to a branch-scoped file 1`] = `"◆  #id str3 third string"`;
+
+exports[`string deletes a source string from a branch-scoped file 1`] = `"◆  Source string #id was deleted successfully"`;
+
+exports[`string reports a missing file when listing by file 1`] = `""`;
+
+exports[`string warns then fails adding a string to a missing file 1`] = `""`;
+
+exports[`string fails adding a string to an unsupported file type 1`] = `""`;
+
+exports[`string requires non-empty text when adding a string 1`] = `""`;
+
+exports[`string requires an identifier when adding a string without one 1`] = `""`;
+
+exports[`string reports a missing string when editing a nonexistent id 1`] = `""`;
+
+exports[`string fails editing a string in an unsupported file type 1`] = `""`;
+
+exports[`string reports a missing string when deleting a nonexistent id 1`] = `""`;
+
+exports[`string fails deleting a string in an unsupported file type 1`] = `""`;
+
+exports[`string lists source strings by a CroQL expression 1`] = `
+"◆  #id First text string.
+◆  #id First text string.
+◆  #id Second text string.
+◆  #id Second text string.
+◆  #id str1 first string
+◆  #id str2 second string
+◆  #id str2 second string
+◆  #id str3 third string
+◆  #id str4 fourth string edited
+◆  #id str_with_quote first string source' with quotes
+◆  #id str_with_quote first string source' with quotes
+◆  #id str_with_tag <span>first string source\` with tag</span>
+◆  #id str_with_tag <span>first string source\` with tag</span>"
+`;
+
+exports[`string lists source strings by a CroQL text match, spanning both branches 1`] = `
+"◆  #id str_with_tag <span>first string source\` with tag</span>
+◆  #id str_with_tag <span>first string source\` with tag</span>"
+`;
+
+exports[`string lists source strings by a CroQL text match with a quote, spanning both branches 1`] = `
+"◆  #id str_with_quote first string source' with quotes
+◆  #id str_with_quote first string source' with quotes"
+`;
+
+exports[`string rejects an invalid CroQL expression 1`] = `""`;
+
+exports[`string adds a comment to a source string 1`] = `"◆  #id Added comment"`;
+
+exports[`string lists comments 1`] = `"◆  #id Added comment"`;
+
+exports[`string adds an issue to a source string 1`] = `"◆  #id Added comment string id 10"`;
+
+exports[`string adds an issue with a context-request type 1`] = `"◆  #id Added issue string context_request id 10"`;
+
+exports[`string lists comments filtered by a specific string id 1`] = `
+"◆  #id Added comment string id 10
+◆  #id Added issue string context_request id 10"
+`;
+
+exports[`string resolves a string issue 1`] = `
+"◆  A string issue #id has been successfully resolved
+#id Added issue string context_request id 10"
+`;
+
+exports[`string lists comments filtered by unresolved status 1`] = `"◆  #id Added comment string id 10"`;

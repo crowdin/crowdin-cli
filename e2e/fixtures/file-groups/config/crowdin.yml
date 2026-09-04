@@ -1,0 +1,20 @@
+project_id: "{{projectId}}"
+api_token: "{{token}}"
+
+base_path: "."
+base_url: "https://api.crowdin.com"
+preserve_hierarchy: true
+
+# Ported from crowdin-backend/tests/var/Cli/Common/CliFileGroupsTest/config/crowdin.yml. The PHP
+# fixture lists '/sources/*.pot' FIRST (it never matches anything, on purpose); it is kept LAST here
+# from when UploadSourcesCommand.ts aborted the whole run on the first empty group. It now reports
+# and keeps going like PHP, so the position no longer changes what gets uploaded.
+files:
+  - source: "/sources/*.properties"
+    translation: "/translations/%two_letters_code%/%original_file_name%"
+  - source: "/sources/*.xml"
+    translation: "/translations/%two_letters_code%/%original_file_name%"
+  - source: "/sources/android.xml"
+    translation: "/translations/%two_letters_code%/%original_file_name%"
+  - source: "/sources/*.pot"
+    translation: "/translations/%two_letters_code%/%original_file_name%"

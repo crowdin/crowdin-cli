@@ -1,0 +1,117 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`multilingual csv upload with translations import 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory 'with-translations'
+◆  File 'with-translations/sample.csv'"
+`;
+
+exports[`multilingual csv update with translations import 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'with-translations/sample.csv'"
+`;
+
+exports[`multilingual csv download file with translations (dryrun) 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  with-translations/sample.csv"
+`;
+
+exports[`multilingual csv download file with translations 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File 'with-translations/sample.csv' extracted"
+`;
+
+exports[`multilingual csv upload without translations import 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory 'without-translations'
+◆  File 'without-translations/sample.csv'"
+`;
+
+exports[`multilingual csv update without translations import 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'without-translations/sample.csv'"
+`;
+
+exports[`multilingual csv upload translations for single language 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Importing translations for file 'without-translations/sample.csv'
+●  Project files fetched
+●  Project info fetched
+◆  File 'without-translations/sample.csv'"
+`;
+
+exports[`multilingual csv upload translations for all languages 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Importing translations for file 'without-translations/sample.csv'
+●  Project files fetched
+●  Project info fetched
+◆  File 'without-translations/sample.csv'"
+`;
+
+exports[`multilingual csv upload sources to a brand-new branch 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Branch 'test-branch'
+◆  File 'sample.csv'"
+`;
+
+exports[`multilingual csv update sources in existing branch 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sample.csv'"
+`;
+
+exports[`multilingual csv upload translations to the branch 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Importing translations for file 'sample.csv'
+●  Project files fetched
+●  Project info fetched
+◆  File 'sample.csv'"
+`;
+
+exports[`multilingual csv download translations from branch 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File 'sample.csv' extracted"
+`;
+
+exports[`multilingual csv upload source to the root of the project 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sample.csv'"
+`;

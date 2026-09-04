@@ -1,0 +1,145 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`simple csv uploads sources 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory 'sources'
+◆  Directory 'sources/files'
+◆  File 'sources/files/1_simple.csv'
+◆  File 'sources/files/2_simple.csv'"
+`;
+
+exports[`simple csv updates sources after local changes 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/files/1_simple.csv'
+◆  File 'sources/files/2_simple.csv'"
+`;
+
+exports[`simple csv uploads translations for every target language 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Importing translations for file 'sources/files/it/1_simple.csv'
+●  Importing translations for file 'sources/files/it/2_simple.csv'
+●  Importing translations for file 'sources/files/uk/1_simple.csv'
+●  Importing translations for file 'sources/files/uk/2_simple.csv'
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/files/it/1_simple.csv'
+◆  File 'sources/files/it/2_simple.csv'
+◆  File 'sources/files/uk/1_simple.csv'
+◆  File 'sources/files/uk/2_simple.csv'"
+`;
+
+exports[`simple csv uploads translations for a single language 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Importing translations for file 'sources/files/uk/1_simple.csv'
+●  Importing translations for file 'sources/files/uk/2_simple.csv'
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/files/uk/1_simple.csv'
+◆  File 'sources/files/uk/2_simple.csv'"
+`;
+
+exports[`simple csv downloads translations for a single language 1`] = `
+"●  Building translations for languages: uk
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File 'sources/files/uk/1_simple.csv' extracted
+◆  File 'sources/files/uk/2_simple.csv' extracted"
+`;
+
+exports[`simple csv downloads translations for every target language 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File 'sources/files/it/1_simple.csv' extracted
+◆  File 'sources/files/it/2_simple.csv' extracted
+◆  File 'sources/files/uk/1_simple.csv' extracted
+◆  File 'sources/files/uk/2_simple.csv' extracted"
+`;
+
+exports[`simple csv uploads sources to a brand-new branch 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Branch 'test-branch'
+◆  Directory 'sources'
+◆  Directory 'sources/files'
+◆  File 'sources/files/1_simple.csv'
+◆  File 'sources/files/2_simple.csv'"
+`;
+
+exports[`simple csv updates sources on the branch (branch already exists) 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/files/1_simple.csv'
+◆  File 'sources/files/2_simple.csv'"
+`;
+
+exports[`simple csv uploads translations to the branch 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Importing translations for file 'sources/files/it/1_simple.csv'
+●  Importing translations for file 'sources/files/it/2_simple.csv'
+●  Importing translations for file 'sources/files/uk/1_simple.csv'
+●  Importing translations for file 'sources/files/uk/2_simple.csv'
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/files/it/1_simple.csv'
+◆  File 'sources/files/it/2_simple.csv'
+◆  File 'sources/files/uk/1_simple.csv'
+◆  File 'sources/files/uk/2_simple.csv'"
+`;
+
+exports[`simple csv downloads translations for a single language on the branch 1`] = `
+"●  Building translations for languages: uk
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File 'sources/files/uk/1_simple.csv' extracted
+◆  File 'sources/files/uk/2_simple.csv' extracted"
+`;
+
+exports[`simple csv downloads translations for every target language on the branch 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File 'sources/files/it/1_simple.csv' extracted
+◆  File 'sources/files/it/2_simple.csv' extracted
+◆  File 'sources/files/uk/1_simple.csv' extracted
+◆  File 'sources/files/uk/2_simple.csv' extracted"
+`;
+
+exports[`simple csv rejects a scheme missing the Source String/Translation elements, on a new branch 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Branch 'test-branch-invalid-scheme'
+◆  Directory 'sources'
+◆  Directory 'sources/files'"
+`;

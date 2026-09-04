@@ -1,0 +1,14 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`label reports an empty project 1`] = `"●  No labels found"`;
+
+exports[`label adds a label and echoes it back 1`] = `"◆  #id zebra-label"`;
+
+exports[`label lists both labels with their ids 1`] = `
+"◆  #id alpha-label
+◆  #id zebra-label"
+`;
+
+exports[`label rejects deleting a title the project does not have 1`] = `"■  Couldn't find label by the specified title"`;
+
+exports[`label deletes a label by title 1`] = `"◆  Label 'zebra-label' deleted successfully"`;

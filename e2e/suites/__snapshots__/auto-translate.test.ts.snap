@@ -1,0 +1,12 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`auto-translate uploads sources 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory 'sources'
+◆  Directory 'sources/nested'
+◆  File 'sources/app.xml'
+◆  File 'sources/nested/extra.xml'"
+`;
