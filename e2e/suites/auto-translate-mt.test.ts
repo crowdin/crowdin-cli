@@ -72,12 +72,12 @@ async function writeTokenlessConfig(ctx: SuiteContext): Promise<string> {
   return configPath;
 }
 
-describe('pre-translate via auto-translate', () => {
+describe('auto-translate via MT', () => {
   let ctx: SuiteContext;
   let crowdinMtEngineId: number;
 
   beforeAll(async () => {
-    ctx = await setupSuite('pre-translate', { targetLanguageIds: ['uk'] });
+    ctx = await setupSuite('auto-translate-mt', { targetLanguageIds: ['uk'] });
     crowdinMtEngineId = await getCrowdinMtEngineId(ctx);
   });
 
