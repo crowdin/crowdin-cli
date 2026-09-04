@@ -9,13 +9,10 @@ import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.t
  * only java.properties, two groups ('*.xml' and the literal 'android.xml') both match the same
  * android.xml file, and one group ('*.pot') never matches anything.
  *
- * The PHP original expects "no sources found" for the empty pattern to be a non-fatal warning (the
- * run keeps going and still uploads/uploads-translations/downloads everything else, only ending
- * with exit code 1 for "finished with errors"). That is NOT what the TS CLI does for `upload
- * sources`: UploadSourcesCommand.ts throws a CliError the instant any group matches zero files,
- * aborting the whole command immediately -- see the fixture's crowdin.yml for why the empty
- * pattern is ordered last there. `upload translations` and `download translations` do NOT share
- * that behavior (confirmed from source below), so those two tests keep the original intent.
+ * Like PHP, `upload sources` treats "no sources found" as non-fatal: it uploads every other group
+ * and only ends with exit code 1 for "finished with errors". `upload translations` and `download
+ * translations` don't flag the run at all for an empty pattern (confirmed from source below), so
+ * they exit 0.
  */
 describe('file groups', () => {
   let ctx: SuiteContext;
@@ -28,15 +25,14 @@ describe('file groups', () => {
     await teardownSuite(ctx);
   });
 
-  test('uploads sources across overlapping file groups, then aborts on the empty pattern', async () => {
+  test('uploads sources across overlapping file groups, then reports the empty pattern', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    // Confirmed at UploadSourcesCommand.ts: `if (files.length === 0) throw new CliError(...)`,
-    // unguarded inside the per-group loop, so the process exits with the default CliError code (1)
-    // as soon as it reaches the '/sources/*.pot' group. Because this is a thrown error (not the
-    // separate hasErrors/reportFailures path in uploadFailures.ts), PHP's closing "Current
-    // execution finished with errors" line never prints here -- do not assert it.
+    // A group matching zero files is a soft error in UploadSourcesCommand.ts: it reports, sets
+    // `hasErrors` and keeps uploading the other groups, then closes with PHP's "Current execution
+    // finished with errors" as a CliError -- stderr, exit 1.
     expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('Current execution finished with errors');
     expect(result.stdout).toContain("Directory 'sources'");
     expect(result.stdout).toContain("File 'sources/java.properties'");
     expect(result.stdout).toContain("File 'sources/android.xml'");
@@ -56,9 +52,9 @@ describe('file groups', () => {
   test('uploads translations, duplicating the file matched by both overlapping groups', async () => {
     const result = await ctx.runner.run(['upload', 'translations']);
 
-    // UploadTranslationsCommand.ts treats a zero-match pattern as a soft `output.error(...); continue`
-    // (confirmed at buildTranslationEntries), unlike UploadSourcesCommand.ts's hard throw above -- so
-    // this command finishes normally and exits 0 despite the same empty '.pot' pattern.
+    // buildTranslationEntries reports a zero-match pattern and moves on without flagging the run as
+    // failed (unlike UploadSourcesCommand.ts's `hasErrors` above), so this exits 0 on the same
+    // empty '.pot' pattern.
     expect(result.exitCode).toBe(0);
     expect(result.stderr).toContain(
       "No sources found for '/sources/*.pot' pattern. Check the source paths in your configuration file",

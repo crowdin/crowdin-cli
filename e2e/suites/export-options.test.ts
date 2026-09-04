@@ -210,7 +210,7 @@ describe('export options', () => {
 
     // Java/PHP report exit code 2 for this validation error; DownloadCommand.ts throws a plain
     // CliError with no explicit exit code, which defaults to ExitCode.GENERIC (1) - a real divergence
-    // from the original CLI, not a porting simplification (see DownloadCommand.ts:376-380).
+    // from the original CLI, not a porting simplification.
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain(
       'You cannot skip strings and files at the same time. Please use one of these parameters instead.',
