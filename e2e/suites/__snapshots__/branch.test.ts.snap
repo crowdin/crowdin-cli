@@ -1,0 +1,24 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`branch lists the branch a new project starts with 1`] = `"◆  #id main"`;
+
+exports[`branch adds a branch 1`] = `"◆  #id main-line"`;
+
+exports[`branch clones a branch 1`] = `
+"●  Cloning branch
+●  Cloning branch (<pct>)
+●  Fetching project info
+●  Project info fetched
+◆  #id cloned"
+`;
+
+exports[`branch merges a branch, carrying its strings into the target 1`] = `
+"●  Fetching project info
+●  Merging branch
+●  Merging branch (<pct>)
+●  Project info fetched
+◆  Merged branch 'to-merge' into 'main-line'
+	Merge summary: added: 1, deleted: 0, updated: 0, conflicted: 0"
+`;
+
+exports[`branch deletes a branch 1`] = `"◆  Branch 'cloned' deleted"`;
