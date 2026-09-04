@@ -4,35 +4,20 @@ import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * The PHP suite (`CliPreTranslateTest`) drives a `pre-translate` CLI command that doesn't exist in
- * src-next - the equivalent functionality lives under the `auto-translate` command
- * (`cli/commands/auto-translate/AutoTranslateCommand.ts`). Every PHP scenario maps onto a real
- * `auto-translate` flag: `--method tm|mt`, `--engine-id`, `--auto-approve-option`, and the shared
- * `--token`/`-T` + `--project-id`/`-i` (`cli/commands/common/options.ts`, part of `filesConfigGroup`
- * which `auto-translate` also declares). Nothing needed to be dropped.
+ * Ports crowdin-backend/tests/Cli/Common/CliPreTranslateTest.php. The PHP `pre-translate` command
+ * has no src-next equivalent; every scenario maps onto an `auto-translate` flag instead, so nothing
+ * was dropped. Validation and selection flags live in `auto-translate.test.ts`; this suite owns the
+ * MT paths.
  *
- * `TranslationService.preTranslate` (`cli/services/TranslationService.ts`) is NOT fire-and-forget:
- * it calls `applyPreTranslation`, then polls `preTranslationStatus` every second until the job's
- * `status` is `finished`, only returning once the CLI has observed completion. So the exit code and
- * final "finished" message are meaningful synchronously.
- *
- * However, `output.spinner(...)` degrades to plain `output.info(...)` lines whenever `--progress` is
- * off (`cli/utils/output.ts`) - and `ctx.runner.run` always passes `--no-progress`. That means every
- * poll iteration's "Auto-translation is completed by (N%)" message becomes its own stdout line, and
- * the number of iterations depends on how long the server takes to finish the job - nondeterministic
- * across runs. Snapshotting the *whole* stdout for a successful pre-translate would therefore bake in
- * a specific iteration count that the next run has no reason to reproduce, so those tests assert the
- * deterministic markers via `toContain` instead of `toMatchSnapshot()`. The `--engine-id` validation
- * error below never reaches the poll loop at all, so it stays fully deterministic and keeps its
- * snapshot.
+ * `preTranslate` polls to completion, so a zero exit means the server finished the job. But with
+ * `--no-progress` every poll iteration prints its own line and the count varies per run, so the
+ * successful runs assert deterministic markers with `toContain` rather than snapshotting. The
+ * `--engine-id` error never reaches the poll loop and keeps its snapshot.
  */
 
 /**
- * Every Crowdin organization ships a built-in "Crowdin Translate" MT engine (PHP's
- * `Mt::ENGINE_CROWDIN`, looked up there via a direct DB query) with no setup required, unlike the
- * third-party engines (Amazon, Microsoft, DeepL, Google) which need credentials configured first.
- * The public API only documents the engine by name, not by a stable numeric `type`, so look it up
- * that way instead of hardcoding a type id.
+ * The built-in "Crowdin Translate" engine, the one MT engine that needs no credentials configured.
+ * Looked up by name because the API exposes no stable id for it.
  */
 async function getCrowdinMtEngineId(ctx: SuiteContext): Promise<number> {
   const mts = await ctx.client.machineTranslationApi.listMts();
@@ -46,12 +31,9 @@ async function getCrowdinMtEngineId(ctx: SuiteContext): Promise<number> {
 }
 
 /**
- * Mirrors the PHP suite's `config/crowdin_without_token.yml`: a config file with no `project_id`/
- * `api_token`, so the CLI must source those credentials entirely from `--project-id`/`--token`
- * flags (`cli/config.ts`'s `cliLayer` outranks the config file for those four keys). `copyFixtures`
- * always skips the whole fixture `config/` directory (only `config/crowdin.yml` is rendered, via
- * `setupSuite`), so a second config file can't be delivered as a fixture - write it directly into
- * the workspace instead, the same way `identity.test.ts` builds its `--identity` file.
+ * Mirrors the PHP suite's `config/crowdin_without_token.yml`: no `project_id`/`api_token`, so both
+ * must come from `--project-id`/`--token`. Written into the workspace rather than shipped as a
+ * fixture, since `copyFixtures` skips the fixture `config/` directory.
  */
 async function writeTokenlessConfig(ctx: SuiteContext): Promise<string> {
   const configPath = join(ctx.workspace, 'crowdin-without-token.yml');
