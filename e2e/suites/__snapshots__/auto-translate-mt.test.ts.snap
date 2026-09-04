@@ -1,6 +1,6 @@
 // Bun Snapshot v1, https://bun.sh/docs/test/snapshots
 
-exports[`pre-translate via auto-translate uploads sources 1`] = `
+exports[`auto-translate via MT uploads sources 1`] = `
 "●  Fetching project files
 ●  Fetching project info
 ●  Project files fetched
@@ -8,3 +8,5 @@ exports[`pre-translate via auto-translate uploads sources 1`] = `
 ◆  File '1_android.xml'
 ◆  File '2_android.xml'"
 `;
+
+exports[`auto-translate via MT requires --engine-id for the MT method 1`] = `"■  Machine Translation should be used with the '--engine-id' parameter"`;
