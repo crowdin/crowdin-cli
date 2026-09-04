@@ -945,7 +945,7 @@ describe('UploadTranslationsCommand', () => {
 
     expect(translationService.importProjectTranslation).toHaveBeenCalledTimes(1);
     expect(translationService.importProjectTranslation).toHaveBeenCalledWith(
-      expect.any(Number),
+      10,
       77,
       ['es'],
       'locale/es/app.json',
@@ -993,7 +993,7 @@ describe('UploadTranslationsCommand', () => {
 
     expect(translationService.importProjectTranslation).toHaveBeenCalledTimes(1);
     expect(translationService.importProjectTranslation).toHaveBeenCalledWith(
-      expect.any(Number),
+      10,
       90,
       ['es', 'fr'],
       'translations.csv',
@@ -1043,7 +1043,7 @@ describe('UploadTranslationsCommand', () => {
 
     expect(translationService.importProjectTranslation).toHaveBeenCalledTimes(1);
     expect(translationService.importProjectTranslation).toHaveBeenCalledWith(
-      expect.any(Number),
+      10,
       90,
       ['es', 'fr'],
       'Localizable.xcstrings',
