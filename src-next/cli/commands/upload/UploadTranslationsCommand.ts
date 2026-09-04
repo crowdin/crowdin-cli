@@ -255,8 +255,10 @@ export default class UploadTranslationsCommand {
         }
 
         const firstLanguage = targetLanguages[0];
+        // A file is multilingual via a `scheme` or an explicit `multilingual: true` — the same
+        // rule config.ts applies when it decides a language placeholder is not required.
         const isMultilingual =
-          patterns.scheme !== undefined &&
+          (patterns.scheme !== undefined || patterns.multilingual === true) &&
           firstLanguage !== undefined &&
           !this.translationHasLanguagePlaceholder(patterns.translation);
 
