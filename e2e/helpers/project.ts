@@ -35,6 +35,8 @@ export interface CreateProjectOptions {
   suite: string;
   sourceLanguageId?: string;
   targetLanguageIds?: string[];
+  /** Create a strings-based project instead of the file-based default. */
+  stringsBased?: boolean;
 }
 
 export async function createTestProject(client: Client, opts: CreateProjectOptions): Promise<TestProject> {
@@ -44,6 +46,9 @@ export async function createTestProject(client: Client, opts: CreateProjectOptio
     identifier: name,
     sourceLanguageId: opts.sourceLanguageId ?? 'en',
     targetLanguageIds: opts.targetLanguageIds ?? ['it', 'uk'],
+    // The API takes the project type as a BooleanInt, 1 being strings-based (same as
+    // `project add --string-based`).
+    ...(opts.stringsBased ? { type: 1 as const } : {}),
   };
 
   const response = await client.projectsGroupsApi.addProject(request);
