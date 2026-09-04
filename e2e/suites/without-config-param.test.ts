@@ -7,40 +7,16 @@ import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.t
 
 /**
  * Ports crowdin-backend/tests/Cli/Common/CliWithoutConfigParamTest.php: upload sources / upload
- * translations / download translations, run three ways -
- *   1. via a config file named `crowdin.yaml` (the alternate default filename) discovered without
- *      an explicit `-c`,
- *   2. the same three again via `crowdin.yml` (the primary default filename), also with no `-c`,
- *   3. upload sources / download translations with zero config file at all, credentials and file
- *      patterns given purely as CLI flags.
+ * translations / download translations run three ways - discovered via `crowdin.yaml`, discovered
+ * via `crowdin.yml`, and with no config file at all, credentials and patterns given as CLI flags.
  *
- * Per `cli/config.ts`'s `resolveConfigPath`, when `--config` is omitted the CLI checks
- * `DEFAULT_CONFIG_FILES = ['crowdin.yml', 'crowdin.yaml']` in that order, in `process.cwd()` only
- * (no upward search, no other filenames). So phase 1 below requires `crowdin.yml` to be *absent*
- * (otherwise it would win over `crowdin.yaml`), matching the PHP source's own
- * `self::$cli->disableConfig()` call, which deletes `crowdin.yml` right after copying it to
- * `crowdin.yaml`.
+ * With `--config` omitted the CLI checks `crowdin.yml` then `crowdin.yaml`, in the cwd only. So the
+ * `crowdin.yaml` phase requires `crowdin.yml` to be absent, and since `setupSuite` always writes one,
+ * `beforeAll` deletes it; every call passes `noConfig: true` so the harness never appends its own
+ * `-c`, leaving this suite in full control of which filename exists.
  *
- * `setupSuite` always renders and writes its own `crowdin.yml` into the workspace root as part of
- * its standard lifecycle (see the fixture's `config/crowdin.yml` comment) - that file is deleted in
- * `beforeAll` below and every call in this suite passes `noConfig: true`, so the harness never
- * appends its own `-c <config>` (which would otherwise mask exactly what these tests exercise) and
- * this suite fully owns which of `crowdin.yml` / `crowdin.yaml` exists in the workspace root at any
- * point, writing real credentials directly via `Bun.write` (same pattern as identity.test.ts's
- * `writeIdentityFile` / env-variables.test.ts's `writeEnvFile`).
- *
- * ENTERPRISE_MODE branching in the PHP source (base-url selection) doesn't apply here - this e2e
- * harness only ever targets plain crowdin.com, and `base_url`/`--base-url` already default to
- * `https://api.crowdin.com` (`lib/config.ts`'s `ConfigSchema`), so it's omitted below wherever the
- * default already resolves correctly.
- *
- * PHP's `push()`/`pull()` CLI helpers hit the Java CLI's top-level `push`/`pull` aliases, whose
- * default actions are `upload sources` / `download translations` respectively (confirmed in
- * `UploadCommand.ts`/`DownloadCommand.ts`: `alias: 'push'|'pull'`, `defaultAction`/
- * `translationsAction`). Every other suite in this porting effort invokes the explicit subcommand
- * form instead of the bare/aliased top-level command, so tests 7-8 below do the same
- * (`['upload', 'sources', ...]` / `['download', 'translations', ...]`) rather than `['upload']`/
- * `['download']` - functionally identical, just consistent with the rest of the codebase.
+ * PHP's `push`/`pull` helpers hit the aliases of `upload sources` / `download translations`; the
+ * explicit subcommand form is used below, as everywhere else in this effort.
  */
 async function writeDiscoveryConfig(ctx: SuiteContext, fileName: 'crowdin.yml' | 'crowdin.yaml'): Promise<void> {
   await Bun.write(

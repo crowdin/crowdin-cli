@@ -20,12 +20,8 @@ describe('custom segmentation', () => {
   beforeAll(async () => {
     ctx = await setupSuite('custom-segmentation', { targetLanguageIds: ['it', 'uk'] });
 
-    // Distractor mirroring the PHP suite's setup comment ("CLI3 should ignore these settings when
-    // importing new files"): project-level docx file format settings that contradict what the CLI's
-    // own config specifies (contentSegmentation: true / no srxStorageId here). buildImportOptions
-    // (lib/upload/fileOptions.ts) only ever reads `content_segmentation`/`custom_segmentation` from
-    // the CLI's own crowdin.yml per file, never from this project-level default, so it must have no
-    // effect on the upload behavior asserted below.
+    // A distractor, as in the PHP suite: project-level file-format settings that contradict the
+    // CLI's own config. The upload reads only the config, so these must change nothing.
     await ctx.client.projectsGroupsApi.addProjectFileFormatSettings(ctx.project.id, {
       format: 'docx',
       settings: {
@@ -53,9 +49,7 @@ describe('custom segmentation', () => {
     // The "sources" directory is created before the per-file srxStorageId is validated by the API,
     // so it still succeeds even though both file creations below fail.
     expect(result.stdout).toContain("Directory 'sources'");
-    // The Crowdin API's own validation error text (unrelated to the CLI rewrite), wrapped by
-    // FileService.createProjectFile's `Failed to create file <name>. <api message>`. Confirmed via a
-    // live run 2026-07-21 — not guessed.
+    // The API's own validation text, wrapped by the CLI's "Failed to create file" prefix.
     expect(result.stderr).toContain(
       "Failed to create file 'sample.docx'. Key: importOptions. Message: Invalid SRX specified. XML validation module returned: attributes construct error",
     );
@@ -72,10 +66,8 @@ describe('custom segmentation', () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
     expect(result.exitCode).toBe(1);
-    // Unlike the previous test, the "sources" directory already exists on the project from the
-    // first (failed) attempt above, so no new directory-created line is emitted this time.
+    // The "sources" directory survived the previous failed attempt, so it is not created again.
     expect(result.stdout).not.toContain("Directory 'sources'");
-    // Confirmed via a live run 2026-07-21 — not guessed.
     expect(result.stderr).toContain(
       "Failed to create file 'sample.docx'. Key: importOptions. Message: Invalid SRX specified. Invalid regular expression `/^.*[$/`",
     );
@@ -121,13 +113,9 @@ describe('custom segmentation', () => {
     expect(result.stdout).toContain("File 'Folder/strings.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    // Switching `dest` to a new directory does not relocate the file. `fileLookup` (lib/upload/fileLookup.ts)
-    // matches an existing project file only by exact path or by a differing final extension, so any directory
-    // (or filename) change misses and `UploadSourcesCommand` takes the CREATE branch: the file appears at the
-    // new project path with no translations while the original stays behind holding all of its. Java v4's
-    // `ProjectFilesUtils.fileLookup` is logically identical, so this is a pre-existing product wart rather
-    // than a port regression — asserted here as what actually happens, since a test cannot fix it. The only
-    // cleanup today is `--delete-obsolete`, which deletes the orphan rather than moving it.
+    // Changing `dest` does not move the file: the lookup misses, so a second file is created at the
+    // new path with no translations while the original stays behind holding all of its. Java behaves
+    // the same way; `--delete-obsolete` deletes the orphan rather than moving it.
     const files = await ctx.client.sourceFilesApi.listProjectFiles(ctx.project.id, { recursion: '1' });
     const docxPaths = files.data
       .filter((file) => file.data.name === 'sample.docx')

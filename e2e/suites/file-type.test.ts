@@ -4,26 +4,15 @@ import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Port of `CliFileTypeTest::testUploadSources` (crowdin-backend
- * tests/Cli/Common/CliFileTypeTest.php). Verifies the per-file `type:` config
- * key is threaded through to the file-create API call.
+ * Port of `CliFileTypeTest::testUploadSources`: the per-file `type:` config key reaching the
+ * file-create API call.
  *
- * The PHP suite this was ported from asserted on a single combined `type`
- * string (e.g. `android6`). Confirmed live (via direct API query against a
- * throwaway project, bypassing the CLI): the current API model has split that
- * into two separate fields - `type` is always the base format name
- * (`android`), and the version now lives in the separate `parserVersion`
- * field. So `type: "android6"` in crowdin.yml correctly produces
- * `type: "android"` + `parserVersion: 6` server-side; asserting the old
- * combined string against `type` alone is what was actually stale here, not
- * the CLI's request. Confirmed the same way: bare `type: "android"` resolves
- * to `parserVersion: 11` (not `10` - bumped by backend commit `775156eae46`,
- * CN-63478, 2026-02-16), and `android1` resolves to `parserVersion: 1`, same
- * as omitting a version entirely.
+ * PHP asserted one combined `type` string (`android6`); the API has since split that into `type`
+ * (the base format) plus `parserVersion`, so the assertions below check both. A bare `type:
+ * "android"` resolves to whatever parser version the backend currently defaults to.
  *
- * `type` differs per test and `writeConfig`/`renderConfig` only substitute
- * `{{projectId}}`/`{{token}}` (and throw on any other `{{...}}`), so each test
- * writes a full `crowdin.yml` directly instead of going through that helper.
+ * Each test writes its own `crowdin.yml`, since `type` differs per test and `renderConfig` only
+ * substitutes credentials.
  */
 async function writeConfigWithType(ctx: SuiteContext, fileType: string): Promise<void> {
   const yaml = [

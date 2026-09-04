@@ -6,50 +6,19 @@ import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Ported from `crowdin-backend/tests/Cli/Common/CliTranslationsNotMatchTest.php` (12 `@depends`-chained
- * test methods, all ported 1:1 below - the task brief's "14" was an overcount).
+ * Ported from `crowdin-backend/tests/Cli/Common/CliTranslationsNotMatchTest.php`.
  *
- * The suite's actual "not match" scenario: `sources/java.properties` is added straight through the
- * API (`uploadStorageApi.addStorage` + `sourceFilesApi.createFile`), bypassing the CLI/config
- * entirely, so it never gets a per-file `exportPattern` of its own. `sources/*.xml` (1/2/3_android.xml)
- * ARE uploaded through the CLI with `translation: /translations/%two_letters_code%/%original_file_name%`,
- * which Crowdin stores as each file's `exportPattern`. Translation *content* is never uploaded for any
- * of these (the translation upload tests below always warn the local files don't exist), so every
- * download relies purely on the project's untranslated-source fallback.
+ * The mismatch is manufactured: `sources/java.properties` is created straight through the API, so it
+ * carries no `exportPattern`, while the `sources/*.xml` files are uploaded through the CLI and get
+ * one. The config's `source:` pattern is then narrowed to a single file before each download, so the
+ * build archive holds exports the narrowed config cannot map locally - the `reportOmittedFiles` path
+ * this suite exists to exercise.
  *
- * The mismatch is then manufactured by narrowing the config's `source:` pattern from `/sources/*.xml`
- * to just `/sources/1_android.xml` before every download test. The build archive still contains every
- * project source's per-language export (2_android.xml, 3_android.xml, java.properties x it/uk), but the
- * narrowed config can only map 1_android.xml locally - so the rest come back "omitted", grouped by
- * source, exactly the `DownloadCommand.reportOmittedFiles` path this suite exists to exercise.
- *
- * Wording verified directly against source (not assumed from the PHP original, which uses different
- * strings throughout):
- * - `UploadTranslationsCommand.ts`: missing local translation file -> `File <path> does not exist in
- *   the specified location` (PHP: "translation file doesn't exist in the specified place").
- * - `DownloadCommand.ts` (`reportOmittedFiles`): `Downloaded translations don't match the current
- *   project configuration. The translations for the following sources will be omitted (use --verbose
- *   to get the list of the omitted translations):`, then one `\t- <source> (<count>)` line per source,
- *   each followed by `\t\t- <translation path>` sub-lines only with `--verbose`, then a bare
- *   `Visit the https://crowdin.github.io/crowdin-cli/faq for more details` line - this part matches the
- *   PHP wording closely, but is taken from `src-next/cli/commands/download/DownloadCommand.ts` directly,
- *   not assumed.
- * - Branch upload prints no branch-creation message and uses unprefixed local paths (`Directory sources
- *   created`, `File 'sources/1_android.xml'`) - confirmed via `UploadSourcesCommand.ts`
- *   (`BranchService.getOrCreateBranch` is silent), matching this porting effort's established
- *   branch-upload wording note (see `file-tree.test.ts`). PHP's "Branch 'test-branch'" /
- *   "test-branch/sources/..." messages do NOT apply here.
- * - The branch-scoped download omits only `sources/2_android.xml` and `sources/3_android.xml`, never
- *   `java.properties` - `java.properties` was created at the project root (no branch), so a
- *   branch-scoped build never includes it and `fileService.loadProjectFiles(branchId)` never lists it
- *   either. This matches the PHP original's own branch-download assertions (no `java.properties` line).
- * - Confirmed via a live run: for a file with no custom `exportPattern` (`java.properties`), the
- *   server-side archive path depends on how many languages the build targets. Building for ALL
- *   languages at once needs the `<languageId>/<name>` fallback to disambiguate (`it/java.properties`,
- *   `uk/java.properties`), but a single-language build (`-l uk`) has nothing to disambiguate, so the
- *   archive entry is the bare `java.properties` with no language prefix. `sources/*.xml` don't show
- *   this because their explicit `exportPattern` always resolves the same way regardless of language
- *   count.
+ * Two behaviors worth knowing while reading the assertions:
+ * - Branch upload prints no branch-creation message and uses unprefixed local paths, unlike PHP.
+ * - For a file with no `exportPattern`, the archive path depends on how many languages the build
+ *   targets: an all-language build needs the `<languageId>/<name>` fallback to disambiguate, a
+ *   single-language build does not, so the entry is the bare filename.
  */
 
 describe('translations not match', () => {
