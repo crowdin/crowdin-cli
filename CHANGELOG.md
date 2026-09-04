@@ -1,5 +1,19 @@
 # Changelog
 
+## [5.0.2](https://github.com/crowdin/crowdin-cli/compare/5.0.1...5.0.2) (2026-09-04)
+
+
+### Bug Fixes
+
+* **branch:** normalize unsupported characters in branch names ([#1104](https://github.com/crowdin/crowdin-cli/issues/1104)) ([3cdcd5a](https://github.com/crowdin/crowdin-cli/commit/3cdcd5aa2804e331f5f657d5c552269f178adf45))
+* **distribution:** stop the release spinner printing "null%" ([#1100](https://github.com/crowdin/crowdin-cli/issues/1100)) ([7d3085c](https://github.com/crowdin/crowdin-cli/commit/7d3085c812d8b5480cc09ee5b7b4d4a52068e113))
+* **download:** exit non-zero when the translations build fails ([#1105](https://github.com/crowdin/crowdin-cli/issues/1105)) ([f628cfd](https://github.com/crowdin/crowdin-cli/commit/f628cfdb104b79373a9979295b2f1dce2affcdd1))
+* **download:** send explicit false export options ([#1111](https://github.com/crowdin/crowdin-cli/issues/1111)) ([9116a72](https://github.com/crowdin/crowdin-cli/commit/9116a721f7b4da972ae9ef876eecb7e1335e7285))
+* exit non-zero when a command bails without doing its work ([#1106](https://github.com/crowdin/crowdin-cli/issues/1106)) ([e566a3a](https://github.com/crowdin/crowdin-cli/commit/e566a3a593d119a22b89bd603a4966a8a1959502))
+* **project:** enforce required options and warn on failed browser open ([#1103](https://github.com/crowdin/crowdin-cli/issues/1103)) ([81da7a1](https://github.com/crowdin/crowdin-cli/commit/81da7a116d3a98d41913b3c0f26c9a20aef9dbe4))
+* **upload:** honour `multilingual: true` when uploading translations ([#1109](https://github.com/crowdin/crowdin-cli/issues/1109)) ([74c886e](https://github.com/crowdin/crowdin-cli/commit/74c886edd085318cddcd3848329a95f3aa7ab3c3))
+* **upload:** report in-project paths in upload sources output ([#1097](https://github.com/crowdin/crowdin-cli/issues/1097)) ([c0a4f40](https://github.com/crowdin/crowdin-cli/commit/c0a4f40b8bbcb672ced6b7a321ab573b61e6bd7d))
+
 ## [5.0.1](https://github.com/crowdin/crowdin-cli/compare/5.0.0...5.0.1) (2026-08-31)
 
 
