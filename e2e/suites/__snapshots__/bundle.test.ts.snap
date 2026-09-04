@@ -22,3 +22,7 @@ exports[`bundle downloads the bundle 1`] = `
 ◆  it/all.string
 ◆  uk/all.string"
 `;
+
+exports[`bundle reports an empty bundle list 1`] = `"●  No bundles found"`;
+
+exports[`bundle deletes a bundle 1`] = `"◆  Bundle #id deleted"`;
