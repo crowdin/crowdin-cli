@@ -19,6 +19,44 @@ describe('dest', () => {
     await teardownSuite(ctx);
   });
 
+  /** The paths the files actually occupy in the project, which is where `dest` resolution lands. */
+  async function projectPaths(branchName?: string): Promise<string[]> {
+    let branchId: number | undefined;
+
+    if (branchName) {
+      const branches = await ctx.client.sourceFilesApi.withFetchAll().listProjectBranches(ctx.project.id, {
+        name: branchName,
+      });
+
+      branchId = branches.data.find((entry) => entry.data.name === branchName)?.data.id;
+
+      if (branchId === undefined) {
+        throw new Error(`Branch '${branchName}' not found via the API`);
+      }
+    }
+
+    // `recursion` is what reaches the files nested in directories; without it the listing stops at
+    // the branch (or project) root. Same call the CLI's own `loadProjectFiles` makes, including the
+    // branch filter, since the recursive listing spans every branch.
+    const files = await ctx.client.sourceFilesApi
+      .withFetchAll()
+      .listProjectFiles(ctx.project.id, { branchId, recursion: '1' });
+
+    return files.data
+      .filter((entry) => (entry.data.branchId ?? null) === (branchId ?? null))
+      .map((entry) => entry.data.path)
+      .sort();
+  }
+
+  const DEST_PATHS = [
+    '/Android.xml',
+    '/Folder/Android.xml',
+    '/Folder/Client.xml',
+    '/Test-destCheckFolder/xml/android/android.xml',
+    '/Test-destCheckFolderParallelFileProcess/xml/android.xml',
+    '/Test-destCheckFolderParallelFileProcess/xml/second_android.xml',
+  ];
+
   test('uploads sources across dest-remapped file groups', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -38,6 +76,10 @@ describe('dest', () => {
     expect(result.stdout).toContain("File 'Test-destCheckFolderParallelFileProcess/xml/second_android.xml'");
 
     expect(normalize(result.stdout)).toMatchSnapshot();
+
+    // `%original_path%` is the source file's parent directory, so `destCheckFolder/android.xml` maps
+    // onto `Test-destCheckFolder/xml/android/android.xml` - no directory named after the file itself.
+    expect(await projectPaths()).toEqual(DEST_PATHS);
   });
 
   test('uploads translations across dest-remapped file groups', async () => {
@@ -118,6 +160,9 @@ describe('dest', () => {
     expect(result.stdout).toContain("File 'Folder/Client.xml'");
 
     expect(normalize(result.stdout)).toMatchSnapshot();
+
+    // The branch holds the same dest-remapped tree, each path carrying the branch name.
+    expect(await projectPaths('test-branch')).toEqual(DEST_PATHS.map((path) => `/test-branch${path}`));
   });
 
   test('uploads translations to the branch', async () => {
