@@ -68,10 +68,10 @@ interface SourcesOptions extends GlobalOptions {
 }
 
 interface ExportCombo {
-  skipUntranslatedStrings: boolean;
-  skipUntranslatedFiles: boolean;
-  exportApprovedOnly: boolean;
-  exportStringsThatPassedWorkflow: boolean;
+  skipUntranslatedStrings?: boolean;
+  skipUntranslatedFiles?: boolean;
+  exportApprovedOnly?: boolean;
+  exportStringsThatPassedWorkflow?: boolean;
 }
 
 export default class DownloadCommand {
@@ -519,6 +519,9 @@ export default class DownloadCommand {
    * `distinct()` over the four per-file flags) so each combo is built once and only its own file
    * groups are mapped from that archive. A CLI flag (when set) overrides the per-file config value
    * on every file, forcing `true` — picocli/commander boolean flags can only force true, never false.
+   *
+   * Combo values are tri-state: an unset option is left out of the build request so the project
+   * export settings apply, while an explicit `false` is sent and overrides them.
    */
   private buildExportGroups(
     config: Config,
@@ -558,10 +561,10 @@ export default class DownloadCommand {
     }
 
     const effectiveCombo = (file: Config['files'][number]): ExportCombo => ({
-      skipUntranslatedStrings: options.skipUntranslatedStrings ? true : (file.skip_untranslated_strings ?? false),
-      skipUntranslatedFiles: options.skipUntranslatedFiles ? true : (file.skip_untranslated_files ?? false),
-      exportApprovedOnly: options.exportOnlyApproved ? true : (file.export_only_approved ?? false),
-      exportStringsThatPassedWorkflow: file.export_strings_that_passed_workflow ?? false,
+      skipUntranslatedStrings: options.skipUntranslatedStrings ? true : file.skip_untranslated_strings,
+      skipUntranslatedFiles: options.skipUntranslatedFiles ? true : file.skip_untranslated_files,
+      exportApprovedOnly: options.exportOnlyApproved ? true : file.export_only_approved,
+      exportStringsThatPassedWorkflow: file.export_strings_that_passed_workflow,
     });
 
     // Group files by distinct combo, preserving first-seen order (mirrors Java distinct()).
@@ -590,15 +593,16 @@ export default class DownloadCommand {
         request.targetLanguageIds = resolvedLanguageIds;
       }
 
-      if (combo.skipUntranslatedStrings) {
-        request.skipUntranslatedStrings = true;
+      if (combo.skipUntranslatedStrings !== undefined) {
+        request.skipUntranslatedStrings = combo.skipUntranslatedStrings;
       }
 
-      if (combo.skipUntranslatedFiles) {
-        request.skipUntranslatedFiles = true;
+      if (combo.skipUntranslatedFiles !== undefined) {
+        request.skipUntranslatedFiles = combo.skipUntranslatedFiles;
       }
 
       if (isOrganization) {
+        // Enterprise has no way to force approvals off, so only `true` maps to a request field.
         if (combo.exportApprovedOnly) {
           request.exportWithMinApprovalsCount = 1;
         }
@@ -607,8 +611,8 @@ export default class DownloadCommand {
           request.exportStringsThatPassedWorkflow = true;
         }
       } else {
-        if (combo.exportApprovedOnly) {
-          request.exportApprovedOnly = true;
+        if (combo.exportApprovedOnly !== undefined) {
+          request.exportApprovedOnly = combo.exportApprovedOnly;
         }
 
         if (combo.exportStringsThatPassedWorkflow) {

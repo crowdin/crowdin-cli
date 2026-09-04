@@ -1128,6 +1128,103 @@ describe('DownloadCommand', () => {
       expect(apiClient.translationsApi.buildProject).toHaveBeenCalledWith(123, { skipUntranslatedFiles: true });
     });
 
+    test('sends explicit false export options so project settings are overridden', async () => {
+      await Bun.write(join(tempDir, 'resources/en/messages.json'), '{}');
+      mockBuildAndDownload([language('fr', 'fr-FR')]);
+      mockZipEntries([{ entryName: 'resources/fr-FR/messages.json', content: 'translated' }]);
+
+      const downloadCommand = createCommandFor({
+        ...config,
+        files: [
+          {
+            source: '/resources/en/*.json',
+            translation: '/resources/%locale%/%original_file_name%',
+            skip_untranslated_strings: false,
+            skip_untranslated_files: false,
+            export_only_approved: false,
+          },
+        ],
+      });
+
+      await downloadCommand.translationsAction(commandContext);
+
+      expect(apiClient.translationsApi.buildProject).toHaveBeenCalledWith(123, {
+        skipUntranslatedStrings: false,
+        skipUntranslatedFiles: false,
+        exportApprovedOnly: false,
+      });
+    });
+
+    test('omits export options that are not set in the config', async () => {
+      await Bun.write(join(tempDir, 'resources/en/messages.json'), '{}');
+      mockBuildAndDownload([language('fr', 'fr-FR')]);
+      mockZipEntries([{ entryName: 'resources/fr-FR/messages.json', content: 'translated' }]);
+
+      const downloadCommand = createCommandFor({
+        ...config,
+        files: [{ source: '/resources/en/*.json', translation: '/resources/%locale%/%original_file_name%' }],
+      });
+
+      await downloadCommand.translationsAction(commandContext);
+
+      expect(apiClient.translationsApi.buildProject).toHaveBeenCalledWith(123, {});
+    });
+
+    test('keeps an explicit false and an unset option as separate builds', async () => {
+      await Bun.write(join(tempDir, 'resources/en/a.json'), '{}');
+      await Bun.write(join(tempDir, 'resources/en/b.json'), '{}');
+      mockBuildAndDownload([language('fr', 'fr-FR')]);
+      mockZipEntries([
+        { entryName: 'resources/fr-FR/a.json', content: 'a-fr' },
+        { entryName: 'resources/fr-FR/b.json', content: 'b-fr' },
+      ]);
+
+      commandContext = createCommandContext({ ...globalOptions, ignoreMatch: true });
+
+      const downloadCommand = createCommandFor({
+        ...config,
+        files: [
+          {
+            source: '/resources/en/a.json',
+            translation: '/resources/%locale%/%original_file_name%',
+            skip_untranslated_files: false,
+          },
+          {
+            source: '/resources/en/b.json',
+            translation: '/resources/%locale%/%original_file_name%',
+          },
+        ],
+      });
+
+      await downloadCommand.translationsAction(commandContext);
+
+      expect(apiClient.translationsApi.buildProject).toHaveBeenCalledTimes(2);
+      expect(apiClient.translationsApi.buildProject).toHaveBeenCalledWith(123, { skipUntranslatedFiles: false });
+      expect(apiClient.translationsApi.buildProject).toHaveBeenCalledWith(123, {});
+    });
+
+    test('ignores export_only_approved: false on enterprise, which cannot force approvals off', async () => {
+      spyOn(projectService, 'isEnterprise').mockReturnValue(true);
+      await Bun.write(join(tempDir, 'resources/en/messages.json'), '{}');
+      mockBuildAndDownload([language('fr', 'fr-FR')]);
+      mockZipEntries([{ entryName: 'resources/fr-FR/messages.json', content: 'translated' }]);
+
+      const downloadCommand = createCommandFor({
+        ...config,
+        files: [
+          {
+            source: '/resources/en/*.json',
+            translation: '/resources/%locale%/%original_file_name%',
+            export_only_approved: false,
+          },
+        ],
+      });
+
+      await downloadCommand.translationsAction(commandContext);
+
+      expect(apiClient.translationsApi.buildProject).toHaveBeenCalledWith(123, {});
+    });
+
     test('maps export_only_approved to exportWithMinApprovalsCount on enterprise', async () => {
       spyOn(projectService, 'isEnterprise').mockReturnValue(true);
       await Bun.write(join(tempDir, 'resources/en/messages.json'), '{}');
