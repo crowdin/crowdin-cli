@@ -1,0 +1,8 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`language lists the target languages of the project 1`] = `
+"●  Fetching project info
+●  Project info fetched
+◆  it Italian
+◆  uk Ukrainian"
+`;
