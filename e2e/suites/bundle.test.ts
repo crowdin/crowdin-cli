@@ -11,6 +11,7 @@ describe('bundle', () => {
   let ctx: SuiteContext;
   let bundleId: string;
   let clonedBundleId: string;
+  let flaggedBundleId: string;
 
   beforeAll(async () => {
     ctx = await setupSuite('bundle', { targetLanguageIds: ['it', 'uk'] });
@@ -19,6 +20,16 @@ describe('bundle', () => {
   afterAll(async () => {
     await teardownSuite(ctx);
   });
+
+  /**
+   * The bundle as the API holds it. `includeInContextPseudoLanguage` is absent from the client's
+   * `Bundle` model but is returned by the API, so it is read off a widened type.
+   */
+  async function apiBundle(id: string | number) {
+    const response = await ctx.client.bundlesApi.getBundle(ctx.project.id, Number(id));
+
+    return response.data as (typeof response)['data'] & { includeInContextPseudoLanguage?: boolean };
+  }
 
   async function listedBundles(): Promise<{ id: number; name: string; format: string }[]> {
     const result = await ctx.runner.run(['bundle', 'list', '--output', 'json']);
@@ -246,6 +257,112 @@ describe('bundle', () => {
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     expect((await listedBundles()).map((bundle) => bundle.id)).not.toContain(Number(clonedBundleId));
+  });
+
+  // `add` declares only the flag that changes the request: the bundle is created with the
+  // pseudo-language included and the other two off, so only --no-include-pseudo-language,
+  // --include-source-language and --multilingual exist there.
+  test('applies the add defaults when no flag is given', async () => {
+    const result = await ctx.runner.run([
+      'bundle',
+      'add',
+      'DefaultFlags',
+      '--format',
+      'xliff',
+      '--source-pattern',
+      '**',
+      '--export-pattern',
+      'default.xliff',
+    ]);
+
+    expect(result.exitCode).toBe(0);
+
+    const bundle = await apiBundle(result.stdout.match(/#(\d+)/)?.[1] ?? '');
+
+    expect(bundle.includeProjectSourceLanguage).toBe(false);
+    expect(bundle.includeInContextPseudoLanguage).toBe(true);
+    expect(bundle.isMultilingual).toBe(false);
+  });
+
+  test('honours every add flag', async () => {
+    const result = await ctx.runner.run([
+      'bundle',
+      'add',
+      'AllFlags',
+      '--format',
+      'xliff',
+      '--source-pattern',
+      '**',
+      '--export-pattern',
+      'all-flags.xliff',
+      '--ignore-pattern',
+      '**/ignored.json',
+      '--include-source-language',
+      '--no-include-pseudo-language',
+      '--multilingual',
+    ]);
+
+    expect(result.exitCode).toBe(0);
+
+    flaggedBundleId = result.stdout.match(/#(\d+)/)?.[1] ?? '';
+
+    const bundle = await apiBundle(flaggedBundleId);
+
+    expect(bundle.includeProjectSourceLanguage).toBe(true);
+    expect(bundle.includeInContextPseudoLanguage).toBe(false);
+    expect(bundle.isMultilingual).toBe(true);
+    expect(bundle.ignorePatterns).toEqual(['**/ignored.json']);
+  });
+
+  test('inherits every flag on a clone', async () => {
+    const result = await ctx.runner.run(['bundle', 'clone', flaggedBundleId, '--name', 'InheritedFlags']);
+
+    expect(result.exitCode).toBe(0);
+
+    const bundle = await apiBundle(result.stdout.match(/#(\d+)/)?.[1] ?? '');
+
+    expect(bundle.includeProjectSourceLanguage).toBe(true);
+    expect(bundle.includeInContextPseudoLanguage).toBe(false);
+    expect(bundle.isMultilingual).toBe(true);
+    expect(bundle.ignorePatterns).toEqual(['**/ignored.json']);
+  });
+
+  // The reason clone declares a negation for every flag: without one, an inherited `true` could
+  // never be turned back off.
+  test('turns an inherited flag back off on a clone', async () => {
+    const result = await ctx.runner.run([
+      'bundle',
+      'clone',
+      flaggedBundleId,
+      '--name',
+      'NegatedFlags',
+      '--no-include-source-language',
+      '--include-pseudo-language',
+      '--no-multilingual',
+    ]);
+
+    expect(result.exitCode).toBe(0);
+
+    const bundle = await apiBundle(result.stdout.match(/#(\d+)/)?.[1] ?? '');
+
+    expect(bundle.includeProjectSourceLanguage).toBe(false);
+    expect(bundle.includeInContextPseudoLanguage).toBe(true);
+    expect(bundle.isMultilingual).toBe(false);
+  });
+
+  test('overrides the inherited ignore patterns on a clone', async () => {
+    const result = await ctx.runner.run([
+      'bundle',
+      'clone',
+      flaggedBundleId,
+      '--name',
+      'OverriddenPatterns',
+      '--ignore-pattern',
+      '**/other.json',
+    ]);
+
+    expect(result.exitCode).toBe(0);
+    expect((await apiBundle(result.stdout.match(/#(\d+)/)?.[1] ?? '')).ignorePatterns).toEqual(['**/other.json']);
   });
 });
 
