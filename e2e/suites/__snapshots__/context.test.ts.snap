@@ -1,0 +1,85 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`context uploads sources 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'app.xml'
+◆  File 'web.xml'"
+`;
+
+exports[`context reports the coverage as a table 1`] = `
+"●  Fetching project info
+●  Project info fetched
+●  Run 'crowdin context download --status=empty' to export strings needing context.
+◆  Context Status for Project "e2e-<run>-context" (ID: <project>)
+┌─────────────────────┬───────┬─────────┐
+│                     │ Count │ Percent │
+├─────────────────────┼───────┼─────────┤
+│       Total strings │ 3     │         │
+│     With AI context │ 0     │ 0.00%   │
+│  Without AI context │ 3     │ 100.00% │
+│ With manual context │ 1     │ 33.33%  │
+└─────────────────────┴───────┴─────────┘"
+`;
+
+exports[`context downloads every string to the default context file 1`] = `
+"●  Fetching project info
+●  Project info fetched
+◆  'crowdin-context.jsonl' saved successfully
+◆  Downloaded 3 strings"
+`;
+
+exports[`context uploads nothing while every ai_context is empty 1`] = `"●  No strings with AI context found in 'crowdin-context.jsonl'"`;
+
+exports[`context uploads the AI context 1`] = `"◆  Updated strings 3/3"`;
+
+exports[`context breaks the coverage down per file 1`] = `
+"●  Fetching project info
+●  Project info fetched
+●  Run 'crowdin context download --status=empty' to export strings needing context.
+◆  Context Status for Project "e2e-<run>-context" (ID: <project>)
+┌──────────┬───────┬─────────────┬─────────┐
+│ File     │ Total │  AI context │ Missing │
+├──────────┼───────┼─────────────┼─────────┤
+│ /app.xml │     2 │ 2 (100.00%) │       0 │
+│ /web.xml │     1 │ 1 (100.00%) │       0 │
+└──────────┴───────┴─────────────┴─────────┘"
+`;
+
+exports[`context breaks the coverage down per file in the plain output 1`] = `
+"/app.xml - 0
+/app.xml - 100.00
+/app.xml - 2
+/app.xml - 2
+/web.xml - 0
+/web.xml - 1
+/web.xml - 1
+/web.xml - 100.00
+Missing:
+Total strings:
+With AI context (percentage):
+With AI context:"
+`;
+
+exports[`context reports the strings a filtered reset would clear under --dryrun 1`] = `
+"●  Fetching project info
+●  Project info fetched
+◆  Downloaded 1 strings
+◆  String #id: Proceed to checkout (context: ) would be updated"
+`;
+
+exports[`context clears the AI context of a filtered file only 1`] = `
+"●  Fetching project info
+●  Project info fetched
+◆  Downloaded 1 strings
+◆  Updated strings 1/1"
+`;
+
+exports[`context clears every remaining AI context under --all, keeping the manual context 1`] = `
+"●  Fetching project info
+●  Project info fetched
+◆  Downloaded 2 strings
+◆  Updated strings 2/2"
+`;
