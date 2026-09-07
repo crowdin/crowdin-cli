@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
+import { decode } from '@toon-format/toon';
 import AdmZip from 'adm-zip';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
@@ -76,9 +77,26 @@ function extractXlsxTexts(path: string): string[] {
  * `glossary upload` below fail with "The name '...' is already taken". They are swept both before
  * the suite (self-healing) and after it.
  */
+/** Far outside the account's id range, so `glossaryService.get` answers 404 rather than someone's. */
+const MISSING_GLOSSARY_ID = 999999999;
+
 const SUITE_GLOSSARY_NAMES = ['simple-glossary.tbx', 'simple-glossary.csv', 'simple-glossary.xlsx'].map(
   (file) => `Created in Crowdin CLI (${file})`,
 );
+
+/**
+ * This suite's own rows out of an account-wide listing, sorted by name. Takes either a decoded value
+ * or the raw json, so the two structured formats can be compared to each other.
+ */
+function suiteEntries(listing: string | unknown): { id: number; name: string; terms: number }[] {
+  const rows = (typeof listing === 'string' ? JSON.parse(listing) : listing) as {
+    id: number;
+    name: string;
+    terms: number;
+  }[];
+
+  return rows.filter((row) => SUITE_GLOSSARY_NAMES.includes(row.name)).sort((a, b) => a.name.localeCompare(b.name));
+}
 
 /** Deletes every account glossary this suite owns by name. Never throws: cleanup must not mask a result. */
 async function removeSuiteGlossaries(ctx: SuiteContext): Promise<void> {
@@ -112,6 +130,94 @@ describe('glossary', () => {
     }
 
     await teardownSuite(ctx);
+  });
+
+  // `uploadAction` validates before it builds any service, so none of these reach the API.
+  test('rejects a file that does not exist', async () => {
+    const result = await ctx.runner.run(['glossary', 'upload', 'sources/missing.tbx', '--language', 'uk']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("File 'sources/missing.tbx' not found in the Crowdin project");
+  });
+
+  test('rejects a directory', async () => {
+    const result = await ctx.runner.run(['glossary', 'upload', 'sources', '--language', 'uk']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('The specified file is a directory');
+  });
+
+  test('rejects an unsupported file extension', async () => {
+    const result = await ctx.runner.run(['glossary', 'upload', 'sources/unsupported.txt', '--language', 'uk']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('Supported formats: tbx, csv, xlsx');
+  });
+
+  // Unlike `tm upload`, which ignores a scheme it has no use for, glossary rejects it outright.
+  test('rejects a --scheme for a TBX file', async () => {
+    const result = await ctx.runner.run([
+      'glossary',
+      'upload',
+      'sources/simple-glossary.tbx',
+      '--language',
+      'uk',
+      '--scheme',
+      'term_en=1',
+    ]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('Scheme is used only for CSV or XLS/XLSX files');
+  });
+
+  test('rejects a CSV without a scheme', async () => {
+    const result = await ctx.runner.run(['glossary', 'upload', 'sources/simple-glossary.csv', '--language', 'en']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('Scheme is required for CSV or XLS/XLSX files');
+  });
+
+  test('rejects a malformed --scheme value', async () => {
+    const result = await ctx.runner.run([
+      'glossary',
+      'upload',
+      'sources/simple-glossary.csv',
+      '--language',
+      'en',
+      '--scheme',
+      'term_en',
+    ]);
+
+    expect(result.exitCode).toBe(2);
+    expect(result.stderr).toContain("The '--scheme' parameter has an invalid value 'term_en'");
+  });
+
+  test('rejects --first-line-contains-header for a TBX file', async () => {
+    const result = await ctx.runner.run([
+      'glossary',
+      'upload',
+      'sources/simple-glossary.tbx',
+      '--language',
+      'uk',
+      '--first-line-contains-header',
+    ]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("'--first-line-contains-header' is used only for CSV or XLS/XLSX files");
+  });
+
+  test('requires --language when creating a new glossary', async () => {
+    const result = await ctx.runner.run(['glossary', 'upload', 'sources/simple-glossary.tbx']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("'--language' is required for creating new glossary");
+  });
+
+  test('rejects a non-numeric --id on upload', async () => {
+    const result = await ctx.runner.run(['glossary', 'upload', 'sources/simple-glossary.tbx', '--id', 'not-a-number']);
+
+    expect(result.exitCode).toBe(2);
+    expect(result.stderr).toContain('Glossary id must be numeric');
   });
 
   test('uploads a TBX glossary, creating it', async () => {
@@ -226,6 +332,70 @@ describe('glossary', () => {
     // glossary shows up here and the output moves between runs.
   });
 
+  test('serializes id, name and term count in the json listing', async () => {
+    const result = await ctx.runner.run(['glossary', 'list', '--output', 'json']);
+
+    expect(result.exitCode).toBe(0);
+
+    const listed = JSON.parse(result.stdout) as { id: number; name: string; terms: number }[];
+    const suite = listed.filter((glossary) => SUITE_GLOSSARY_NAMES.includes(glossary.name));
+
+    expect(suite.map((glossary) => glossary.name).sort()).toEqual([...SUITE_GLOSSARY_NAMES].sort());
+    expect(suite.every((glossary) => Object.keys(glossary).join() === 'id,name,terms')).toBe(true);
+    expect(suite.every((glossary) => glossary.terms > 0)).toBe(true);
+  });
+
+  // Terms cost a request per glossary, so `-v` fetches them only for the text render.
+  test('ignores --verbose in the json listing', async () => {
+    const plainRun = await ctx.runner.run(['glossary', 'list', '--output', 'json']);
+    const verboseRun = await ctx.runner.run(['glossary', 'list', '--output', 'json', '-v']);
+
+    expect(verboseRun.exitCode).toBe(0);
+    // Two runs over an account-wide listing: another user's glossary must not read as a difference.
+    expect(suiteEntries(verboseRun.stdout)).toEqual(suiteEntries(plainRun.stdout));
+  });
+
+  test('carries the same listing in the toon output', async () => {
+    const json = await ctx.runner.run(['glossary', 'list', '--output', 'json']);
+    const toon = await ctx.runner.run(['glossary', 'list', '--output', 'toon']);
+
+    expect(toon.exitCode).toBe(0);
+    expect(suiteEntries(decode(toon.stdout))).toEqual(suiteEntries(json.stdout));
+  });
+
+  test('lists bare names in the plain output', async () => {
+    const result = await ctx.runner.run(['glossary', 'list', '--output', 'plain']);
+
+    expect(result.exitCode).toBe(0);
+
+    const names = result.stdout.split('\n').filter((line) => line.length > 0);
+
+    for (const name of SUITE_GLOSSARY_NAMES) {
+      expect(names).toContain(name);
+    }
+  });
+
+  // Like the upload guards, these fire before the glossary is fetched - hence the arbitrary id.
+  test('rejects a non-numeric glossary id', async () => {
+    const result = await ctx.runner.run(['glossary', 'download', 'not-a-number']);
+
+    expect(result.exitCode).toBe(2);
+    expect(result.stderr).toContain('Glossary id must be numeric');
+  });
+
+  test('rejects a --to extension that is not a supported format', async () => {
+    const result = await ctx.runner.run(['glossary', 'download', '1', '--to', 'download/out.txt']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('Supported formats: tbx, csv, xlsx');
+  });
+
+  test('reports a glossary that does not exist', async () => {
+    const result = await ctx.runner.run(['glossary', 'download', String(MISSING_GLOSSARY_ID)]);
+
+    expect(result.exitCode).toBe(102);
+  });
+
   test('downloads the TBX glossary by id and format', async () => {
     const file = 'Created in Crowdin CLI (simple-glossary.tbx).tbx';
 
@@ -291,6 +461,76 @@ describe('glossary', () => {
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain(`'${file}' downloaded successfully`);
     expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test('infers the format from the --to extension', async () => {
+    const file = 'download/inferred.csv';
+
+    const result = await ctx.runner.run(['glossary', 'download', String(csvGlossaryId), '--to', file]);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain(`'${file}' downloaded successfully`);
+    // Compared against the CSV baseline, not merely checked for existence: without the inference the
+    // export would default to TBX and still be written to this path.
+    expect(await Bun.file(join(ctx.workspace, file)).text()).toBe(
+      await Bun.file(join(ctx.workspace, 'expected/simple-glossary.csv')).text(),
+    );
+  });
+
+  test('echoes the written path in the plain and json download output', async () => {
+    const file = 'download/echoed.tbx';
+    const plain = await ctx.runner.run([
+      'glossary',
+      'download',
+      String(tbxGlossaryId),
+      '--to',
+      file,
+      '--output',
+      'plain',
+    ]);
+
+    expect(plain.exitCode).toBe(0);
+    expect(plain.stdout.trim()).toBe(file);
+
+    const json = await ctx.runner.run([
+      'glossary',
+      'download',
+      String(tbxGlossaryId),
+      '--to',
+      file,
+      '--output',
+      'json',
+    ]);
+
+    expect(json.exitCode).toBe(0);
+    expect(JSON.parse(json.stdout)).toBe(file);
+  });
+
+  // Last of the glossary-mutating tests: it imports into the TBX glossary the download tests read,
+  // so it has to run after them.
+  test('uploads into an existing glossary with --id', async () => {
+    const before = (await ctx.client.glossariesApi.getGlossary(tbxGlossaryId)).data.terms;
+
+    // A separate fixture on purpose: re-importing `simple-glossary.tbx` would dedupe to the same
+    // terms and leave the count unable to move.
+    const result = await ctx.runner.run([
+      'glossary',
+      'upload',
+      'sources/extra-glossary.tbx',
+      '--id',
+      String(tbxGlossaryId),
+      '--output',
+      'json',
+    ]);
+
+    expect(result.exitCode).toBe(0);
+
+    const imported = JSON.parse(result.stdout) as { id: number; name: string; terms: number };
+
+    expect(imported.id).toBe(tbxGlossaryId);
+    expect(imported.name).toBe('Created in Crowdin CLI (simple-glossary.tbx)');
+    // Refetched after the import: the copy taken before it still reports the original count.
+    expect(imported.terms).toBeGreaterThan(before);
   });
 
   test('lists glossaries authenticating via -T against a config without an api_token', async () => {
