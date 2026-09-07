@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { decode } from '@toon-format/toon';
 import { normalize } from '../helpers/normalize.ts';
 import { createTestProject, deleteTestProject } from '../helpers/project.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
@@ -20,6 +21,7 @@ const SLASHED_BRANCH = 'feature/login';
 const NORMALIZED_BRANCH = 'feature.login';
 const CLONE_TARGET = 'cloned';
 const MERGE_SOURCE = 'to-merge';
+const STRUCTURED_BRANCH = 'structured';
 const MERGED_STRING = 'String added on the merge source branch';
 
 describe('branch', () => {
@@ -219,6 +221,19 @@ describe('branch', () => {
     );
   });
 
+  // Runs after the two tests above, which assert the exact branch set - adding a branch before them
+  // would break both.
+  test.each(['json', 'toon'] as const)('echoes a created branch as one %s object, not a list', async (format) => {
+    const name = `${STRUCTURED_BRANCH}-${format}`;
+    const result = await ctx.runner.run(['branch', 'add', name, '--output', format]);
+
+    expect(result.exitCode).toBe(0);
+    expect(format === 'json' ? JSON.parse(result.stdout) : decode(result.stdout)).toEqual({
+      id: expect.any(Number),
+      name,
+    });
+  });
+
   test('requires at least one parameter on edit', async () => {
     const result = await ctx.runner.run(['branch', 'edit', MAIN_BRANCH]);
 
@@ -308,6 +323,18 @@ describe('branch', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stderr).toContain("Branch 'no-such-branch' doesn't exist in the project");
+  });
+
+  test.each(['json', 'toon'] as const)('reports that warning as a %s record with no exit code', async (format) => {
+    const result = await ctx.runner.run(['branch', 'delete', 'no-such-branch', '--output', format]);
+    const parse = format === 'json' ? JSON.parse : decode;
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout.trim()).toBe('');
+    expect(parse(result.stderr)).toEqual({
+      level: 'warning',
+      message: "Branch 'no-such-branch' doesn't exist in the project",
+    });
   });
 
   test('deletes a branch', async () => {
