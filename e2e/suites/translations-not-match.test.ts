@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
+import { decode } from '@toon-format/toon';
 import { expectFilesExist } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
@@ -74,6 +75,44 @@ describe('translations not match', () => {
     expect(result.stdout).not.toContain('translations/it/');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
+
+  test.each(['json', 'toon'] as const)(
+    'keeps stdout a parseable %s document while every warning goes to stderr',
+    async (format) => {
+      const result = await ctx.runner.run(['upload', 'translations', '-l', 'uk', '--output', format]);
+
+      expect(result.exitCode).toBe(0);
+
+      // stderr is a stream of records, not one document: json separates them with a newline, toon
+      // with a blank line. Both escape a newline inside a message, so the split is unambiguous.
+      const records = result.stderr
+        .trim()
+        .split(format === 'json' ? '\n' : '\n\n')
+        .map(
+          (record) => (format === 'json' ? JSON.parse(record) : decode(record)) as { level: string; message: string },
+        );
+
+      expect(records.map((record) => record.level)).toEqual(['warning', 'warning', 'warning']);
+      expect(records.map((record) => record.message).sort()).toEqual([
+        "File 'translations/uk/1_android.xml' does not exist in the specified location",
+        "File 'translations/uk/2_android.xml' does not exist in the specified location",
+        "File 'translations/uk/3_android.xml' does not exist in the specified location",
+      ]);
+
+      const uploaded = (format === 'json' ? JSON.parse(result.stdout) : decode(result.stdout)) as {
+        path: string;
+        action: string;
+        reason: string | null;
+      }[];
+
+      expect(uploaded.map((file) => file.path).sort()).toEqual([
+        'translations/uk/1_android.xml',
+        'translations/uk/2_android.xml',
+        'translations/uk/3_android.xml',
+      ]);
+      expect(uploaded.every((file) => file.action === 'skipped' && file.reason === 'not found locally')).toBe(true);
+    },
+  );
 
   test('previews downloading translations once the config narrows to a single source file (dry run)', async () => {
     await switchConfig(ctx, 'single-file');

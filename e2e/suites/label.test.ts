@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { decode } from '@toon-format/toon';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -52,12 +53,31 @@ describe('label', () => {
     expect(result.stderr).toContain("unknown command 'bogus'");
   });
 
+  test.each(['json', 'toon'] as const)(
+    'reports a usage error as a %s record carrying the exit code',
+    async (format) => {
+      const result = await ctx.runner.run(['label', 'bogus', '--output', format]);
+      const parse = format === 'json' ? JSON.parse : decode;
+
+      expect(result.exitCode).toBe(2);
+      // commander's own prose is suppressed; the top-level handler re-emits it as a record instead.
+      expect(parse(result.stderr)).toEqual({ level: 'error', message: "unknown command 'bogus'", code: 2 });
+    },
+  );
+
   test('reports an empty project', async () => {
     const result = await ctx.runner.run(['label', 'list']);
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('No labels found');
     expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test.each(['json', 'toon'] as const)('reports an empty project as an empty %s list', async (format) => {
+    const result = await ctx.runner.run(['label', 'list', '--output', format]);
+
+    expect(result.exitCode).toBe(0);
+    expect(format === 'json' ? JSON.parse(result.stdout) : decode(result.stdout)).toEqual([]);
   });
 
   test('requires a title to add', async () => {

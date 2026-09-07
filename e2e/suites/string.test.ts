@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { decode } from '@toon-format/toon';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
@@ -416,6 +417,21 @@ describe('string', () => {
     expect(result.exitCode).toBe(102);
     expect(result.stderr).toContain('String Not Found');
     expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test.each(['json', 'toon'] as const)('reports that failure as a %s record carrying the exit code', async (format) => {
+    const result = await ctx.runner.run(['string', 'delete', '999999', '--output', format]);
+    const record = (format === 'json' ? JSON.parse : decode)(result.stderr) as {
+      level: string;
+      message: string;
+      code: number;
+    };
+
+    expect(result.exitCode).toBe(102);
+    expect(record.level).toBe('error');
+    expect(record.message).toContain('String Not Found');
+    expect(record.code).toBe(102);
+    expect(result.stdout.trim()).toBe('');
   });
 
   test('fails deleting a string in an unsupported file type', async () => {

@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { decode } from '@toon-format/toon';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -100,6 +101,17 @@ describe('status', () => {
 
   test('serializes one entry per language in a structured format', async () => {
     expect(await statusJson(['status'])).toEqual([
+      { language: 'it', translation: 0, approval: 0 },
+      { language: 'uk', translation: 100, approval: 0 },
+    ]);
+  });
+
+  test('serializes the same entries in the toon output', async () => {
+    // `status` is the only command that reaches output.table() in a structured format.
+    const result = await ctx.runner.run(['status', '--output', 'toon']);
+
+    expect(result.exitCode).toBe(0);
+    expect(decode(result.stdout)).toEqual([
       { language: 'it', translation: 0, approval: 0 },
       { language: 'uk', translation: 100, approval: 0 },
     ]);
