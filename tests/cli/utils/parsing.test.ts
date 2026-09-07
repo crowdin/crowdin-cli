@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { ExitCode, getExitCode } from '@/cli/errors/CliError.ts';
-import { normalizeBranchName, normalizePath, parseNumericId, toNumberArray } from '@/cli/utils/parsing.ts';
+import { normalizeBranchName, normalizePath, parseNumericId, parseScheme, toNumberArray } from '@/cli/utils/parsing.ts';
 
 // Java declares these ids as Long, so picocli's Long.parseLong rejects anything else with a usage
 // error. Number() would accept all of the below and forward junk to the API as a real id.
@@ -19,6 +19,52 @@ describe('parseNumericId', () => {
     try {
       parseNumericId('1.5', 'Bundle');
       throw new Error('expected parseNumericId to throw');
+    } catch (error) {
+      expect(getExitCode(error)).toBe(ExitCode.VALIDATION);
+    }
+  });
+});
+
+describe('parseScheme', () => {
+  const columns = { ar: 1, de: 2, en: 3 };
+
+  test('reads the repeated-flag spelling', () => {
+    expect(parseScheme(['ar=1', 'de=2', 'en=3'])).toEqual(columns);
+  });
+
+  test('reads the comma-joined spelling, and a mix of the two', () => {
+    expect(parseScheme(['ar=1,de=2,en=3'])).toEqual(columns);
+    expect(parseScheme(['ar=1,de=2', 'en=3'])).toEqual(columns);
+  });
+
+  test('keeps a hyphenated locale as the column name', () => {
+    expect(parseScheme(['zh-CN=5'])).toEqual({ 'zh-CN': 5 });
+  });
+
+  test('treats no scheme as absent rather than empty', () => {
+    // The upload actions branch on `undefined` to decide whether to send `scheme` at all.
+    expect(parseScheme([])).toBeUndefined();
+  });
+
+  test('accepts column zero', () => {
+    expect(parseScheme(['en=0'])).toEqual({ en: 0 });
+  });
+
+  // Current behaviour, not necessarily intended: `Number('')` is 0, which clears the integer guard,
+  // so an empty column silently means column 0 - the first real column. Java takes --scheme as
+  // Map<String, Integer>, where picocli rejects an empty value outright.
+  test('reads an empty column as column 0', () => {
+    expect(parseScheme(['en='])).toEqual({ en: 0 });
+  });
+
+  test.each(['en', '=1', 'en=x', 'en=1.5', 'en=-1', 'en=1=2'])('rejects %p', (value) => {
+    expect(() => parseScheme([value])).toThrow("The '--scheme' parameter has an invalid value");
+  });
+
+  test('rejects with the validation exit code, as picocli does', () => {
+    try {
+      parseScheme(['en']);
+      throw new Error('expected parseScheme to throw');
     } catch (error) {
       expect(getExitCode(error)).toBe(ExitCode.VALIDATION);
     }

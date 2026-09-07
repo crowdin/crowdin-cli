@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
+import { decode } from '@toon-format/toon';
 import AdmZip from 'adm-zip';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
@@ -92,6 +93,9 @@ function extractXlsxTexts(path: string): string[] {
  * every `tm upload` below fail with "The name '...' is already taken". They are swept both before
  * the suite (self-healing) and after it.
  */
+/** Far outside the account's id range, so `tmService.get` answers 404 rather than someone's TM. */
+const MISSING_TM_ID = 999999999;
+
 const SUITE_TM_NAMES = ['simple-tm.tmx', 'simple-tm.csv', 'simple-tm.xlsx'].map(
   (file) => `Created in Crowdin CLI (${file})`,
 );
@@ -128,6 +132,71 @@ describe('tm', () => {
     }
 
     await teardownSuite(ctx);
+  });
+
+  // `uploadAction` validates before it builds any service, so none of these reach the API.
+  test('rejects a file that does not exist', async () => {
+    const result = await ctx.runner.run(['tm', 'upload', 'sources/missing.tmx', '--language', 'en']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("File 'sources/missing.tmx' not found in the Crowdin project");
+  });
+
+  test('rejects a directory', async () => {
+    const result = await ctx.runner.run(['tm', 'upload', 'sources', '--language', 'en']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('The specified file is a directory');
+  });
+
+  test('rejects a CSV without a scheme', async () => {
+    const result = await ctx.runner.run(['tm', 'upload', 'sources/simple-tm.csv', '--language', 'uk']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('Scheme is required for CSV or XLS/XLSX files');
+  });
+
+  test('rejects a malformed --scheme value', async () => {
+    const result = await ctx.runner.run([
+      'tm',
+      'upload',
+      'sources/simple-tm.csv',
+      '--language',
+      'uk',
+      '--scheme',
+      'en',
+    ]);
+
+    expect(result.exitCode).toBe(2);
+    expect(result.stderr).toContain("The '--scheme' parameter has an invalid value 'en'");
+  });
+
+  test('rejects an unsupported file extension', async () => {
+    const result = await ctx.runner.run(['tm', 'upload', 'sources/unsupported.txt', '--language', 'en']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('Supported formats: tmx, csv, xlsx');
+  });
+
+  test('rejects --first-line-contains-header for a TMX file', async () => {
+    const result = await ctx.runner.run([
+      'tm',
+      'upload',
+      'sources/simple-tm.tmx',
+      '--language',
+      'en',
+      '--first-line-contains-header',
+    ]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("'--first-line-contains-header' is used only for CSV or XLS/XLSX files");
+  });
+
+  test('requires --language when creating a new translation memory', async () => {
+    const result = await ctx.runner.run(['tm', 'upload', 'sources/simple-tm.tmx']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("'--language' is required for creating new translation memory");
   });
 
   test('uploads a TMX translation memory, creating it', async () => {
@@ -214,6 +283,74 @@ describe('tm', () => {
     expect(segmentsByName.get('Created in Crowdin CLI (simple-tm.tmx)')).toBe(4);
     expect(segmentsByName.get('Created in Crowdin CLI (simple-tm.csv)')).toBe(4);
     expect(segmentsByName.get('Created in Crowdin CLI (simple-tm.xlsx)')).toBe(4);
+  });
+
+  test('serializes id, name and segment count in the json listing', async () => {
+    const result = await ctx.runner.run(['tm', 'list', '--output', 'json']);
+
+    expect(result.exitCode).toBe(0);
+
+    const listed = JSON.parse(result.stdout) as { id: number; name: string; segmentsCount: number }[];
+    const suiteTms = listed.filter((tm) => SUITE_TM_NAMES.includes(tm.name));
+
+    expect(suiteTms.map((tm) => tm.name).sort()).toEqual([...SUITE_TM_NAMES].sort());
+    expect(suiteTms.every((tm) => Object.keys(tm).join() === 'id,name,segmentsCount')).toBe(true);
+    expect(suiteTms.every((tm) => tm.segmentsCount === 4)).toBe(true);
+  });
+
+  test('carries the same listing in the toon output', async () => {
+    const json = await ctx.runner.run(['tm', 'list', '--output', 'json']);
+    const toon = await ctx.runner.run(['tm', 'list', '--output', 'toon']);
+
+    expect(toon.exitCode).toBe(0);
+    expect(decode(toon.stdout)).toEqual(JSON.parse(json.stdout));
+  });
+
+  test('lists bare names in the plain output', async () => {
+    const result = await ctx.runner.run(['tm', 'list', '--output', 'plain']);
+
+    expect(result.exitCode).toBe(0);
+
+    const names = result.stdout.split('\n').filter((line) => line.length > 0);
+
+    for (const name of SUITE_TM_NAMES) {
+      expect(names).toContain(name);
+    }
+  });
+
+  // Like the upload guards, these all fire before the TM is fetched - hence the arbitrary id.
+  test('rejects a non-numeric translation memory id', async () => {
+    const result = await ctx.runner.run(['tm', 'download', 'not-a-number']);
+
+    expect(result.exitCode).toBe(2);
+    expect(result.stderr).toContain('Translation memory id must be numeric');
+  });
+
+  test('rejects a --to extension that is not a supported format', async () => {
+    const result = await ctx.runner.run(['tm', 'download', '1', '--to', 'download/out.txt']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('Supported formats: tmx, csv, xlsx');
+  });
+
+  test('rejects --source-language-id without --target-language-id', async () => {
+    const result = await ctx.runner.run(['tm', 'download', '1', '--source-language-id', 'en']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("'--target-language-id' must be specified along with '--source-language-id'");
+  });
+
+  test('rejects --target-language-id without --source-language-id', async () => {
+    const result = await ctx.runner.run(['tm', 'download', '1', '--target-language-id', 'uk']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("'--source-language-id' must be specified along with '--target-language-id'");
+  });
+
+  test('reports a translation memory that does not exist', async () => {
+    const result = await ctx.runner.run(['tm', 'download', String(MISSING_TM_ID)]);
+
+    expect(result.exitCode).toBe(102);
   });
 
   test('downloads the TMX translation memory by id and format', async () => {
@@ -306,6 +443,75 @@ describe('tm', () => {
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain(`'${file}' downloaded successfully`);
     expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test('echoes the written path in the plain and json download output', async () => {
+    const file = 'download/plain-output.tmx';
+    const plain = await ctx.runner.run(['tm', 'download', String(tmxId), '--to', file, '--output', 'plain']);
+
+    expect(plain.exitCode).toBe(0);
+    expect(plain.stdout.trim()).toBe(file);
+
+    const json = await ctx.runner.run(['tm', 'download', String(tmxId), '--to', file, '--output', 'json']);
+
+    expect(json.exitCode).toBe(0);
+    expect(JSON.parse(json.stdout)).toBe(file);
+  });
+
+  // Last of the TM-mutating tests: it imports into the TMX memory the download tests read, so it has
+  // to run after them.
+  test('uploads into an existing translation memory with --id', async () => {
+    // A separate fixture on purpose: re-importing `simple-tm.tmx` would dedupe to the same 4 and
+    // leave the segment count unable to move.
+    const result = await ctx.runner.run([
+      'tm',
+      'upload',
+      'sources/extra-tm.tmx',
+      '--id',
+      String(tmxId),
+      '--output',
+      'json',
+    ]);
+
+    expect(result.exitCode).toBe(0);
+
+    const imported = JSON.parse(result.stdout) as { id: number; name: string; segmentsCount: number };
+
+    expect(imported.id).toBe(tmxId);
+    expect(imported.name).toBe('Created in Crowdin CLI (simple-tm.tmx)');
+    // Refetched after the import: the copy taken before it still reports the original 4.
+    expect(imported.segmentsCount).toBeGreaterThan(4);
+
+    const tms = await ctx.client.translationMemoryApi.withFetchAll().listTm();
+    const matching = tms.data.filter((entry) => entry.data.name === 'Created in Crowdin CLI (simple-tm.tmx)');
+
+    expect(matching).toHaveLength(1);
+  });
+
+  test('accepts a comma-joined --scheme', async () => {
+    // `--id` keeps this from minting a second TM under an already-taken name.
+    const result = await ctx.runner.run([
+      'tm',
+      'upload',
+      'sources/simple-tm.csv',
+      '--id',
+      String(csvId),
+      '--scheme',
+      'ar=1,de=2,en=3,uk=4,zh-CN=5',
+      '--first-line-contains-header',
+      '--output',
+      'json',
+    ]);
+
+    expect(result.exitCode).toBe(0);
+    expect((JSON.parse(result.stdout) as { id: number }).id).toBe(csvId);
+  });
+
+  test('rejects a non-numeric --id on upload', async () => {
+    const result = await ctx.runner.run(['tm', 'upload', 'sources/simple-tm.tmx', '--id', 'not-a-number']);
+
+    expect(result.exitCode).toBe(2);
+    expect(result.stderr).toContain('Translation memory id must be numeric');
   });
 
   test('lists translation memories authenticating via -T against a config without an api_token', async () => {
