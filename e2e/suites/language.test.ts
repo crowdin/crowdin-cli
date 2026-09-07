@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { decode } from '@toon-format/toon';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
@@ -95,6 +96,14 @@ describe('language', () => {
       { code: 'it', name: 'Italian' },
       { code: 'uk', name: 'Ukrainian' },
     ]);
+  });
+
+  test('carries the same list in the toon output as in the json one', async () => {
+    const json = await ctx.runner.run(['language', 'list', '--output', 'json']);
+    const toon = await ctx.runner.run(['language', 'list', '--output', 'toon']);
+
+    expect(toon.exitCode).toBe(0);
+    expect(decode(toon.stdout)).toEqual(JSON.parse(json.stdout));
   });
 
   test('renders every supported --code format', async () => {
