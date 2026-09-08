@@ -269,4 +269,28 @@ describe('translations not match', () => {
     expect(result.stdout).toContain('translations/uk/3_android.xml');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
+
+  test('suppresses the mismatch report with --ignore-match', async () => {
+    const result = await ctx.runner.run(['download', 'translations', '--ignore-match']);
+
+    expect(result.exitCode).toBe(0);
+    // The report the tests above assert in full is exactly what this flag exists to silence.
+    expect(result.stderr).not.toContain("Downloaded translations don't match the current project configuration");
+    expect(result.stdout).not.toContain('sources/2_android.xml (2)');
+    expect(result.stdout).not.toContain('java.properties (2)');
+
+    // Silencing the report must not change what lands on disk.
+    await expectFilesExist(ctx.workspace, 'translations/it/1_android.xml', 'translations/uk/1_android.xml');
+  });
+
+  test('fails when the build maps to no local file at all', async () => {
+    await switchConfig(ctx, 'no-sources');
+
+    const result = await ctx.runner.run(['download', 'translations']);
+
+    // The hard-error arm of the same check: with --skip-untranslated-files this is only a warning,
+    // which export-options.test.ts covers.
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("Couldn't find any file to download");
+  });
 });
