@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { decode } from '@toon-format/toon';
 import { normalize } from '../helpers/normalize.ts';
+import { createTestProject, deleteTestProject } from '../helpers/project.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /**
@@ -37,12 +38,25 @@ describe('string', () => {
   let branchId: number;
   let branchStr2Id: number;
   let contextRequestCommentId: number;
+  let stringsBasedProjectId: number;
 
   beforeAll(async () => {
     ctx = await setupSuite('string');
+    // The string-based guards need a project of the other kind to fire against; this suite's own is
+    // file-based. Addressed with `--project-id`, as branch.test.ts does for the mirror case.
+    stringsBasedProjectId = (await createTestProject(ctx.client, { suite: 'string-strings-based', stringsBased: true }))
+      .id;
   });
 
   afterAll(async () => {
+    if (ctx && stringsBasedProjectId && !ctx.env.keep) {
+      try {
+        await deleteTestProject(ctx.client, stringsBasedProjectId);
+      } catch (error) {
+        console.error(`Failed to delete project #${stringsBasedProjectId}: ${error}`);
+      }
+    }
+
     await teardownSuite(ctx);
   });
 
@@ -570,5 +584,189 @@ describe('string', () => {
     // The context-request issue was just resolved above, so it must not show up here anymore.
     expect(result.stdout).not.toContain('Added issue string context_request id 10');
     expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  // Everything below runs after the listing snapshots above, so the strings these tests add cannot
+  // shift them. The option guards throw before any request, so they cost nothing.
+
+  test('rejects --file and --directory together', async () => {
+    const result = await ctx.runner.run(['string', 'list', '--file', 'android.xml', '--directory', 'sources']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("The '--file' and '--directory' options can't be used together");
+  });
+
+  test('rejects --scope without --filter', async () => {
+    const result = await ctx.runner.run(['string', 'list', '--scope', 'identifier']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("The '--scope' option can only be used together with '--filter'");
+  });
+
+  test('rejects --croql alongside another filter', async () => {
+    const result = await ctx.runner.run(['string', 'list', '--croql', 'text = "x"', '--filter', 'str']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("The '--croql' option can't be used together with --filter");
+  });
+
+  test('names every filter that conflicts with --croql, not just the first', async () => {
+    const result = await ctx.runner.run([
+      'string',
+      'list',
+      '--croql',
+      'text = "x"',
+      '--filter',
+      'str',
+      '--file',
+      'android.xml',
+    ]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("The '--croql' option can't be used together with --filter, --file");
+  });
+
+  test('rejects a negative --max-length when adding', async () => {
+    const result = await ctx.runner.run(['string', 'add', 'negative', '--file', 'android.xml', '--max-length=-1']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("'--max-length' cannot be lower than 0");
+  });
+
+  test('rejects a negative --max-length when editing', async () => {
+    const result = await ctx.runner.run(['string', 'edit', String(thirdStringId), '--max-length=-1']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("'--max-length' cannot be lower than 0");
+  });
+
+  test('requires at least one parameter on edit', async () => {
+    const result = await ctx.runner.run(['string', 'edit', String(thirdStringId)]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('Specify some parameters to edit the string');
+  });
+
+  test('requires --file when adding to a file-based project', async () => {
+    const result = await ctx.runner.run(['string', 'add', 'no file given']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("The '--file' value can not be empty");
+  });
+
+  test('reports a directory the project does not contain', async () => {
+    const result = await ctx.runner.run(['string', 'list', '--directory', 'no-such-directory']);
+
+    expect(result.exitCode).not.toBe(0);
+    expect(result.stderr).toContain('no-such-directory');
+  });
+
+  test('stores a plural text built from the plural-form options', async () => {
+    const result = await ctx.runner.run([
+      'string',
+      'add',
+      'other form',
+      '--identifier',
+      'plural_str',
+      '--file',
+      'android.xml',
+      '--one',
+      'one form',
+      '--output',
+      'json',
+    ]);
+
+    expect(result.exitCode).toBe(0);
+
+    // The id comes from the command's own echo: findStringId matches on `data.text`, which for a
+    // plural string is an object rather than the string it was created from. A file-based add
+    // prints a list (one entry per resolved `--file`), not a single item.
+    const [echoed] = JSON.parse(result.stdout) as { id: number }[];
+    const added = await ctx.client.sourceStringsApi.getString(ctx.project.id, echoed?.id as number);
+
+    // `other` comes from the positional argument, `one` from the flag. Only the forms the source
+    // language actually has may be sent - English has [one, other], and the API rejects the rest
+    // with "Unknown [few] in this locale", so this is not the place to pass all five.
+    expect(added.data.text).toEqual({ other: 'other form', one: 'one form' });
+  });
+
+  test('narrows the json listing to the view keys, and widens it with --verbose', async () => {
+    const plain = await ctx.runner.run(['string', 'list', '--output', 'json']);
+    const verbose = await ctx.runner.run(['string', 'list', '--output', 'json', '-v']);
+
+    expect(plain.exitCode).toBe(0);
+    expect(verbose.exitCode).toBe(0);
+
+    const plainKeys = (JSON.parse(plain.stdout) as object[]).map((entry) => Object.keys(entry).join());
+    const verboseKeys = (JSON.parse(verbose.stdout) as object[]).map((entry) => Object.keys(entry).join());
+
+    expect(new Set(plainKeys)).toEqual(new Set(['id,identifier,text']));
+    expect(new Set(verboseKeys)).toEqual(new Set(['id,identifier,text,fileId,labelIds,context']));
+  });
+
+  test('carries the same listing in the toon output', async () => {
+    const json = await ctx.runner.run(['string', 'list', '--output', 'json']);
+    const toon = await ctx.runner.run(['string', 'list', '--output', 'toon']);
+
+    expect(toon.exitCode).toBe(0);
+    expect(decode(toon.stdout)).toEqual(JSON.parse(json.stdout));
+  });
+
+  test('lists bare string ids with --output plain', async () => {
+    const result = await ctx.runner.run(['string', 'list', '--output', 'plain']);
+
+    expect(result.exitCode).toBe(0);
+
+    const lines = result.stdout.split('\n').filter((line) => line.length > 0);
+
+    const json = await ctx.runner.run(['string', 'list', '--output', 'json']);
+    const ids = (JSON.parse(json.stdout) as { id: number }[]).map((entry) => String(entry.id));
+
+    expect(lines.every((line) => /^\d+$/.test(line))).toBe(true);
+    expect(lines.sort()).toEqual(ids.sort());
+  });
+
+  test('rejects --file when listing a string-based project', async () => {
+    const result = await ctx.runner.run([
+      'string',
+      'list',
+      '--file',
+      'android.xml',
+      '--project-id',
+      String(stringsBasedProjectId),
+    ]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain(
+      "The '--file' and '--directory' options are not supported for string-based projects",
+    );
+  });
+
+  test('rejects --file when adding to a string-based project', async () => {
+    const result = await ctx.runner.run([
+      'string',
+      'add',
+      'strings based',
+      '--file',
+      'android.xml',
+      '--project-id',
+      String(stringsBasedProjectId),
+    ]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("The '--file' option is not supported for string-based projects");
+  });
+
+  test('requires --branch when adding to a string-based project', async () => {
+    const result = await ctx.runner.run([
+      'string',
+      'add',
+      'strings based',
+      '--project-id',
+      String(stringsBasedProjectId),
+    ]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("The '--branch' option is required for string-based projects");
   });
 });
