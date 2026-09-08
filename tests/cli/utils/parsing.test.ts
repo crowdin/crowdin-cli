@@ -50,14 +50,9 @@ describe('parseScheme', () => {
     expect(parseScheme(['en=0'])).toEqual({ en: 0 });
   });
 
-  // Current behaviour, not necessarily intended: `Number('')` is 0, which clears the integer guard,
-  // so an empty column silently means column 0 - the first real column. Java takes --scheme as
-  // Map<String, Integer>, where picocli rejects an empty value outright.
-  test('reads an empty column as column 0', () => {
-    expect(parseScheme(['en='])).toEqual({ en: 0 });
-  });
-
-  test.each(['en', '=1', 'en=x', 'en=1.5', 'en=-1', 'en=1=2'])('rejects %p', (value) => {
+  // 'en=' is in the list because `Number('')` is 0, which clears the integer guard on its own - the
+  // reason parseScheme tests `!column` rather than `column === undefined`.
+  test.each(['en', 'en=', '=1', 'en=x', 'en=1.5', 'en=-1', 'en=1=2'])('rejects %p', (value) => {
     expect(() => parseScheme([value])).toThrow("The '--scheme' parameter has an invalid value");
   });
 
