@@ -187,4 +187,71 @@ describe('download pseudo', () => {
     // been dropped when the pretty-printer was replaced.
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
+
+  // Every run above passes `--pseudo` alone; these pair it with the other download flags. The
+  // schema-failure tests leave an invalid config behind, so each of these switches first.
+  test('previews a pseudo download without writing anything', async () => {
+    await switchConfig(ctx, 'cyrillic');
+    await clearDownloadedTranslations(ctx);
+
+    const result = await ctx.runner.run(['download', 'translations', '--pseudo', '--dryrun']);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain('translations/uk/android.xml');
+    expect(await Bun.file(join(ctx.workspace, 'translations/uk/android.xml')).exists()).toBe(false);
+  });
+
+  test('maps the pseudo archive against every project language, ignoring --language', async () => {
+    await switchConfig(ctx, 'cyrillic');
+    await clearDownloadedTranslations(ctx);
+
+    // `-l fr` narrows a normal download to French. A pseudo build has one language of its own -
+    // cyrillic means uk - and is mapped against every project language rather than the resolved
+    // set (DownloadCommand.ts:410), so uk still lands despite naming a different language here.
+    const result = await ctx.runner.run(['download', 'translations', '--pseudo', '-l', 'fr']);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("File 'translations/uk/android.xml' extracted");
+    expect(await Bun.file(join(ctx.workspace, 'translations/uk/android.xml')).exists()).toBe(true);
+  });
+
+  test('builds pseudo translations for a branch', async () => {
+    await switchConfig(ctx, 'cyrillic');
+    await clearDownloadedTranslations(ctx);
+
+    const upload = await ctx.runner.run(['upload', 'sources', '-b', 'pseudo-branch']);
+
+    expect(upload.exitCode).toBe(0);
+
+    // The branch id is the one field a pseudo build carries beyond the localization settings.
+    const result = await ctx.runner.run(['download', 'translations', '--pseudo', '-b', 'pseudo-branch']);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("File 'translations/uk/android.xml' extracted");
+  });
+
+  test('still builds pseudo translations when the config sets export options', async () => {
+    await switchConfig(ctx, 'export-only-approved');
+    await clearDownloadedTranslations(ctx);
+
+    // Nothing here is approved, so a normal download of this config falls back to the source text.
+    const normal = await ctx.runner.run(['download', 'translations']);
+
+    expect(normal.exitCode).toBe(0);
+    expect(await Bun.file(join(ctx.workspace, 'translations/uk/android.xml')).text()).toContain('first string');
+
+    // Also the only reachable case of the omitted report's second list: archive entries matching
+    // no project source, the sibling of the warning translations-not-match covers.
+    expect(normal.stderr).toContain('Due to missing respective sources, the following translations will be omitted:');
+
+    await clearDownloadedTranslations(ctx);
+
+    // A pseudo build is a single all-files request carrying no export options
+    // (DownloadCommand.ts:560), so the same config yields transformed text instead of the source.
+    const pseudo = await ctx.runner.run(['download', 'translations', '--pseudo']);
+
+    expect(pseudo.exitCode).toBe(0);
+    expect(pseudo.stdout).toContain("File 'translations/uk/android.xml' extracted");
+    expect(await Bun.file(join(ctx.workspace, 'translations/uk/android.xml')).text()).not.toContain('first string');
+  });
 });
