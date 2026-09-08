@@ -263,4 +263,3 @@ exports[`full CLI project workflow downloads sources 1`] = `
 
 exports[`full CLI project workflow validates a correct configuration file 1`] = `"◆  Your configuration file looks good"`;
 
-exports[`full CLI project workflow reports an invalid configuration file 1`] = `""`;
