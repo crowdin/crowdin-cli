@@ -265,4 +265,28 @@ describe('download translations --all', () => {
 
     await expectFilesExist(ctx.workspace, 'files/translations/it/android.xml', 'files/translations/uk/android.xml');
   });
+
+  test('narrows the build to the languages left after --exclude-language', async () => {
+    const result = await ctx.runner.run(['download', 'translations', '--exclude-language', 'it', '--dryrun']);
+
+    expect(result.exitCode).toBe(0);
+    // Excludes subtract from the project's languages rather than replacing the set, and narrowing
+    // it pins the build (lib/download/languages.ts).
+    expect(result.stdout).toContain('translations/uk/');
+    expect(result.stdout).not.toContain('translations/it/');
+  });
+
+  test('rejects --language and --exclude-language together', async () => {
+    const result = await ctx.runner.run(['download', 'translations', '-l', 'uk', '--exclude-language', 'it']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("The '--language' and '--exclude-language' options can't be used simultaneously");
+  });
+
+  test('rejects an excluded language the project does not target', async () => {
+    const result = await ctx.runner.run(['download', 'translations', '--exclude-language', 'de', '--dryrun']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("Language 'de' doesn't exist in the project");
+  });
 });
