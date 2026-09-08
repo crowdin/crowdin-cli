@@ -1,0 +1,24 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`config lists the matched source files 1`] = `
+"●  Fetching project info
+●  Project info fetched
+◆  sources/main/app.xml
+◆  sources/main/nested/deep.xml
+◆  sources/other/lib.xml"
+`;
+
+exports[`config renders the sources as a tree 1`] = `
+"●  Fetching project info
+●  Project info fetched
+.
+╰─ sources
+   ├─ main
+   │  ├─ app.xml
+   │  ╰─ nested
+   │     ╰─ deep.xml
+   ╰─ other
+      ╰─ lib.xml"
+`;
+
+exports[`config accepts a valid configuration 1`] = `"◆  Your configuration file looks good"`;
