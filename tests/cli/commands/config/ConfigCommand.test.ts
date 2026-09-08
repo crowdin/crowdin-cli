@@ -351,8 +351,16 @@ describe('ConfigCommand translations', () => {
     const { error, list, thrown } = await run({ data: { targetLanguages: [] } }, { output: format });
 
     expect(thrown).toBeInstanceOf(CliError);
-    expect(error).toHaveBeenCalledWith('You must have manager or developer role in the project to perform this action');
     expect(list).not.toHaveBeenCalled();
+
+    // Only plain prints its own record; json/toon get the top-level handler's.
+    if (format === 'plain') {
+      expect(error).toHaveBeenCalledWith(
+        'You must have manager or developer role in the project to perform this action',
+      );
+    } else {
+      expect(error).not.toHaveBeenCalled();
+    }
   });
 
   test('renders a tree with --tree', async () => {

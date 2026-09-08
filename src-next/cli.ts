@@ -117,7 +117,10 @@ try {
       // --debug: print the full stack trace (message included) instead of the one-liner.
       // ponytail: top-level only; per-file worker-thread stacks stay deferred with upload/download.
       console.error(error.stack);
-    } else if (!(error instanceof CliError && error.reported)) {
+    } else if (isStructured || !(error instanceof CliError && error.reported)) {
+      // `reported` means "already shown to a human" — a spinner line, or a command's own printed
+      // message. json/toon have no such affordance, so the record is always written here, the only
+      // place that knows the exit code.
       output.error(message, { code: exitCode });
     }
 

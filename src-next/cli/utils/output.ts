@@ -296,8 +296,12 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
       message: string,
     ): void {
       if (format !== 'text' || !options.progress) {
+        // Reporting here produced a record with no `code` and, since `withSpinner` marks the error
+        // `reported`, suppressed the handler's record that would have carried one.
         if (operation === 'error') {
-          this.error(message);
+          if (!isStructured) {
+            this.error(message);
+          }
         } else {
           this.info(message);
         }
