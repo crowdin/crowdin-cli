@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { generate } from '@/lib/config/yamlGenerator.ts';
 import { normalize } from '../helpers/normalize.ts';
@@ -140,6 +141,61 @@ describe('init generates a configuration skeleton', () => {
     const result = await ctx.runner.run(['init', '--quiet', '-d', 'nested/sub/crowdin.yml'], { noConfig: true });
 
     expect(result.exitCode).toBe(0);
+    expect(await Bun.file(destPath).exists()).toBe(true);
+  });
+
+  test('writes to crowdin.yml when no destination is given', async () => {
+    // Run from a subdirectory: the suite's own rendered config already occupies
+    // <workspace>/crowdin.yml, which is the very path the default resolves to.
+    const directory = join(ctx.workspace, 'default-destination');
+    await mkdir(directory, { recursive: true });
+
+    const result = await ctx.runner.run(['init', '--quiet'], { noConfig: true, cwd: directory });
+
+    expect(result.exitCode).toBe(0);
+    expect(await Bun.file(join(directory, 'crowdin.yml')).exists()).toBe(true);
+  });
+
+  test('generates a skeleton that lints clean once the paths are filled in', async () => {
+    // The counterpart of the incomplete-skeleton test above.
+    const init = await ctx.runner.run(
+      [
+        'init',
+        '--quiet',
+        '-d',
+        'lintable.yml',
+        '--project-id',
+        '123',
+        '--token',
+        'a'.repeat(80),
+        '--base-path',
+        '.',
+        '--source',
+        '/sources/*.json',
+        '--translation',
+        '/l10n/%locale%/%original_file_name%',
+      ],
+      { noConfig: true },
+    );
+
+    expect(init.exitCode).toBe(0);
+
+    const result = await ctx.runner.run(['config', 'lint', '--config', 'lintable.yml'], { noConfig: true });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain('Your configuration file looks good');
+  });
+
+  test('writes the file but no stdout under a machine --output', async () => {
+    const destPath = join(ctx.workspace, 'machine-output.yml');
+    const result = await ctx.runner.run(['init', '--quiet', '-d', 'machine-output.yml', '--output', 'json'], {
+      noConfig: true,
+    });
+
+    expect(result.exitCode).toBe(0);
+    // init reports through intro/outro, which are text-only, so the file on disk is the whole
+    // result - a consumer scripting `init` gets an empty document, not a record.
+    expect(result.stdout.trim()).toBe('');
     expect(await Bun.file(destPath).exists()).toBe(true);
   });
 });
