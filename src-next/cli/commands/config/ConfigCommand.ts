@@ -8,7 +8,7 @@ import ValidationError from '@/cli/errors/ValidationError.ts';
 import type { GetConfig, GetLanguageService, GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { printFileTree } from '@/cli/utils/fileTree.ts';
-import { isMachineFormat } from '@/cli/utils/formatter.ts';
+import { isMachineFormat, isStructuredFormat } from '@/cli/utils/formatter.ts';
 import FileNotFoundError from '@/lib/common/errors/FileNotFoundError.ts';
 import SourceFileLoader from '@/lib/config/SourceFileLoader.ts';
 import { resolveTranslationPath } from '@/lib/config/translationPathResolver.ts';
@@ -101,10 +101,14 @@ export default class ConfigCommand {
       const message = 'You must have manager or developer role in the project to perform this action';
 
       // A machine format owes the caller a result document, and a warning followed by exit 0 reads
-      // as 'no translations' instead of 'you may not ask'. Print first, then throw so the exit code
-      // carries the reason — the same order lintAction uses (Java only branches on --plain here).
+      // as 'no translations' instead of 'you may not ask', so throw to carry the reason in the exit
+      // code (Java only branches on --plain here). plain prints its own record; json/toon get the
+      // handler's.
       if (isMachineFormat(options.output)) {
-        output.error(message);
+        if (!isStructuredFormat(options.output)) {
+          output.error(message);
+        }
+
         throw new ForbiddenError(message, true);
       }
 
@@ -181,7 +185,10 @@ export default class ConfigCommand {
     } catch (error) {
       const message = this.getLintErrorMessage(error);
 
-      output.error(message);
+      // As in the manager-access guard above: json/toon get the handler's record instead.
+      if (!isStructuredFormat(command.optsWithGlobals().output)) {
+        output.error(message);
+      }
 
       // A missing config file is NotFound (102) like Java; invalid content is Validation (2).
       if (error instanceof FileNotFoundError) {
