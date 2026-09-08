@@ -38,6 +38,11 @@ describe('config', () => {
     return stdout.split('\n').filter((line) => line.length > 0);
   }
 
+  /** json writes one diagnostic record per line; the count is what proves nothing double-prints. */
+  function structuredDiagnostics(stderr: string): { level: string; message: string; code?: number }[] {
+    return lines(stderr.trim()).map((line) => JSON.parse(line));
+  }
+
   test('prints help when invoked without a subcommand', async () => {
     const result = await ctx.runner.run(['config']);
 
@@ -176,21 +181,35 @@ describe('config', () => {
     expect(JSON.parse(json.stdout)).toEqual([]);
   });
 
-  test('reports a lint failure as a structured record on stderr', async () => {
+  test('reports a lint failure as one structured record carrying the exit code', async () => {
     const result = await ctx.runner.run(['config', 'lint', '--output', 'json']);
 
     expect(result.exitCode).toBe(2);
 
-    const record = JSON.parse(result.stderr) as { level: string; message: string; code?: number };
+    const records = structuredDiagnostics(result.stderr);
 
-    expect(record.level).toBe('error');
-    expect(record.message).toContain('No source files found');
+    // Exactly one: lintAction stays silent in a structured format so the top-level handler, the only
+    // place that knows the exit code, writes the record instead of duplicating it.
+    expect(records).toHaveLength(1);
+    expect(records[0]?.level).toBe('error');
+    expect(records[0]?.message).toContain('No source files found');
+    expect(records[0]?.code).toBe(2);
     expect(result.stdout.trim()).toBe('');
-    // Current behaviour, and a divergence worth knowing: `lintAction` prints the record itself and
-    // then throws with `reported: true`, so the top-level handler never runs and never attaches
-    // `code`. Every failure that reaches the handler instead - `string delete 999999 --output json`,
-    // say - carries `code` alongside the message. The exit code is still 2 either way.
-    expect(record.code).toBeUndefined();
+  });
+
+  test('reports a spinner-wrapped failure as one record carrying the exit code too', async () => {
+    // This failure comes from `withSpinner`, which marks it reported - the path that used to lose
+    // `code` while a plain try/catch kept it, so whether a consumer saw `code` depended on which
+    // service happened to raise the error.
+    const result = await ctx.runner.run(['config', 'sources', '--project-id', '999999999', '--output', 'json']);
+
+    expect(result.exitCode).toBe(102);
+
+    const records = structuredDiagnostics(result.stderr);
+
+    expect(records).toHaveLength(1);
+    expect(records[0]?.message).toContain('Not Found');
+    expect(records[0]?.code).toBe(102);
   });
 
   test('reports a missing configuration file as not found', async () => {
