@@ -35,6 +35,7 @@ describe('invalid credentials', () => {
 
     expect(result.exitCode).toBe(102);
     expect(result.stdout).toContain('Fetching project info');
+    expect(result.stderr).toContain('Not Found');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
