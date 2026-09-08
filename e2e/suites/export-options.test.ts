@@ -35,6 +35,24 @@ describe('export options', () => {
     await teardownSuite(ctx);
   });
 
+  /**
+   * Approvals the project holds for both target languages - 0 until something approves a
+   * translation. The endpoint rejects a call without `languageId`, so it is asked per language.
+   */
+  async function approvalCount(): Promise<number> {
+    const counts = await Promise.all(
+      ['it', 'uk'].map(async (languageId) => {
+        const response = await ctx.client.stringTranslationsApi
+          .withFetchAll()
+          .listTranslationApprovals(ctx.project.id, { languageId });
+
+        return response.data.length;
+      }),
+    );
+
+    return counts.reduce((total, count) => total + count, 0);
+  }
+
   test('uploads sources for both files', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -107,6 +125,9 @@ describe('export options', () => {
       join(ctx.workspace, 'translations/uk/2_android.xml'),
     );
 
+    // Nothing is approved yet: the runs above imported translations without the flag.
+    expect(await approvalCount()).toBe(0);
+
     const result = await ctx.runner.run(['upload', 'translations', '--auto-approve-imported']);
 
     expect(result.exitCode).toBe(0);
@@ -115,6 +136,9 @@ describe('export options', () => {
     expect(result.stdout).toContain("File 'translations/uk/1_android.xml'");
     expect(result.stdout).toContain("File 'translations/uk/2_android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
+
+    // The flag's only effect is the approval, and it is invisible in the output above.
+    expect(await approvalCount()).toBeGreaterThan(0);
   });
 
   test('downloads translations skipping untranslated strings via the CLI flag', async () => {
