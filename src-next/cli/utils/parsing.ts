@@ -70,7 +70,9 @@ export function parseScheme(values: string[]): Record<string, number> | undefine
     const [key, column, ...rest] = value.split('=');
     const index = Number(column);
 
-    if (!key || column === undefined || rest.length > 0 || !Number.isInteger(index) || index < 0) {
+    // `!column`, not `column === undefined`: `Number('')` is 0, so 'en=' would otherwise clear the
+    // integer guard and silently mean column 0 — the first real column.
+    if (!key || !column || rest.length > 0 || !Number.isInteger(index) || index < 0) {
       // Java takes --scheme as Map<String, Integer>, so picocli rejects a malformed value as a
       // usage error (exit 2) rather than a generic failure.
       throw new ValidationError(
