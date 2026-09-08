@@ -85,3 +85,17 @@ exports[`download sources warns when a source pattern matches nothing 1`] = `
 `;
 
 exports[`download sources rejects --reviewed on a non-Enterprise (SaaS) account 1`] = `""`;
+
+exports[`download sources previews the download without writing anything with --dryrun 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  folder_2/android_1.xml
+◆  folder_2/android_2.xml
+◆  folder_2/android_3.xml
+◆  folder_2/android_4a.xml
+◆  root/folder_1/android.xml
+◆  root/folder_1/f1/android.xml
+◆  root/folder_1/f1/f2/android.xml"
+`;

@@ -3,6 +3,7 @@ import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { capturedContent, expectFilesExist } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
+import { createTestProject, deleteTestProject } from '../helpers/project.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 // Local paths the nested source patterns resolve to (see fixtures/download-sources/config/crowdin.yml).
@@ -27,6 +28,7 @@ describe('download sources', () => {
   let ctx: SuiteContext;
   // Captured so a later test can switch back after the no-sources config is swapped in.
   let originalConfig: string;
+  let stringsBasedProjectId: number;
   // Captured before the first download deletes the local copies; the branch upload used the same
   // fixture files, so every later test compares against these bytes.
   const sourceContent = new Map<string, string>();
@@ -34,9 +36,21 @@ describe('download sources', () => {
   beforeAll(async () => {
     ctx = await setupSuite('download-sources', { targetLanguageIds: ['it', 'uk'] });
     originalConfig = await Bun.file(join(ctx.workspace, 'crowdin.yml')).text();
+    // File management is refused for string-based projects, and this suite's own is file-based.
+    stringsBasedProjectId = (
+      await createTestProject(ctx.client, { suite: 'download-sources-strings', stringsBased: true })
+    ).id;
   });
 
   afterAll(async () => {
+    if (ctx && stringsBasedProjectId && !ctx.env.keep) {
+      try {
+        await deleteTestProject(ctx.client, stringsBasedProjectId);
+      } catch (error) {
+        console.error(`Failed to delete project #${stringsBasedProjectId}: ${error}`);
+      }
+    }
+
     await teardownSuite(ctx);
   });
 
@@ -168,5 +182,56 @@ describe('download sources', () => {
     // This account is SaaS, so this hits the PHP test's non-Enterprise arm.
     expect(result.stderr).toContain('Operation is available only for Crowdin Enterprise');
     expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test('previews the download without writing anything with --dryrun', async () => {
+    await removeDownloadedSources(ctx);
+
+    const result = await ctx.runner.run(['download', 'sources', '--dryrun']);
+
+    expect(result.exitCode).toBe(0);
+
+    // The listing carries project paths, not the local ones the files are written to. Asserted as
+    // an exact set: every local path is a substring of its project path, so `toContain` proves nothing.
+    const listed = await ctx.runner.run(['download', 'sources', '--dryrun', '--output', 'plain']);
+
+    expect(listed.stdout.split('\n').filter(Boolean).sort()).toEqual([
+      'folder_2/android_1.xml',
+      'folder_2/android_2.xml',
+      'folder_2/android_3.xml',
+      'folder_2/android_4a.xml',
+      'root/folder_1/android.xml',
+      'root/folder_1/f1/android.xml',
+      'root/folder_1/f1/f2/android.xml',
+    ]);
+
+    for (const relativePath of SOURCE_RELATIVE_PATHS) {
+      expect(await Bun.file(join(ctx.workspace, relativePath)).exists()).toBe(false);
+    }
+
+    expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test('warns about the unpredictable layout when preserve_hierarchy is off', async () => {
+    await switchConfig(ctx, 'flat-hierarchy');
+
+    const result = await ctx.runner.run(['download', 'sources', '--dryrun']);
+
+    expect(result.exitCode).toBe(0);
+    // The CLI's only multi-line diagnostic, so the one place line handling has to hold.
+    expect(result.stderr).toContain(
+      "Because the 'preserve_hierarchy' parameter is set to 'false':\n" +
+        '\t- CLI might download some unexpected files that match the pattern;\n' +
+        '\t- Source file hierarchy may not be preserved and will be the same as in Crowdin.',
+    );
+  });
+
+  test('refuses to download sources from a string-based project', async () => {
+    await Bun.write(join(ctx.workspace, 'crowdin.yml'), originalConfig);
+
+    const result = await ctx.runner.run(['download', 'sources', '--project-id', String(stringsBasedProjectId)]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('File management is not available for string-based projects');
   });
 });
