@@ -351,6 +351,7 @@ describe('tm', () => {
     const result = await ctx.runner.run(['tm', 'download', String(MISSING_TM_ID)]);
 
     expect(result.exitCode).toBe(102);
+    expect(result.stderr).toContain('Not Found');
   });
 
   test('downloads the TMX translation memory by id and format', async () => {

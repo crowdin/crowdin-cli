@@ -255,6 +255,8 @@ describe('full CLI project workflow', () => {
     ]);
 
     expect(result.exitCode).toBe(2);
-    expect(normalize(result.stdout)).toMatchSnapshot();
+    // The report is a diagnostic, so it lands on stderr - snapshotting stdout alone captured an
+    // empty string and left the test passing on any exit-2 failure.
+    expect(result.stderr).toContain("No source files found for 'sources/does-not-exist-*.md' pattern");
   });
 });

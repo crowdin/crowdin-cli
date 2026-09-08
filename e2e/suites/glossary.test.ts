@@ -394,6 +394,7 @@ describe('glossary', () => {
     const result = await ctx.runner.run(['glossary', 'download', String(MISSING_GLOSSARY_ID)]);
 
     expect(result.exitCode).toBe(102);
+    expect(result.stderr).toContain('Not Found');
   });
 
   test('downloads the TBX glossary by id and format', async () => {
