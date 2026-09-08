@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { normalize } from '../helpers/normalize.ts';
+import { createTestProject, deleteTestProject } from '../helpers/project.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
@@ -16,12 +17,25 @@ const NESTED_FILE = '/sources/nested/extra.xml';
 
 describe('auto-translate', () => {
   let ctx: SuiteContext;
+  let stringsBasedProjectId: number;
 
   beforeAll(async () => {
     ctx = await setupSuite('auto-translate');
+    // The string-based guards need a project of that kind; this suite's own is file-based.
+    stringsBasedProjectId = (
+      await createTestProject(ctx.client, { suite: 'auto-translate-strings', stringsBased: true })
+    ).id;
   });
 
   afterAll(async () => {
+    if (ctx && stringsBasedProjectId && !ctx.env.keep) {
+      try {
+        await deleteTestProject(ctx.client, stringsBasedProjectId);
+      } catch (error) {
+        console.error(`Failed to delete project #${stringsBasedProjectId}: ${error}`);
+      }
+    }
+
     await teardownSuite(ctx);
   });
 
@@ -339,5 +353,33 @@ describe('auto-translate', () => {
 
     expect(job.identifier).toBeTruthy();
     expect(job.status).toBe('finished');
+  });
+
+  test('rejects --file against a string-based project', async () => {
+    const result = await ctx.runner.run([
+      'auto-translate',
+      '--method',
+      'tm',
+      '--file',
+      SOURCE_FILE,
+      '--project-id',
+      String(stringsBasedProjectId),
+    ]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('File management is not available for string-based projects');
+  });
+
+  test('requires a branch for a string-based project', async () => {
+    const result = await ctx.runner.run([
+      'auto-translate',
+      '--method',
+      'tm',
+      '--project-id',
+      String(stringsBasedProjectId),
+    ]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('Branch is required for string-based projects');
   });
 });
