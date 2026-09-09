@@ -68,12 +68,15 @@ describe('custom segmentation', () => {
     expect(result.exitCode).toBe(1);
     // The "sources" directory survived the previous failed attempt, so it is not created again.
     expect(result.stdout).not.toContain("Directory 'sources'");
-    expect(result.stderr).toContain(
-      "Failed to create file 'sample.docx'. Key: importOptions. Message: Invalid SRX specified. Invalid regular expression `/^.*[$/`",
-    );
-    expect(result.stderr).toContain(
-      "Failed to create file 'strings.xml'. Key: importOptions. Message: Invalid SRX specified. Invalid regular expression `/^.*[$/`",
-    );
+    // The quoting around the regex is the API's own and has changed once already (backticks to
+    // double quotes), so it is not pinned - the message up to it, and the regex itself, are.
+    for (const file of ['sample.docx', 'strings.xml']) {
+      expect(result.stderr).toContain(
+        `Failed to create file '${file}'. Key: importOptions. Message: Invalid SRX specified. Invalid regular expression`,
+      );
+    }
+
+    expect(result.stderr).toContain('/^.*[$/');
     expect(result.stderr).toContain('Current execution finished with errors');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });

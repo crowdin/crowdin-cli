@@ -12,8 +12,8 @@ exports[`branches uploads a single source file to a brand-new branch 1`] = `
 exports[`branches previews uploading two more source files to a not-yet-existing branch (dry run) 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  File 'sources/1_android.xml' would be created
-●  File 'sources/2_android.xml' would be created
+●  File '1_android.xml' would be created
+●  File '2_android.xml' would be created
 ●  Project files fetched
 ●  Project info fetched"
 `;
@@ -24,9 +24,8 @@ exports[`branches previews the source upload dry run as a tree 1`] = `
 ●  Project files fetched
 ●  Project info fetched
 .
-╰─ sources
-   ├─ 1_android.xml
-   ╰─ 2_android.xml"
+├─ 1_android.xml
+╰─ 2_android.xml"
 `;
 
 exports[`branches uploads the two source files for real, creating the branch 1`] = `
