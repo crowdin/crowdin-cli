@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<catalog>
+  <item name="greeting" hint="a hint">Hello. And a second sentence.</item>
+  <item name="farewell" hint="another hint">Goodbye.</item>
+</catalog>
