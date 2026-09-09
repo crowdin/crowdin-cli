@@ -355,4 +355,13 @@ describe('comment', () => {
     expect(result.stdout).not.toContain('Typo in the source of farewell');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
+
+  // An empty argument satisfies commander's `<text>` and reaches the command's own guard, where a
+  // missing one is caught earlier as a usage error.
+  test('rejects empty comment text', async () => {
+    const result = await ctx.runner.run(['comment', 'add', '']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('String comment text is required');
+  });
 });
