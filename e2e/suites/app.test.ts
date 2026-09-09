@@ -197,4 +197,13 @@ describe('app', () => {
     expect(result.stderr).toContain("Required option 'project_id' is missing");
     expect(normalize(result.stderr)).toMatchSnapshot();
   });
+
+  // An empty argument satisfies commander's `<identifier>` and reaches the command's own guard,
+  // where a missing one is caught earlier as a usage error.
+  test.each([['install'], ['uninstall']])('rejects an empty identifier on %s', async (subcommand) => {
+    const result = await ctx.runner.run(['app', subcommand, '']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('Application identifier can not be empty');
+  });
 });
