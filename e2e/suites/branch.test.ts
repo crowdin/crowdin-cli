@@ -373,4 +373,24 @@ describe('branch', () => {
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain('This command is only available for string-based projects');
   });
+
+  // An empty argument satisfies commander's `<name>` and reaches the command's own guard.
+  test.each([['add'], ['delete'], ['edit']])('rejects an empty branch name on %s', async (subcommand) => {
+    const result = await ctx.runner.run(['branch', subcommand, '']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('Branch name is required');
+  });
+
+  test.each([
+    ['an empty source', ['', MAIN_BRANCH]],
+    ['an empty target', [MAIN_BRANCH, '']],
+  ])('rejects %s on clone and merge', async (_label, args) => {
+    for (const subcommand of ['clone', 'merge']) {
+      const result = await ctx.runner.run(['branch', subcommand, ...(args as string[])]);
+
+      expect(result.exitCode).toBe(1);
+      expect(result.stderr).toContain('Source and target branch names are required');
+    }
+  });
 });
