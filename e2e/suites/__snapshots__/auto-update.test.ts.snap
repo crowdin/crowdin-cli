@@ -22,9 +22,9 @@ exports[`auto update updates existing sources and creates a new one (auto-update
 exports[`auto update skips existing sources but still creates a new one with --no-auto-update 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  File 'sources/1_android.xml' already exists and will not be updated
-●  File 'sources/2_android.xml' already exists and will not be updated
-●  File 'sources/3_android.xml' already exists and will not be updated
+●  File '1_android.xml' already exists and will not be updated
+●  File '2_android.xml' already exists and will not be updated
+●  File '3_android.xml' already exists and will not be updated
 ●  Project files fetched
 ●  Project info fetched
 ◆  File '4_android.xml'"

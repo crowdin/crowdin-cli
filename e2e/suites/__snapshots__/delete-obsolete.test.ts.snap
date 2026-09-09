@@ -55,8 +55,8 @@ exports[`delete obsolete deletes an obsolete file whose remaining sibling now ha
 exports[`delete obsolete nothing to delete when the dest remap makes local and remote paths coincide (dryrun) 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  File '1_android.xml' would be updated
-●  File '2_android.xml' would be updated
+●  File 'other_destination/1_android.xml' would be updated
+●  File 'other_destination/2_android.xml' would be updated
 ●  Project files fetched
 ●  Project info fetched"
 `;
