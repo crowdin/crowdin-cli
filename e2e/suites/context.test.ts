@@ -390,4 +390,26 @@ describe('context', () => {
     expect(result.exitCode).toBe(0);
     expect(result.stderr).toContain('No strings found');
   });
+
+  test('skips a record with an empty ai_context unless --overwrite is given', async () => {
+    const records = await readRecords('crowdin-context.jsonl');
+
+    // One record left empty, the rest given an AI context. Without --overwrite the empty one is
+    // filtered out (ContextCommand.ts:227); with it, it is kept so its AI section can be removed.
+    await writeRecords(
+      'crowdin-context.jsonl',
+      records.map((record, index) => ({
+        ...record,
+        ai_context: index === 0 ? '' : `${AI_CONTEXT_PREFIX}${record.key}`,
+      })),
+    );
+
+    const skipped = await ctx.runner.run(['context', 'upload', '--dryrun', '--output', 'json']);
+    const kept = await ctx.runner.run(['context', 'upload', '--dryrun', '--overwrite', '--output', 'json']);
+
+    expect(skipped.exitCode).toBe(0);
+    expect(kept.exitCode).toBe(0);
+    expect(JSON.parse(skipped.stdout)).toHaveLength(records.length - 1);
+    expect(JSON.parse(kept.stdout)).toHaveLength(records.length);
+  });
 });

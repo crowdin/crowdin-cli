@@ -219,4 +219,20 @@ describe('config', () => {
     expect(result.exitCode).toBe(102);
     expect(result.stderr).toContain('no-such-config.yml');
   });
+
+  test('prints a stack trace instead of the one-line message with --debug', async () => {
+    // Hidden global flag (global/options.ts:47). The config is still the no-source-match one from
+    // the tests above, so the run fails the same way - only the rendering differs.
+    const plain = await ctx.runner.run(['config', 'lint']);
+    const debug = await ctx.runner.run(['config', 'lint', '--debug']);
+
+    expect(plain.exitCode).toBe(2);
+    expect(debug.exitCode).toBe(2);
+
+    expect(plain.stderr).not.toContain('    at ');
+    expect(debug.stderr).toContain('    at ');
+    // The stack carries the message on its first line, so --debug adds frames rather than
+    // replacing what the plain run said.
+    expect(debug.stderr).toContain('No source files found');
+  });
 });
