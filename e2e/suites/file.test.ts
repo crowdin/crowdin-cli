@@ -223,4 +223,13 @@ describe('file', () => {
     expect(result.stdout).toContain("File '/custom/renamed.xml' deleted");
     expect(await listedPaths()).toEqual([`/${SOURCE_FILE}`]);
   });
+
+  // An empty argument satisfies commander's `<file>` and reaches the command's own guard - the
+  // shape of `crowdin file download "$VAR"` with an unset variable.
+  test.each([['upload'], ['download'], ['delete']])('rejects an empty file path on %s', async (subcommand) => {
+    const result = await ctx.runner.run(['file', subcommand, '']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('File path is required');
+  });
 });
