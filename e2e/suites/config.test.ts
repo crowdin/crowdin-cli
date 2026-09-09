@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { join } from 'node:path';
 import { decode } from '@toon-format/toon';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
@@ -65,6 +66,30 @@ describe('config', () => {
 
     expect(result.exitCode).toBe(0);
     expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  // `@file` expansion happens in cli.ts before commander parses (expandArgFiles), so nothing below
+  // the entry point can see it. The tokenizer has unit tests; what needs an end-to-end run is that
+  // the expansion is wired in at all, and that an expanded command reaches config resolution.
+  test('runs a command supplied by an @arg-file', async () => {
+    await Bun.write(
+      join(ctx.workspace, 'args.txt'),
+      '# the whole command lives here\nconfig sources\n--output plain\n',
+    );
+
+    const result = await ctx.runner.run(['@args.txt']);
+
+    expect(result.exitCode).toBe(0);
+    expect(lines(result.stdout).sort()).toEqual(SOURCE_PATHS);
+  });
+
+  test('keeps an @arg-file that does not exist as a literal argument', async () => {
+    // picocli does not error on an unreadable @-file; it passes the token through, so the failure
+    // comes from commander not recognising it rather than from the expansion.
+    const result = await ctx.runner.run(['@no-such-args.txt']);
+
+    expect(result.exitCode).toBe(2);
+    expect(result.stderr).toContain("unknown command '@no-such-args.txt'");
   });
 
   test('lists bare source paths with --output plain', async () => {
