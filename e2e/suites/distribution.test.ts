@@ -216,4 +216,19 @@ describe('distribution', () => {
     expect(result.stdout).toContain(`Distribution '${hash}' has been successfully released`);
     expect(result.stdout).not.toContain('null%');
   });
+
+  // An empty argument satisfies commander's positional and reaches the command's own guard.
+  test('rejects an empty distribution name on add', async () => {
+    const result = await ctx.runner.run(['distribution', 'add', '']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('Distribution name is required');
+  });
+
+  test.each([['edit'], ['release']])('rejects an empty distribution hash on %s', async (subcommand) => {
+    const result = await ctx.runner.run(['distribution', subcommand, '']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('Distribution hash is required');
+  });
 });
