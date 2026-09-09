@@ -100,6 +100,20 @@ const SUITE_TM_NAMES = ['simple-tm.tmx', 'simple-tm.csv', 'simple-tm.xlsx'].map(
   (file) => `Created in Crowdin CLI (${file})`,
 );
 
+/**
+ * This suite's own rows out of an account-wide listing, sorted by name. Takes either a decoded value
+ * or the raw json, so the two structured formats can be compared to each other.
+ */
+function suiteEntries(listing: string | unknown): { id: number; name: string; segmentsCount: number }[] {
+  const rows = (typeof listing === 'string' ? JSON.parse(listing) : listing) as {
+    id: number;
+    name: string;
+    segmentsCount: number;
+  }[];
+
+  return rows.filter((row) => SUITE_TM_NAMES.includes(row.name)).sort((a, b) => a.name.localeCompare(b.name));
+}
+
 /** Deletes every account TM this suite owns by name. Never throws: cleanup must not mask a result. */
 async function removeSuiteTms(ctx: SuiteContext): Promise<void> {
   try {
@@ -303,7 +317,9 @@ describe('tm', () => {
     const toon = await ctx.runner.run(['tm', 'list', '--output', 'toon']);
 
     expect(toon.exitCode).toBe(0);
-    expect(decode(toon.stdout)).toEqual(JSON.parse(json.stdout));
+    // Two runs over an account-wide listing: a TM another suite adds between them must not read as
+    // a difference. This failed once under --parallel before the filter went in.
+    expect(suiteEntries(decode(toon.stdout))).toEqual(suiteEntries(json.stdout));
   });
 
   test('lists bare names in the plain output', async () => {
