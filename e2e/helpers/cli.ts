@@ -1,3 +1,4 @@
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 export interface CliResult {
@@ -9,27 +10,25 @@ export interface CliResult {
 }
 
 export interface CliRunOptions {
-  /**
-   * Environment variables merged onto the current process env. A key set to `undefined` is
-   * REMOVED from the child's environment rather than merged - the only way to hide a variable the
-   * test process itself inherited. The repo-root `.env` (auto-loaded by Bun) sets `CROWDIN_*`
-   * values that `cli/config.ts`'s `envFallbackLayer` reads as its lowest config layer, so a suite
-   * asserting that a credential is *missing* has to remove them explicitly; CI, which sets only
-   * `CROWDIN_E2E_TOKEN`, would otherwise disagree with a local run.
-   */
-  env?: Record<string, string | undefined>;
+  /** Environment variables merged onto the (credential-stripped) process env. */
+  env?: Record<string, string>;
   /** Working directory; defaults to the workspace. */
   cwd?: string;
   /** Skip the auto-appended `-c <config>` flag (the output flags are always added - see run()). */
   noConfig?: boolean;
-  /** Per-call timeout in milliseconds. */
   timeoutMs?: number;
 }
 
 const DEFAULT_TIMEOUT_MS = 120_000;
 const REPO_ROOT = join(import.meta.dir, '..', '..');
 
-/** The single way the suites invoke the CLI: the source entry point through bun. */
+// Ambient credentials a dev machine may have and CI never does: these vars, and a `~/.crowdin.yml`
+// identity file, which outranks the config file.
+const CREDENTIAL_ENV_VARS = ['CROWDIN_PROJECT_ID', 'CROWDIN_PERSONAL_TOKEN', 'CROWDIN_BASE_PATH', 'CROWDIN_BASE_URL'];
+// Shared rather than per workspace: bun writes its transpiler cache under HOME.
+// ponytail: HOME only - Windows reads USERPROFILE, add it if e2e ever runs there.
+const ISOLATED_HOME = join(tmpdir(), 'crowdin-e2e-home');
+
 const CLI_COMMAND = ['bun', join(REPO_ROOT, 'src-next', 'cli.ts')];
 
 export class CliRunner {
@@ -42,20 +41,17 @@ export class CliRunner {
       fullArgs.push('-c', this.opts.configPath);
     }
 
-    // Always appended, `noConfig` or not: these are about making stdout parseable, not about which
-    // config the CLI reads. Without `--no-progress` the spinner's animation frames (`◒◐◓◑`) land in
-    // the captured output, and how many frames appear depends on how long the call took - which made
-    // every snapshot in the noConfig suites (init, dest, upload-single-file, without-config-param,
-    // pre-translate) flaky rather than wrong.
+    // Always appended, `noConfig` or not: without `--no-progress` the spinner's frames land in
+    // stdout, and how many depends on how long the call took.
     fullArgs.push('--no-progress', '--no-colors');
 
-    const env: Record<string, string | undefined> = { ...process.env, ...runOpts.env };
+    const env: Record<string, string | undefined> = { ...process.env, HOME: ISOLATED_HOME };
 
-    for (const [key, value] of Object.entries(runOpts.env ?? {})) {
-      if (value === undefined) {
-        delete env[key];
-      }
+    for (const key of CREDENTIAL_ENV_VARS) {
+      delete env[key];
     }
+
+    Object.assign(env, runOpts.env);
 
     const proc = Bun.spawn([...CLI_COMMAND, ...fullArgs], {
       cwd: runOpts.cwd ?? this.opts.workspace,

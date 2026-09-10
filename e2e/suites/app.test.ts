@@ -45,7 +45,7 @@ describe('app', () => {
   });
 
   afterAll(async () => {
-    // Gated on `installedByThisRun` so a pre-existing installation someone else made survives.
+    // Leaves a pre-existing installation someone else made alone.
     if (ctx && installedByThisRun && !ctx.env.keep) {
       try {
         await ctx.client.applicationsApi.deleteApplicationInstallation(INSTALLABLE_IDENTIFIER, true);
@@ -189,9 +189,7 @@ describe('app', () => {
   test('requires project_id even though no subcommand sends one', async () => {
     await switchConfig(ctx, 'no-project-id');
 
-    // `envFallbackLayer` reads CROWDIN_PROJECT_ID as the lowest config layer and the repo `.env`
-    // sets it, so omitting it from the config is not enough to make it missing.
-    const result = await ctx.runner.run(['app', 'list'], { env: { CROWDIN_PROJECT_ID: undefined } });
+    const result = await ctx.runner.run(['app', 'list']);
 
     expect(result.exitCode).toBe(2);
     expect(result.stderr).toContain("Required option 'project_id' is missing");

@@ -4,9 +4,8 @@ import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Covers `language list` (`cli/commands/language/LanguageCommand.ts`). Other suites run it in
- * passing; what had no coverage is the `--code` matrix and the three credential paths `--all`
- * takes: a project's languages, the account's supported languages with a token but no project, and
+ * Covers `language list` (`cli/commands/language/LanguageCommand.ts`): the `--code` matrix and the
+ * three credential paths `--all` takes - a project's languages, the account's supported languages with a token but no project, and
  * the public list with no credentials at all - the only unauthenticated call the CLI makes.
  *
  * The mapping precedence in `getCode` belongs to `language-mapping.test.ts`, which sets a project
@@ -30,15 +29,14 @@ describe('language', () => {
     await teardownSuite(ctx);
   });
 
-  async function listedCodes(args: string[] = [], runOpts = {}): Promise<string[]> {
-    const result = await ctx.runner.run(['language', 'list', '--output', 'json', ...args], runOpts);
+  async function listedCodes(args: string[] = []): Promise<string[]> {
+    const result = await ctx.runner.run(['language', 'list', '--output', 'json', ...args]);
 
     expect(result.exitCode).toBe(0);
 
     return (JSON.parse(result.stdout) as { code: string }[]).map((language) => language.code).sort();
   }
 
-  /** The codes the API itself reports for a language, the values `--code` has to reproduce. */
   async function apiCodes(languageId: string): Promise<Record<string, string>> {
     const { data } = await ctx.client.languagesApi.getLanguage(languageId);
 
@@ -138,34 +136,26 @@ describe('language', () => {
     expect(codes.length).toBeGreaterThan(TARGET_LANGUAGES.length);
   });
 
-  // From here on the config no longer carries a project id, so the ambient CROWDIN_* variables the
-  // repo's .env sets have to be removed too - otherwise they refill what the config drops.
   test('lists the supported languages with a token but no project', async () => {
     await switchConfig(ctx, 'no-project');
 
-    const codes = await listedCodes(['--all'], { env: { CROWDIN_PROJECT_ID: undefined } });
+    const codes = await listedCodes(['--all']);
 
     expect(codes).toContain(UNTARGETED_LANGUAGE);
     expect(codes).toContain('uk');
   });
 
   test('still needs a project without --all', async () => {
-    const result = await ctx.runner.run(['language', 'list'], { env: { CROWDIN_PROJECT_ID: undefined } });
+    const result = await ctx.runner.run(['language', 'list']);
 
     expect(result.exitCode).not.toBe(0);
     expect(result.stderr).toContain('project_id');
   });
 
-  // The one call the CLI makes with no credentials at all: the supported-language list is public.
-  // A `~/.crowdin.yml` on the machine running this would supply a token through the identity layer
-  // and route the run through the authenticated branch instead - the assertions still hold, but the
-  // public path would go unexercised.
   test('lists the supported languages with no credentials at all', async () => {
     await switchConfig(ctx, 'no-credentials');
 
-    const codes = await listedCodes(['--all'], {
-      env: { CROWDIN_PROJECT_ID: undefined, CROWDIN_PERSONAL_TOKEN: undefined },
-    });
+    const codes = await listedCodes(['--all']);
 
     expect(codes).toContain(UNTARGETED_LANGUAGE);
     expect(codes).toContain('uk');
@@ -173,9 +163,7 @@ describe('language', () => {
 
   test('applies --code to the public list as well', async () => {
     const expected = await apiCodes('uk');
-    const codes = await listedCodes(['--all', '--code', 'three_letters_code'], {
-      env: { CROWDIN_PROJECT_ID: undefined, CROWDIN_PERSONAL_TOKEN: undefined },
-    });
+    const codes = await listedCodes(['--all', '--code', 'three_letters_code']);
 
     expect(codes).toContain(expected.three_letters_code as string);
   });
