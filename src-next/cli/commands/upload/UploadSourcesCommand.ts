@@ -3,6 +3,7 @@ import type { LanguagesModel, SourceFilesModel, SourceStringsModel } from '@crow
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { printDryRunPaths } from '@/cli/commands/common/dryRunPaths.ts';
+import { EXECUTION_FINISHED_WITH_ERRORS, reportFailures } from '@/cli/commands/common/failures.ts';
 import { reportNoManagerAccess } from '@/cli/commands/common/managerAccess.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import FileExistsError from '@/cli/errors/FileExistsError.ts';
@@ -45,7 +46,6 @@ import {
   toProjectPath,
   toSortedRelativePaths,
 } from '@/lib/utils/path.ts';
-import { EXECUTION_FINISHED_WITH_ERRORS, reportFailures } from './uploadFailures.ts';
 import { type UploadedFile, uploadedFileView } from './views.ts';
 
 interface UploadSourcesOptions extends GlobalOptions {

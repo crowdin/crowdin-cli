@@ -5,6 +5,7 @@ import { ProjectsGroupsModel, type TranslationsModel } from '@crowdin/crowdin-ap
 import AdmZip from 'adm-zip';
 import type { Command } from 'commander';
 import { printDryRunPaths } from '@/cli/commands/common/dryRunPaths.ts';
+import { EXECUTION_FINISHED_WITH_ERRORS, reportFailures } from '@/cli/commands/common/failures.ts';
 import { reportNoManagerAccess } from '@/cli/commands/common/managerAccess.ts';
 import { pathView } from '@/cli/commands/common/views.ts';
 import CliError from '@/cli/errors/CliError.ts';
@@ -30,6 +31,7 @@ import { buildTranslationMapping } from '@/lib/download/translationMapping.ts';
 import { originalPath } from '@/lib/export/patterns.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { prepareDest } from '@/lib/upload/fileOptions.ts';
+import { runConcurrently } from '@/lib/utils/concurrency.ts';
 import { stripBranchPrefix, stripLeadingSlashes, toPosixPath, toSortedRelativePaths } from '@/lib/utils/path.ts';
 import { branch, dryRun, filesConfigGroup, tree } from '../common/options.ts';
 import {
@@ -250,31 +252,32 @@ export default class DownloadCommand {
       return;
     }
 
-    for (const download of downloads) {
-      try {
-        const filePath = path.join(config.basePath, download.destination);
-        const downloadUrl = await fileService.getSourceFileDownloadUrl(download.fileId);
+    // Java keeps going past a failed file too, but then exits 0.
+    const results = await runConcurrently(
+      downloads.map((download) => async () => {
+        try {
+          const filePath = path.join(config.basePath, download.destination);
+          const downloadUrl = await fileService.getSourceFileDownloadUrl(download.fileId);
 
-        await downloadToFile(downloadUrl, filePath);
-        output.success(`File '${download.relativePath}'`);
-        downloadedFiles.push({ path: download.relativePath, action: 'downloaded' });
-      } catch (error) {
-        throw toCliError(error, `Failed to download '${download.relativePath}'`);
-      }
-    }
+          await downloadToFile(downloadUrl, filePath);
+          output.success(`File '${download.relativePath}'`);
+          downloadedFiles.push({ path: download.relativePath, action: 'downloaded' });
+        } catch (error) {
+          throw toCliError(error, `Failed to download '${download.relativePath}'`);
+        }
+      }),
+    );
+    const failed = reportFailures(results, output);
 
-    // Text already streamed a line per file, so only the machine formats need the summary.
-    // plain is line-oriented and cannot carry the action, so it lists only what was written.
-    //
-    // No sort here, unlike upload: both loops are sequential over input that is already ordered
-    // by path — collectSourceDownloads sorts its matches, and adm-zip sorts archive entries.
     if (isMachineFormat(options.output)) {
       output.list(
-        isStructuredFormat(options.output)
-          ? downloadedFiles
-          : downloadedFiles.filter(({ action }) => action !== 'skipped'),
+        downloadedFiles.sort((one, other) => one.path.localeCompare(other.path)),
         downloadedFileView,
       );
+    }
+
+    if (failed) {
+      throw new CliError(EXECUTION_FINISHED_WITH_ERRORS);
     }
   };
 
@@ -499,8 +502,7 @@ export default class DownloadCommand {
     // Text already streamed a line per file, so only the machine formats need the summary.
     // plain is line-oriented and cannot carry the action, so it lists only what was written.
     //
-    // No sort here, unlike upload: both loops are sequential over input that is already ordered
-    // by path — collectSourceDownloads sorts its matches, and adm-zip sorts archive entries.
+    // No sort here, unlike sources: this loop is sequential, and adm-zip sorts archive entries.
     if (isMachineFormat(options.output)) {
       output.list(
         isStructuredFormat(options.output)
