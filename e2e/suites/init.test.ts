@@ -5,13 +5,12 @@ import { generate } from '@/lib/config/yamlGenerator.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
-// Ports crowdin-backend/tests/Cli/Common/CliInitTest.php. `init --quiet` never talks to the API,
-// so the project this suite creates is only there to keep the standard lifecycle.
+// Ports crowdin-backend/tests/Cli/Common/CliInitTest.php. `init --quiet` never talks to the API.
 describe('init generates a configuration skeleton', () => {
   let ctx: SuiteContext;
 
   beforeAll(async () => {
-    ctx = await setupSuite('init');
+    ctx = await setupSuite('init', { withoutProject: true });
   });
 
   afterAll(async () => {
