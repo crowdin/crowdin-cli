@@ -7,7 +7,7 @@ import { join } from 'node:path';
 // code for paths that need no network (usage errors and config load failures). The HTTP-error
 // codes (101/103/129) are covered at the unit level in cli/errors/CliError.test.ts.
 
-const CLI = join(import.meta.dir, '..', '..', 'src-next', 'cli.ts');
+const CLI = join(import.meta.dir, '..', '..', '..', 'src-next', 'cli.ts');
 
 let workspace: string;
 

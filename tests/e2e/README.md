@@ -7,7 +7,7 @@ End-to-end tests that run the CLI against a real, freshly-created Crowdin projec
 ```bash
 export CROWDIN_E2E_TOKEN=xxxxxxxx...
 bun run test:e2e
-bun test e2e/ --update-snapshots
+bun test tests/e2e/suites/ --update-snapshots
 ```
 
 ## Environment
@@ -22,7 +22,7 @@ The suites always run the CLI via `bun src-next/cli.ts` - locally and in CI.
 ## Layout
 
 ```
-e2e/
+tests/e2e/
   helpers/   # env, workspace, config, cli, normalize, project, suite (+ unit tests)
   fixtures/  # <suite>/config/crowdin.yml template + source files (e.g. sources/)
   suites/    # one self-contained suite per file; each owns one project

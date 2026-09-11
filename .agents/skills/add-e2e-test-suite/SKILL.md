@@ -1,11 +1,11 @@
 ---
 name: add-e2e-test-suite
-description: Adds a new end-to-end (e2e) test suite for the Crowdin CLI under e2e/suites/, exercising real CLI commands against a freshly-created Crowdin project. Covers fixtures, the setupSuite/teardownSuite lifecycle, running the CLI, output normalization, snapshot generation, and file assertions. Use whenever asked to add, write, scaffold, or extend an e2e/integration test suite for the CLI — including new command coverage like upload, download, branch, glossary, or TM — even if the user just says "add an e2e test for X".
+description: Adds a new end-to-end (e2e) test suite for the Crowdin CLI under tests/e2e/suites/, exercising real CLI commands against a freshly-created Crowdin project. Covers fixtures, the setupSuite/teardownSuite lifecycle, running the CLI, output normalization, snapshot generation, and file assertions. Use whenever asked to add, write, scaffold, or extend an e2e/integration test suite for the CLI — including new command coverage like upload, download, branch, glossary, or TM — even if the user just says "add an e2e test for X".
 ---
 
 # Add an e2e test suite (Crowdin CLI)
 
-The framework runs `bun src-next/cli.ts` against a **real, freshly-created Crowdin project**, asserts on normalized output / exit codes / produced files, then tears everything down. Each suite is one file owning one project: `beforeAll` provisions, `test()`s run **in declaration order**, `afterAll` tears down. See [e2e/README.md](../../../e2e/README.md).
+The framework runs `bun src-next/cli.ts` against a **real, freshly-created Crowdin project**, asserts on normalized output / exit codes / produced files, then tears everything down. Each suite is one file owning one project: `beforeAll` provisions, `test()`s run **in declaration order**, `afterAll` tears down. See [tests/e2e/README.md](../../../tests/e2e/README.md).
 
 ## Iron rule: generate snapshots from a real run, never hand-write them
 
@@ -15,7 +15,7 @@ You can't reliably predict the CLI's exact output or where the server lands file
 
 ```bash
 # user runs this (token already in their env):
-bun test e2e/suites/<suite>.test.ts --update-snapshots
+bun test tests/e2e/suites/<suite>.test.ts --update-snapshots
 ```
 
 Then read the committed `.snap` to sanity-check it's real output, not an error/empty build.
@@ -24,7 +24,7 @@ Same for any server behavior (locale folder names, file layout): **observe it, d
 
 ## Steps
 
-**1. Fixtures** — `e2e/fixtures/<suite>/config/crowdin.yml` (template) + input files (e.g. `sources/*.md`). Use only `{{projectId}}` / `{{token}}` placeholders; `renderConfig` throws on any other `{{...}}`. Everything except the top-level `config/` dir is copied into the workspace.
+**1. Fixtures** — `tests/e2e/fixtures/<suite>/config/crowdin.yml` (template) + input files (e.g. `sources/*.md`). Use only `{{projectId}}` / `{{token}}` placeholders; `renderConfig` throws on any other `{{...}}`. Everything except the top-level `config/` dir is copied into the workspace.
 
 ```yaml
 project_id: "{{projectId}}"
@@ -37,7 +37,7 @@ files:
     translation: "translations/%locale%/%original_file_name%"
 ```
 
-**2. Suite** — `e2e/suites/<suite>.test.ts`:
+**2. Suite** — `tests/e2e/suites/<suite>.test.ts`:
 
 ```ts
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
@@ -82,7 +82,7 @@ No registry to edit (suites are discovered by file). No file cleanup to write (`
 - **Prefer literal assertion strings** (`'it/sources/alpha.md'`) over paths derived from the API/config — clearer and obviously correct.
 - **Token required.** `setupSuite` throws without `CROWDIN_E2E_TOKEN`. Suites run via `bun run test:e2e`; the network-free helper unit tests run in the regular `bun test`.
 
-## Helpers (`e2e/helpers/`)
+## Helpers (`tests/e2e/helpers/`)
 
 - `setupSuite(suite, { sourceLanguageId?, targetLanguageIds? })` → `SuiteContext { env, client, workspace, project, runner }`. Provisions workspace + fixtures + project + rendered config; rolls back the project if a later setup step fails. `ctx.client` is a `@crowdin/crowdin-api-client` `Client` for direct API setup/assertions.
 - `teardownSuite(ctx)` — deletes project + removes workspace; honors `CROWDIN_E2E_KEEP=1`; logs, never throws.
