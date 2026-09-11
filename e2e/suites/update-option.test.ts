@@ -65,7 +65,7 @@ describe('update_option', () => {
   test('uploads both sources and translates them', async () => {
     const upload = await ctx.runner.run(['upload', 'sources']);
 
-    expect(upload.exitCode).toBe(0);
+    expect(upload).toMatchObject({ exitCode: 0 });
 
     for (const fileName of ['kept.json', 'plain.json', 'approved.json']) {
       const stringId = await findString(fileName);
@@ -98,7 +98,7 @@ describe('update_option', () => {
 
     const result = await ctx.runner.run(['upload', 'sources', '--output', 'json']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     // Assert the update actually happened before reading translations off it. A run where the API
     // did not replace the files would otherwise fail further down as a translation-count mismatch,

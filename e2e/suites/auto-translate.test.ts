@@ -42,7 +42,7 @@ describe('auto-translate', () => {
   test('uploads sources', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'sources/app.xml'");
     expect(result.stdout).toContain("File 'sources/nested/extra.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -179,13 +179,13 @@ describe('auto-translate', () => {
   test('translates the whole project', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'tm']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
   });
 
   test('translates a single file', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'tm', '--file', SOURCE_FILE]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
   });
 
   // With several --file values a missing one is a warning, and the run still translates the rest -
@@ -209,7 +209,7 @@ describe('auto-translate', () => {
   test('translates the files of a --directory', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'tm', '--directory', '/sources/nested']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
   });
 
   test('accepts --language all alongside --exclude-language', async () => {
@@ -223,20 +223,20 @@ describe('auto-translate', () => {
       'it',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
   });
 
   test('warns about a label the project is missing', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'tm', '--label', 'no-such-label']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stderr).toContain("The 'no-such-label' label is missing in the Crowdin project");
   });
 
   test('warns about a missing exclude label', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'tm', '--exclude-label', 'no-such-label']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stderr).toContain("The 'no-such-label' label is missing in the Crowdin project");
   });
 
@@ -266,7 +266,7 @@ describe('auto-translate', () => {
       'en',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
   });
 
   test('accepts the untranslated-scope flags', async () => {
@@ -289,7 +289,7 @@ describe('auto-translate', () => {
       'en',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
   });
 
   test('surfaces the API refusal when the flags contradict each other', async () => {
@@ -329,7 +329,7 @@ describe('auto-translate', () => {
   test('reports the totals under --verbose', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'tm', '--file', SOURCE_FILE, '--verbose']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     for (const line of ['- files:', '- phrases:', '- words:', '- skipped:']) {
       expect(result.stdout).toContain(line);
@@ -347,7 +347,7 @@ describe('auto-translate', () => {
       'json',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const job = JSON.parse(result.stdout) as { identifier: string; status: string };
 

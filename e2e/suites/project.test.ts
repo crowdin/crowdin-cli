@@ -24,7 +24,7 @@ describe('project', () => {
   async function addProject(name: string, args: string[]): Promise<number> {
     const result = await ctx.runner.run(['project', 'add', name, ...args]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const id = Number(result.stdout.match(/#(\d+)/)?.[1]);
 
@@ -37,7 +37,7 @@ describe('project', () => {
   async function listedProjects(args: string[] = []): Promise<Array<{ id: number; name: string }>> {
     const result = await ctx.runner.run(['project', 'list', ...args, '--output', 'json']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     return JSON.parse(result.stdout) as Array<{ id: number; name: string }>;
   }
@@ -63,7 +63,7 @@ describe('project', () => {
   test('prints help when invoked without a subcommand', async () => {
     const result = await ctx.runner.run(['project']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Manage projects');
     expect(result.stdout).toContain('add <name>');
     expect(result.stdout).toContain('browse');
@@ -85,14 +85,14 @@ describe('project', () => {
   test('renders id and name in the default text format', async () => {
     const result = await ctx.runner.run(['project', 'list']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(`#${ctx.project.id} ${ctx.project.name}`);
   });
 
   test('adds type, visibility and last activity with --verbose', async () => {
     const result = await ctx.runner.run(['project', 'list', '--verbose']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toMatch(
       new RegExp(`#${ctx.project.id} ${ctx.project.name} file-based private \\d{4}-\\d{2}-\\d{2}T[\\d:.]+Z`),
     );
@@ -101,7 +101,7 @@ describe('project', () => {
   test('renders the text line for --output plain, which has no plain branch of its own', async () => {
     const result = await ctx.runner.run(['project', 'list', '--output', 'plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     // `projectView` defines no `plain`, so `renderLine` falls back to `text` and the id keeps its
     // `#` - matching Java's ProjectListAction, which has no plain branch either.
     expect(result.stdout).toContain(`#${ctx.project.id} ${ctx.project.name}`);
@@ -137,7 +137,7 @@ describe('project', () => {
     const name = projectName('plain');
     const result = await ctx.runner.run(['project', 'add', name, '-l', 'uk', '--output', 'plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     // `projectAddView` does define a plain branch, unlike the listing: the bare id.
     const id = Number(result.stdout.trim());

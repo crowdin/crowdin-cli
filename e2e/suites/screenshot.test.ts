@@ -33,7 +33,7 @@ describe('screenshot', () => {
   async function listScreenshots(args: string[] = []): Promise<ListedScreenshot[]> {
     const result = await ctx.runner.run(['screenshot', 'list', ...args, '--output', 'json']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     return JSON.parse(result.stdout) as ListedScreenshot[];
   }
@@ -49,14 +49,14 @@ describe('screenshot', () => {
   test('uploads the source file that --auto-tag targeting needs', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'sources/1_android.xml'");
   });
 
   test('prints help when invoked without a subcommand', async () => {
     const result = await ctx.runner.run(['screenshot']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Manage screenshots');
     expect(result.stdout).toContain('upload <file>');
     expect(result.stdout).toContain('delete <id>');
@@ -72,7 +72,7 @@ describe('screenshot', () => {
   test('reports a project with no screenshots', async () => {
     const result = await ctx.runner.run(['screenshot', 'list']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('No screenshot found');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -140,7 +140,7 @@ describe('screenshot', () => {
   test('uploads a screenshot and attaches a label', async () => {
     const result = await ctx.runner.run(['screenshot', 'upload', 'images/screenshot.png', '--label', LABEL]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('screenshot.png');
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -153,7 +153,7 @@ describe('screenshot', () => {
   test('updates in place when the name already exists', async () => {
     const result = await ctx.runner.run(['screenshot', 'upload', 'images/screenshot.png']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const screenshots = await listScreenshots();
 
@@ -172,7 +172,7 @@ describe('screenshot', () => {
       'sources/1_android.xml',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('second.png');
     expect(await listScreenshots()).toHaveLength(2);
   });
@@ -180,14 +180,14 @@ describe('screenshot', () => {
   test('lists both screenshots with id and tag count', async () => {
     const result = await ctx.runner.run(['screenshot', 'list']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('lists a bare id and name with --output plain', async () => {
     const result = await ctx.runner.run(['screenshot', 'list', '--output', 'plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const lines = result.stdout.split('\n').filter((line) => line.length > 0);
 
@@ -248,14 +248,14 @@ describe('screenshot', () => {
     const result = await ctx.runner.run(['screenshot', 'delete', '999999']);
 
     // deleteAction warns and returns rather than throwing, unlike `label delete`.
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stderr).toContain("Couldn't find screenshot by the specified ID");
   });
 
   test('deletes a screenshot by id', async () => {
     const result = await ctx.runner.run(['screenshot', 'delete', String(screenshotId)]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('screenshot.png');
     expect(result.stdout).toContain('deleted successfully');
 

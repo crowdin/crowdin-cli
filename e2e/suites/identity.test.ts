@@ -46,11 +46,7 @@ describe('identity file credentials', () => {
   test('uploads sources using credentials from an --identity file', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '--identity', identityPath]);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -58,11 +54,7 @@ describe('identity file credentials', () => {
   test('uploads translations using credentials from an --identity file', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '--identity', identityPath]);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/it/android.xml'");
     expect(result.stdout).toContain("File 'translations/uk/android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -71,11 +63,7 @@ describe('identity file credentials', () => {
   test('downloads translations using credentials from an --identity file', async () => {
     const result = await ctx.runner.run(['download', 'translations', '--identity', identityPath]);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/it/android.xml' extracted");
     expect(result.stdout).toContain("File 'translations/uk/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -86,11 +74,7 @@ describe('identity file credentials', () => {
   test('validates the merged configuration via config lint --identity', async () => {
     const result = await ctx.runner.run(['config', 'lint', '--identity', identityPath]);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Your configuration file looks good');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });

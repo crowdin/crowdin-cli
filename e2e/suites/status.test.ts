@@ -37,7 +37,7 @@ describe('status', () => {
   async function statusJson(args: string[]): Promise<ProgressEntry[]> {
     const result = await ctx.runner.run([...args, '--output', 'json']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     return JSON.parse(result.stdout) as ProgressEntry[];
   }
@@ -53,13 +53,13 @@ describe('status', () => {
   test('uploads the sources and the Ukrainian translations the rest of the suite reads', async () => {
     const sources = await ctx.runner.run(['upload', 'sources']);
 
-    expect(sources.exitCode).toBe(0);
+    expect(sources).toMatchObject({ exitCode: 0 });
     expect(sources.stdout).toContain("File 'sources/1_android.xml'");
     expect(sources.stdout).toContain("File 'sources/nested/2_android.xml'");
 
     const translations = await ctx.runner.run(['upload', 'translations']);
 
-    expect(translations.exitCode).toBe(0);
+    expect(translations).toMatchObject({ exitCode: 0 });
     expect(translations.stdout).toContain("File 'translations/uk/1_android.xml'");
     expect(translations.stdout).toContain("File 'translations/uk/nested/2_android.xml'");
     expect(translations.stderr).toContain("File 'translations/it/1_android.xml' does not exist");
@@ -68,14 +68,14 @@ describe('status', () => {
   test('renders both languages as a table', async () => {
     const result = await ctx.runner.run(['status']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('adds word and phrase columns with --verbose', async () => {
     const result = await ctx.runner.run(['status', '--verbose']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Translated words');
     expect(result.stdout).toContain('Proofread phrases');
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -84,7 +84,7 @@ describe('status', () => {
   test('shows only the translation column for `status translation`', async () => {
     const result = await ctx.runner.run(['status', 'translation']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Translated');
     expect(result.stdout).not.toContain('Proofread');
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -93,7 +93,7 @@ describe('status', () => {
   test('shows only the proofreading column for `status proofreading`', async () => {
     const result = await ctx.runner.run(['status', 'proofreading']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Proofread');
     expect(result.stdout).not.toContain('Translated');
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -110,7 +110,7 @@ describe('status', () => {
     // `status` is the only command that reaches output.table() in a structured format.
     const result = await ctx.runner.run(['status', '--output', 'toon']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(decode(result.stdout)).toEqual([
       { language: 'it', translation: 0, approval: 0 },
       { language: 'uk', translation: 100, approval: 0 },
@@ -120,14 +120,14 @@ describe('status', () => {
   test('prints a titled section per metric with --output plain', async () => {
     const result = await ctx.runner.run(['status', '--output', 'plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout.trimEnd()).toBe(['Translated:', 'it 0', 'uk 100', 'Proofread:', 'it 0', 'uk 0'].join('\n'));
   });
 
   test('adds the count sections to --output plain with --verbose', async () => {
     const result = await ctx.runner.run(['status', '--output', 'plain', '--verbose']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Translated words:\nit 0/32\nuk 32/32');
     expect(result.stdout).toContain('Translated phrases:\nit 0/8\nuk 8/8');
     expect(result.stdout).toContain('Proofread words:\nit 0/32\nuk 0/32');
@@ -194,7 +194,7 @@ describe('status', () => {
     // The one genuinely complete combination here: `status translation` ignores approvals.
     const result = await ctx.runner.run(['status', 'translation', '-l', 'uk', '--fail-if-incomplete']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stderr).not.toContain('incomplete');
   });
 
@@ -210,7 +210,7 @@ describe('status', () => {
   test('scopes the progress to a branch with --branch', async () => {
     const upload = await ctx.runner.run(['upload', 'sources', '-b', BRANCH]);
 
-    expect(upload.exitCode).toBe(0);
+    expect(upload).toMatchObject({ exitCode: 0 });
 
     // The branch has its own untranslated copies, so 0% here against uk 100% on the root tree.
     expect(await statusJson(['status', '-b', BRANCH])).toEqual([

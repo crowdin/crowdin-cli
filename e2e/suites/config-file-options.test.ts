@@ -43,7 +43,7 @@ describe('config file options', () => {
   test('uploads every source group', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
   });
 
   test('sends the .properties escape options', async () => {
@@ -77,7 +77,7 @@ describe('config file options', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     // The config-side counterpart of `upload sources --label`.
     const labels = await ctx.client.labelsApi.withFetchAll().listLabels(ctx.project.id);
@@ -97,7 +97,7 @@ describe('config file options', () => {
   test('narrows the download to the languages export_languages names', async () => {
     const result = await ctx.runner.run(['download', 'translations', '--dryrun', '--output', 'plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     // The project targets uk and it; the config names uk alone, so it must not appear.
     expect(result.stdout.split('\n').filter(Boolean)).toEqual(['translations/uk/labelled.json']);
   });
@@ -109,7 +109,7 @@ describe('config file options', () => {
     // may carry no language placeholder; every other multilingual fixture gets there via `scheme:`.
     const result = await ctx.runner.run(['config', 'translations', '--output', 'plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout.split('\n').filter(Boolean)).toEqual(['translations/all.json']);
   });
 });

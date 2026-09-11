@@ -86,7 +86,7 @@ describe('custom segmentation', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'sources/sample.docx'");
     expect(result.stdout).toContain("File 'sources/strings.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -97,7 +97,7 @@ describe('custom segmentation', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'sources/sample.docx'");
     expect(result.stdout).toContain("File 'sources/strings.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -108,7 +108,7 @@ describe('custom segmentation', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Directory 'Folder'");
     // Success messages echo the PROJECT path, so the `dest` remapping shows up here directly:
     // `/sources/sample.docx` is uploaded as `Folder/sample.docx`.

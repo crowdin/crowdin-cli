@@ -19,7 +19,7 @@ describe('multilingual csv', () => {
   test('upload with translations import', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Directory 'with-translations'");
     expect(result.stdout).toContain("File 'with-translations/sample.csv'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -45,7 +45,7 @@ describe('multilingual csv', () => {
   test('update with translations import', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '--base-path', 'sources/rev2']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'with-translations/sample.csv'");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -56,7 +56,7 @@ describe('multilingual csv', () => {
   test('download file with translations (dryrun)', async () => {
     const result = await ctx.runner.run(['download', 'translations', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('with-translations/sample.csv');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -64,7 +64,7 @@ describe('multilingual csv', () => {
   test('download file with translations', async () => {
     const result = await ctx.runner.run(['download', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('with-translations/sample.csv');
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -81,7 +81,7 @@ describe('multilingual csv', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Directory 'without-translations'");
     expect(result.stdout).toContain("File 'without-translations/sample.csv'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -95,7 +95,7 @@ describe('multilingual csv', () => {
   test('update without translations import', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '--base-path', 'sources/rev2']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'without-translations/sample.csv'");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -106,7 +106,7 @@ describe('multilingual csv', () => {
   test('upload translations for single language', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '--language', 'uk']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'without-translations/sample.csv'");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -122,7 +122,7 @@ describe('multilingual csv', () => {
   test('upload translations for all languages', async () => {
     const result = await ctx.runner.run(['upload', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'without-translations/sample.csv'");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -147,7 +147,7 @@ describe('multilingual csv', () => {
 
     const result = await ctx.runner.run(['upload', 'sources', '--branch', 'test-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'sample.csv'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -162,7 +162,7 @@ describe('multilingual csv', () => {
       'sources/rev2/branch',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'sample.csv'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -177,7 +177,7 @@ describe('multilingual csv', () => {
       'sources/rev3/branch',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Importing translations for file 'sample.csv'");
     expect(result.stdout).toContain("File 'sample.csv'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -186,7 +186,7 @@ describe('multilingual csv', () => {
   test('download translations from branch', async () => {
     const result = await ctx.runner.run(['download', 'translations', '--branch', 'test-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'sample.csv' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -202,7 +202,7 @@ describe('multilingual csv', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'sample.csv'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });

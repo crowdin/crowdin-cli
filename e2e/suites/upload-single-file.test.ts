@@ -54,11 +54,7 @@ describe('upload single file', () => {
       { noConfig: true },
     );
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Fetching project info');
     // Success echoes the project path; with no `--dest` here it equals the local one.
     expect(result.stdout).toContain("File 'sources/1_android.xml'");
@@ -89,11 +85,7 @@ describe('upload single file', () => {
       { noConfig: true },
     );
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Fetching project info');
     expect(result.stdout).toContain("File 'sources/1_android.xml'");
     // Both the directory and the file already exist, so this is an update.
@@ -113,11 +105,7 @@ describe('upload single file', () => {
       '/translations/%locale%/%original_file_name%',
     ]);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Fetching project info');
     expect(result.stdout).toContain("File 'sources/1_android.xml'");
     expect(result.stdout).not.toContain("Directory 'sources'");
@@ -137,11 +125,7 @@ describe('upload single file', () => {
       '/sources/androidDest.xml',
     ]);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Fetching project info');
     expect(result.stdout).toContain("File 'sources/androidDest.xml'");
     expect(result.stdout).not.toContain("Directory 'sources'");
@@ -164,12 +148,8 @@ describe('upload single file', () => {
       '/translations/%locale%/%original_file_name%',
     ]);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
     // A skipped file warns without failing the run.
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Fetching project info');
     expect(result.stderr).toContain("File 'sources/empty_android.xml' was skipped since it is empty");
 
@@ -181,11 +161,7 @@ describe('upload single file', () => {
     // is created, and the two empty files are skipped with a warning each.
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Fetching project info');
     expect(result.stderr).toContain("File 'sources/empty_android.xml' was skipped since it is empty");
     expect(result.stderr).toContain("File 'sources/empty_android2.xml' was skipped since it is empty");
@@ -208,11 +184,7 @@ describe('upload single file', () => {
       '/translations/%locale%/%original_file_name%',
     ]);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Fetching project info');
     // The branch is created silently, and the empty-file warning names the bare local path - not
     // the PHP original's branch-prefixed project path.
@@ -233,11 +205,7 @@ describe('upload single file', () => {
       '--preserve-hierarchy',
     ]);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Fetching project info');
     expect(result.stdout).toContain("File 'sources/1_android.xml'");
 

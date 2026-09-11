@@ -24,7 +24,7 @@ describe('label', () => {
   async function listTitles(): Promise<string[]> {
     const result = await ctx.runner.run(['label', 'list', '--output', 'json']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     return (JSON.parse(result.stdout) as ListedLabel[]).map((label) => label.title).sort();
   }
@@ -40,7 +40,7 @@ describe('label', () => {
   test('prints help when invoked without a subcommand', async () => {
     const result = await ctx.runner.run(['label']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Manage labels');
     expect(result.stdout).toContain('add <title>');
     expect(result.stdout).toContain('delete <title>');
@@ -68,7 +68,7 @@ describe('label', () => {
   test('reports an empty project', async () => {
     const result = await ctx.runner.run(['label', 'list']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('No labels found');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -76,7 +76,7 @@ describe('label', () => {
   test.each(['json', 'toon'] as const)('reports an empty project as an empty %s list', async (format) => {
     const result = await ctx.runner.run(['label', 'list', '--output', format]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(format === 'json' ? JSON.parse(result.stdout) : decode(result.stdout)).toEqual([]);
   });
 
@@ -98,7 +98,7 @@ describe('label', () => {
     // Out of alphabetical order on purpose, so a listing that depends on insertion order fails.
     const result = await ctx.runner.run(['label', 'add', 'zebra-label']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('zebra-label');
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -109,7 +109,7 @@ describe('label', () => {
     const result = await ctx.runner.run(['label', 'add', 'zebra-label']);
 
     // `addAction` returns after warning rather than throwing, hence the success exit.
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stderr).toContain("Label 'zebra-label' already exists in the project");
     expect(await listTitles()).toEqual(['zebra-label']);
   });
@@ -117,21 +117,21 @@ describe('label', () => {
   test('adds a second label', async () => {
     const result = await ctx.runner.run(['label', 'add', 'alpha-label']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(await listTitles()).toEqual(['alpha-label', 'zebra-label']);
   });
 
   test('lists both labels with their ids', async () => {
     const result = await ctx.runner.run(['label', 'list']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('lists the titles alone with --output plain', async () => {
     const result = await ctx.runner.run(['label', 'list', '--output', 'plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(
       result.stdout
         .split('\n')
@@ -144,7 +144,7 @@ describe('label', () => {
     // `labelVerboseView` points `plain` at the text renderer, as Java's LabelListAction does.
     const result = await ctx.runner.run(['label', 'list', '--output', 'plain', '--verbose']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const lines = result.stdout.split('\n').filter((line) => line.length > 0);
 
@@ -159,7 +159,7 @@ describe('label', () => {
   test('serializes id and title in a structured format', async () => {
     const result = await ctx.runner.run(['label', 'list', '--output', 'json']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const labels = (JSON.parse(result.stdout) as ListedLabel[]).sort((left, right) =>
       left.title < right.title ? -1 : 1,
@@ -182,7 +182,7 @@ describe('label', () => {
   test('deletes a label by title', async () => {
     const result = await ctx.runner.run(['label', 'delete', 'zebra-label']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Label 'zebra-label' deleted successfully");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -193,7 +193,7 @@ describe('label', () => {
     // resolveLabelIds creates any title the project lacks, so the upload mints 'from-upload'.
     const upload = await ctx.runner.run(['upload', 'sources', '--label', 'from-upload']);
 
-    expect(upload.exitCode).toBe(0);
+    expect(upload).toMatchObject({ exitCode: 0 });
     expect(upload.stdout).toContain("File 'sources/1_android.xml'");
 
     expect(await listTitles()).toEqual(['alpha-label', 'from-upload']);

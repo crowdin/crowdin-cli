@@ -34,7 +34,7 @@ describe('bundle', () => {
   async function listedBundles(): Promise<{ id: number; name: string; format: string }[]> {
     const result = await ctx.runner.run(['bundle', 'list', '--output', 'json']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     return JSON.parse(result.stdout) as { id: number; name: string; format: string }[];
   }
@@ -42,7 +42,7 @@ describe('bundle', () => {
   test('prints help when invoked without a subcommand', async () => {
     const result = await ctx.runner.run(['bundle']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Manage bundles');
 
     for (const subcommand of ['list', 'add', 'delete', 'download', 'clone', 'browse']) {
@@ -60,7 +60,7 @@ describe('bundle', () => {
   test('reports an empty bundle list', async () => {
     const result = await ctx.runner.run(['bundle', 'list']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('No bundles found');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -68,7 +68,7 @@ describe('bundle', () => {
   test('uploads sources for the bundle', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'sample.json'");
     expect(result.stdout).toContain("File 'sample.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -91,7 +91,7 @@ describe('bundle', () => {
     // from a console.table cell (the grid this used to parse is not what the command prints).
     bundleId = result.stdout.match(/#(\d+)/)?.[1] ?? '';
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(bundleId).not.toBe('');
     expect(maskBundleId(normalize(result.stdout), bundleId)).toMatchSnapshot();
   });
@@ -115,7 +115,7 @@ describe('bundle', () => {
     const plainLine = normalize(result.stdout);
     const localBundleId = plainLine.match(/^(\d+)\b/)?.[1] ?? '';
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(localBundleId).not.toBe('');
     expect(plainLine).toBe(`${localBundleId} BundleCreatedWithPlainOutput`);
     expect(maskBundleId(plainLine, localBundleId)).toMatchSnapshot();
@@ -124,7 +124,7 @@ describe('bundle', () => {
   test('downloads the bundle', async () => {
     const result = await ctx.runner.run(['bundle', 'download', bundleId]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(`#${bundleId} 'RegularBundle' has been successfully downloaded`);
     expect(result.stdout).toContain('it/all.string');
     expect(result.stdout).toContain('uk/all.string');
@@ -172,7 +172,7 @@ describe('bundle', () => {
   test('lists every bundle', async () => {
     const result = await ctx.runner.run(['bundle', 'list']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('RegularBundle');
     expect(result.stdout).toContain('BundleCreatedWithPlainOutput');
 
@@ -186,7 +186,7 @@ describe('bundle', () => {
   test('clones a bundle, inheriting its settings', async () => {
     const result = await ctx.runner.run(['bundle', 'clone', bundleId]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     clonedBundleId = result.stdout.match(/#(\d+)/)?.[1] ?? '';
 
@@ -212,7 +212,7 @@ describe('bundle', () => {
       'all.xliff',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const id = Number(result.stdout.match(/#(\d+)/)?.[1] ?? '');
     const clone = (await listedBundles()).find((bundle) => bundle.id === id);
@@ -224,7 +224,7 @@ describe('bundle', () => {
   test('warns instead of failing when cloning an unknown bundle', async () => {
     const result = await ctx.runner.run(['bundle', 'clone', '1']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stderr).toContain("Couldn't find bundle by the specified ID");
   });
 
@@ -238,7 +238,7 @@ describe('bundle', () => {
   test('warns instead of failing when deleting an unknown bundle', async () => {
     const result = await ctx.runner.run(['bundle', 'delete', '1']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stderr).toContain("Couldn't find bundle by the specified ID");
   });
 
@@ -252,7 +252,7 @@ describe('bundle', () => {
   test('deletes a bundle', async () => {
     const result = await ctx.runner.run(['bundle', 'delete', clonedBundleId]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(`Bundle #${clonedBundleId} deleted`);
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -275,7 +275,7 @@ describe('bundle', () => {
       'default.xliff',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const bundle = await apiBundle(result.stdout.match(/#(\d+)/)?.[1] ?? '');
 
@@ -302,7 +302,7 @@ describe('bundle', () => {
       '--multilingual',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     flaggedBundleId = result.stdout.match(/#(\d+)/)?.[1] ?? '';
 
@@ -317,7 +317,7 @@ describe('bundle', () => {
   test('inherits every flag on a clone', async () => {
     const result = await ctx.runner.run(['bundle', 'clone', flaggedBundleId, '--name', 'InheritedFlags']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const bundle = await apiBundle(result.stdout.match(/#(\d+)/)?.[1] ?? '');
 
@@ -341,7 +341,7 @@ describe('bundle', () => {
       '--no-multilingual',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const bundle = await apiBundle(result.stdout.match(/#(\d+)/)?.[1] ?? '');
 
@@ -361,7 +361,7 @@ describe('bundle', () => {
       '**/other.json',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect((await apiBundle(result.stdout.match(/#(\d+)/)?.[1] ?? '')).ignorePatterns).toEqual(['**/other.json']);
   });
 });

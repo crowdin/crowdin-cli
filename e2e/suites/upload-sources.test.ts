@@ -51,7 +51,7 @@ describe('upload sources', () => {
   async function uploadJson(args: string[] = []): Promise<UploadedFile[]> {
     const result = await ctx.runner.run(['upload', 'sources', ...args, '--output', 'json']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     return JSON.parse(result.stdout) as UploadedFile[];
   }
@@ -63,7 +63,7 @@ describe('upload sources', () => {
   test('uploads through the `push` alias', async () => {
     const result = await ctx.runner.run(['push']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'sources/alpha.json'");
     expect(result.stdout).toContain("File 'sources/beta.json'");
   });
@@ -71,14 +71,14 @@ describe('upload sources', () => {
   test('uploads sources when no subcommand is given', async () => {
     const result = await ctx.runner.run(['upload']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'sources/alpha.json'");
   });
 
   test('lists only the written paths with --output plain', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '--output', 'plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout.split('\n').filter(Boolean).sort()).toEqual(SOURCE_PATHS);
   });
 
@@ -122,7 +122,7 @@ describe('upload sources', () => {
 
     const result = await ctx.runner.run(['upload', 'sources', '--cache', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     // A dry run uploads nothing, so recording checksums for it would make the next real run skip
     // files it never sent.
     expect(await Bun.file(cachePath()).text()).toBe(before);
@@ -133,7 +133,7 @@ describe('upload sources', () => {
 
     const result = await ctx.runner.run(['upload', 'sources', '--cache', '--output', 'json']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stderr).toContain('Failed to read cache file');
 
     const uploaded = JSON.parse(result.stdout) as UploadedFile[];

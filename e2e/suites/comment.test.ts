@@ -50,7 +50,7 @@ describe('comment', () => {
   test('prints help when invoked without a subcommand', async () => {
     const result = await ctx.runner.run(['comment']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Manage string comments and issues');
     expect(result.stdout).toContain('add');
     expect(result.stdout).toContain('list');
@@ -67,7 +67,7 @@ describe('comment', () => {
   test('reports no comments before any exist', async () => {
     const result = await ctx.runner.run(['comment', 'list']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('No comments found');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -75,7 +75,7 @@ describe('comment', () => {
   test('uploads sources', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'strings.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -185,7 +185,7 @@ describe('comment', () => {
       'uk',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Plain comment on welcome');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -205,7 +205,7 @@ describe('comment', () => {
       'translation_mistake',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Wrong translation of farewell');
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -227,7 +227,7 @@ describe('comment', () => {
       'source_mistake',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Typo in the source of farewell');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -235,7 +235,7 @@ describe('comment', () => {
   test('lists every comment', async () => {
     const result = await ctx.runner.run(['comment', 'list']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Plain comment on welcome');
     expect(result.stdout).toContain('Wrong translation of farewell');
     expect(result.stdout).toContain('Typo in the source of farewell');
@@ -245,7 +245,7 @@ describe('comment', () => {
   test('lists comments filtered by string id', async () => {
     const result = await ctx.runner.run(['comment', 'list', '--string-id', String(welcomeStringId)]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Plain comment on welcome');
     expect(result.stdout).not.toContain('Wrong translation of farewell');
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -254,7 +254,7 @@ describe('comment', () => {
   test('lists only issues when filtered by type', async () => {
     const result = await ctx.runner.run(['comment', 'list', '--type', 'issue']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Wrong translation of farewell');
     expect(result.stdout).toContain('Typo in the source of farewell');
     expect(result.stdout).not.toContain('Plain comment on welcome');
@@ -266,7 +266,7 @@ describe('comment', () => {
   test('infers the issue type when only --issue-type is given', async () => {
     const result = await ctx.runner.run(['comment', 'list', '--issue-type', 'translation_mistake']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Wrong translation of farewell');
     expect(result.stdout).not.toContain('Typo in the source of farewell');
     expect(result.stdout).not.toContain('Plain comment on welcome');
@@ -277,7 +277,7 @@ describe('comment', () => {
   test('infers the issue type when only --status is given', async () => {
     const result = await ctx.runner.run(['comment', 'list', '--status', 'unresolved']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Wrong translation of farewell');
     expect(result.stdout).toContain('Typo in the source of farewell');
     expect(result.stdout).not.toContain('Plain comment on welcome');
@@ -294,7 +294,7 @@ describe('comment', () => {
   test('lists comments with the verbose view', async () => {
     const result = await ctx.runner.run(['comment', 'list', '--type', 'issue', '--verbose']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('translation_mistake');
     expect(result.stdout).toContain('unresolved');
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -303,7 +303,7 @@ describe('comment', () => {
   test('lists comments as structured data', async () => {
     const result = await ctx.runner.run(['comment', 'list', '--output', 'json']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const comments = JSON.parse(result.stdout) as { id: number; text: string }[];
 
@@ -317,7 +317,7 @@ describe('comment', () => {
   test('lists comment ids only in the plain output', async () => {
     const result = await ctx.runner.run(['comment', 'list', '--output', 'plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const ids = result.stdout.trim().split('\n').filter(Boolean);
 
@@ -342,7 +342,7 @@ describe('comment', () => {
   test('resolves a string issue', async () => {
     const result = await ctx.runner.run(['comment', 'resolve', String(translationMistakeId)]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('has been successfully resolved');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -350,7 +350,7 @@ describe('comment', () => {
   test('lists the resolved issue under the resolved status', async () => {
     const result = await ctx.runner.run(['comment', 'list', '--status', 'resolved']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Wrong translation of farewell');
     expect(result.stdout).not.toContain('Typo in the source of farewell');
     expect(normalize(result.stdout)).toMatchSnapshot();

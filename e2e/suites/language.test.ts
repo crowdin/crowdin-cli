@@ -32,7 +32,7 @@ describe('language', () => {
   async function listedCodes(args: string[] = []): Promise<string[]> {
     const result = await ctx.runner.run(['language', 'list', '--output', 'json', ...args]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     return (JSON.parse(result.stdout) as { code: string }[]).map((language) => language.code).sort();
   }
@@ -54,7 +54,7 @@ describe('language', () => {
   test('prints help when invoked without a subcommand', async () => {
     const result = await ctx.runner.run(['language']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Manage languages');
     expect(result.stdout).toContain('list');
   });
@@ -69,7 +69,7 @@ describe('language', () => {
   test('lists the target languages of the project', async () => {
     const result = await ctx.runner.run(['language', 'list']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Italian');
     expect(result.stdout).toContain('Ukrainian');
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -79,14 +79,14 @@ describe('language', () => {
   test('lists bare codes in the plain output', async () => {
     const result = await ctx.runner.run(['language', 'list', '--output', 'plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout.trim().split('\n').sort()).toEqual(TARGET_LANGUAGES);
   });
 
   test('carries the code and the name in the json output', async () => {
     const result = await ctx.runner.run(['language', 'list', '--output', 'json']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const languages = JSON.parse(result.stdout) as { code: string; name: string }[];
 
@@ -100,7 +100,7 @@ describe('language', () => {
     const json = await ctx.runner.run(['language', 'list', '--output', 'json']);
     const toon = await ctx.runner.run(['language', 'list', '--output', 'toon']);
 
-    expect(toon.exitCode).toBe(0);
+    expect(toon).toMatchObject({ exitCode: 0 });
     expect(decode(toon.stdout)).toEqual(JSON.parse(json.stdout));
   });
 

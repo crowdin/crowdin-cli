@@ -127,7 +127,7 @@ describe('string', () => {
   test('uploads sources', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'android.xml'");
     expect(result.stdout).toContain("File 'text.txt'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -136,7 +136,7 @@ describe('string', () => {
   test('lists all source strings', async () => {
     const result = await ctx.runner.run(['string', 'list']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('first string');
     expect(result.stdout).toContain('second string');
     expect(result.stdout).toContain('first string source` with tag');
@@ -158,7 +158,7 @@ describe('string', () => {
       String(ctx.project.id),
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('first string');
     expect(result.stdout).toContain('second string');
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -171,7 +171,7 @@ describe('string', () => {
 
     const result = await ctx.runner.run(['string', 'list', '--file', 'android.xml']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('first string');
     expect(result.stdout).toContain('second string');
     expect(result.stdout).toContain('first string source` with tag');
@@ -183,7 +183,7 @@ describe('string', () => {
   test('lists source strings filtered by identifier/text/context', async () => {
     const result = await ctx.runner.run(['string', 'list', '--filter', 'str1']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('first string');
     expect(result.stdout).not.toContain('second string');
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -192,7 +192,7 @@ describe('string', () => {
   test('lists source strings verbosely, including file and context', async () => {
     const result = await ctx.runner.run(['string', 'list', '-v']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('android.xml');
     expect(result.stdout).toContain('text.txt');
     expect(result.stdout).toContain('str1');
@@ -210,7 +210,7 @@ describe('string', () => {
       'android.xml',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('str3');
     expect(result.stdout).toContain('third string');
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -244,13 +244,7 @@ describe('string', () => {
       '--hidden',
     ]);
 
-    if (result.exitCode !== 0) {
-      console.error('DEBUG exitCode:', result.exitCode);
-      console.error('DEBUG stdout:', result.stdout);
-      console.error('DEBUG stderr:', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('str4');
     expect(result.stdout).toContain('fourth string');
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -275,7 +269,7 @@ describe('string', () => {
       'android_file',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('was updated successfully');
     expect(result.stdout).toContain('third string edited');
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -302,7 +296,7 @@ describe('string', () => {
       '--no-hidden',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('was updated successfully');
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -316,7 +310,7 @@ describe('string', () => {
   test('deletes a source string', async () => {
     const result = await ctx.runner.run(['string', 'delete', String(thirdStringId)]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('was deleted successfully');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -324,7 +318,7 @@ describe('string', () => {
   test('uploads sources to a new branch', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'android.xml'");
     expect(result.stdout).toContain("File 'text.txt'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -345,7 +339,7 @@ describe('string', () => {
       '/android.xml',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('str3');
     expect(result.stdout).toContain('third string');
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -355,7 +349,7 @@ describe('string', () => {
     const id = await findStringId('first string', { branchId });
     const result = await ctx.runner.run(['string', 'delete', String(id)]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('was deleted successfully');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -461,7 +455,7 @@ describe('string', () => {
   test('lists source strings by a CroQL expression', async () => {
     const result = await ctx.runner.run(['string', 'list', '--croql', 'type is plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('first string');
     expect(result.stdout).toContain('fourth string edited');
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -475,7 +469,7 @@ describe('string', () => {
       'text = "<span>first string source` with tag</span>"',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     // One copy from the initial upload, one from the branch upload - see "uploads sources to a new
     // branch" above. Counting substring occurrences (not table rows) sidesteps console.table's
     // formatting, mirroring file-groups.test.ts's duplicate-count assertion.
@@ -487,7 +481,7 @@ describe('string', () => {
   test('lists source strings by a CroQL text match with a quote, spanning both branches', async () => {
     const result = await ctx.runner.run(['string', 'list', '--croql', `text = "first string source' with quotes"`]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     const matches = result.stdout.split("first string source' with quotes").length - 1;
     expect(matches).toBe(2);
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -505,7 +499,7 @@ describe('string', () => {
     const id = await findStringId("first string source' with quotes", { branchId });
     const result = await ctx.runner.run(['comment', 'add', 'Added comment', '--string-id', String(id), '-l', 'uk']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Added comment');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -513,7 +507,7 @@ describe('string', () => {
   test('lists comments', async () => {
     const result = await ctx.runner.run(['comment', 'list']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Added comment');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -532,7 +526,7 @@ describe('string', () => {
       'issue',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Added comment string id 10');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -552,7 +546,7 @@ describe('string', () => {
       'context_request',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Added issue string context_request id 10');
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -562,7 +556,7 @@ describe('string', () => {
   test('lists comments filtered by a specific string id', async () => {
     const result = await ctx.runner.run(['comment', 'list', '--string-id', String(branchStr2Id)]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Added comment string id 10');
     expect(result.stdout).toContain('Added issue string context_request id 10');
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -571,7 +565,7 @@ describe('string', () => {
   test('resolves a string issue', async () => {
     const result = await ctx.runner.run(['comment', 'resolve', String(contextRequestCommentId)]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('has been successfully resolved');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -579,7 +573,7 @@ describe('string', () => {
   test('lists comments filtered by unresolved status', async () => {
     const result = await ctx.runner.run(['comment', 'list', '--status', 'unresolved']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Added comment string id 10');
     // The context-request issue was just resolved above, so it must not show up here anymore.
     expect(result.stdout).not.toContain('Added issue string context_request id 10');
@@ -676,7 +670,7 @@ describe('string', () => {
       'json',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     // The id comes from the command's own echo: findStringId matches on `data.text`, which for a
     // plural string is an object rather than the string it was created from. A file-based add
@@ -694,8 +688,8 @@ describe('string', () => {
     const plain = await ctx.runner.run(['string', 'list', '--output', 'json']);
     const verbose = await ctx.runner.run(['string', 'list', '--output', 'json', '-v']);
 
-    expect(plain.exitCode).toBe(0);
-    expect(verbose.exitCode).toBe(0);
+    expect(plain).toMatchObject({ exitCode: 0 });
+    expect(verbose).toMatchObject({ exitCode: 0 });
 
     const plainKeys = (JSON.parse(plain.stdout) as object[]).map((entry) => Object.keys(entry).join());
     const verboseKeys = (JSON.parse(verbose.stdout) as object[]).map((entry) => Object.keys(entry).join());
@@ -708,14 +702,14 @@ describe('string', () => {
     const json = await ctx.runner.run(['string', 'list', '--output', 'json']);
     const toon = await ctx.runner.run(['string', 'list', '--output', 'toon']);
 
-    expect(toon.exitCode).toBe(0);
+    expect(toon).toMatchObject({ exitCode: 0 });
     expect(decode(toon.stdout)).toEqual(JSON.parse(json.stdout));
   });
 
   test('lists bare string ids with --output plain', async () => {
     const result = await ctx.runner.run(['string', 'list', '--output', 'plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const lines = result.stdout.split('\n').filter((line) => line.length > 0);
 

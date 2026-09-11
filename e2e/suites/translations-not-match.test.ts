@@ -44,7 +44,7 @@ describe('translations not match', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Directory 'sources'");
     expect(result.stdout).toContain("File 'sources/1_android.xml'");
     expect(result.stdout).toContain("File 'sources/2_android.xml'");
@@ -55,7 +55,7 @@ describe('translations not match', () => {
   test('attempts to upload translations for all languages (none exist locally)', async () => {
     const result = await ctx.runner.run(['upload', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stderr).toContain("File 'translations/it/1_android.xml' does not exist in the specified location");
     expect(result.stderr).toContain("File 'translations/it/2_android.xml' does not exist in the specified location");
     expect(result.stderr).toContain("File 'translations/it/3_android.xml' does not exist in the specified location");
@@ -68,7 +68,7 @@ describe('translations not match', () => {
   test('attempts to upload translations for a single specified language (uk)', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '-l', 'uk']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stderr).toContain("File 'translations/uk/1_android.xml' does not exist in the specified location");
     expect(result.stderr).toContain("File 'translations/uk/2_android.xml' does not exist in the specified location");
     expect(result.stderr).toContain("File 'translations/uk/3_android.xml' does not exist in the specified location");
@@ -81,7 +81,7 @@ describe('translations not match', () => {
     async (format) => {
       const result = await ctx.runner.run(['upload', 'translations', '-l', 'uk', '--output', format]);
 
-      expect(result.exitCode).toBe(0);
+      expect(result).toMatchObject({ exitCode: 0 });
 
       // stderr is a stream of records, not one document: json separates them with a newline, toon
       // with a blank line. Both escape a newline inside a message, so the split is unambiguous.
@@ -119,7 +119,7 @@ describe('translations not match', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('translations/it/1_android.xml');
     expect(result.stdout).toContain('translations/uk/1_android.xml');
     expect(result.stdout).not.toContain('2_android.xml');
@@ -130,14 +130,14 @@ describe('translations not match', () => {
   test('previews the same narrowed dry run as a tree', async () => {
     const result = await ctx.runner.run(['download', 'translations', '--dryrun', '--tree']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('downloads translations for real, warning about the sources the narrowed config no longer covers', async () => {
     const result = await ctx.runner.run(['download', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stderr).toContain(
       "Downloaded translations don't match the current project configuration. The translations for the " +
         'following sources will be omitted (use --verbose to get the list of the omitted translations):',
@@ -163,7 +163,7 @@ describe('translations not match', () => {
   test('downloads translations again with --verbose, listing the omitted translation paths', async () => {
     const result = await ctx.runner.run(['download', 'translations', '--verbose']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('sources/2_android.xml (2)');
     expect(result.stdout).toContain('sources/3_android.xml (2)');
     expect(result.stdout).toContain('java.properties (2)');
@@ -185,7 +185,7 @@ describe('translations not match', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '-l', 'uk']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('sources/2_android.xml (1)');
     expect(result.stdout).toContain('sources/3_android.xml (1)');
     expect(result.stdout).toContain('java.properties (1)');
@@ -202,7 +202,7 @@ describe('translations not match', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '-l', 'uk', '--verbose']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('sources/2_android.xml (1)');
     expect(result.stdout).toContain('sources/3_android.xml (1)');
     expect(result.stdout).toContain('java.properties (1)');
@@ -221,7 +221,7 @@ describe('translations not match', () => {
 
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     // `upload sources -b <branch>` creates/reuses the branch silently (`getOrCreateBranch`) and its
     // success messages use the LOCAL path with no branch prefix - confirmed via `UploadSourcesCommand.ts`,
     // matching this porting effort's established branch-upload wording note. PHP's "Branch 'x'" /
@@ -239,7 +239,7 @@ describe('translations not match', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '-b', 'test-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('sources/2_android.xml (2)');
     expect(result.stdout).toContain('sources/3_android.xml (2)');
     // `java.properties` lives outside any branch, so a branch-scoped build never includes it - it
@@ -259,7 +259,7 @@ describe('translations not match', () => {
   test('downloads translations for the branch with --verbose', async () => {
     const result = await ctx.runner.run(['download', 'translations', '-b', 'test-branch', '--verbose']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('sources/2_android.xml (2)');
     expect(result.stdout).toContain('sources/3_android.xml (2)');
     expect(result.stdout).not.toContain('java.properties');
@@ -273,7 +273,7 @@ describe('translations not match', () => {
   test('suppresses the mismatch report with --ignore-match', async () => {
     const result = await ctx.runner.run(['download', 'translations', '--ignore-match']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     // The report the tests above assert in full is exactly what this flag exists to silence.
     expect(result.stderr).not.toContain("Downloaded translations don't match the current project configuration");
     expect(result.stdout).not.toContain('sources/2_android.xml (2)');

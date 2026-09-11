@@ -19,7 +19,7 @@ describe('simple csv', () => {
   test('uploads sources', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Fetching project info');
     expect(result.stdout).toContain("Directory 'sources'");
     expect(result.stdout).toContain("Directory 'sources/files'");
@@ -40,7 +40,7 @@ describe('simple csv', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'sources/files/1_simple.csv'");
     expect(result.stdout).toContain("File 'sources/files/2_simple.csv'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -49,7 +49,7 @@ describe('simple csv', () => {
   test('uploads translations for every target language', async () => {
     const result = await ctx.runner.run(['upload', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Importing translations for file 'sources/files/it/1_simple.csv'");
     expect(result.stdout).toContain("Importing translations for file 'sources/files/it/2_simple.csv'");
     expect(result.stdout).toContain("Importing translations for file 'sources/files/uk/1_simple.csv'");
@@ -64,7 +64,7 @@ describe('simple csv', () => {
   test('uploads translations for a single language', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '-l', 'uk']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Importing translations for file 'sources/files/uk/1_simple.csv'");
     expect(result.stdout).toContain("Importing translations for file 'sources/files/uk/2_simple.csv'");
     expect(result.stdout).toContain("File 'sources/files/uk/1_simple.csv'");
@@ -80,7 +80,7 @@ describe('simple csv', () => {
   test('downloads translations for a single language', async () => {
     const result = await ctx.runner.run(['download', 'translations', '-l', 'uk']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     // expected/uk/1_simple.csv leaves ident9 untranslated on purpose: that string carries
@@ -100,7 +100,7 @@ describe('simple csv', () => {
   test('downloads translations for every target language', async () => {
     const result = await ctx.runner.run(['download', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectFilesExist(
@@ -127,7 +127,7 @@ describe('simple csv', () => {
   test('uploads sources to a brand-new branch', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Directory 'sources'");
     expect(result.stdout).toContain("Directory 'sources/files'");
     expect(result.stdout).toContain("File 'sources/files/1_simple.csv'");
@@ -138,7 +138,7 @@ describe('simple csv', () => {
   test('updates sources on the branch (branch already exists)', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'sources/files/1_simple.csv'");
     expect(result.stdout).toContain("File 'sources/files/2_simple.csv'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -147,7 +147,7 @@ describe('simple csv', () => {
   test('uploads translations to the branch', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '-b', 'test-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Importing translations for file 'sources/files/it/1_simple.csv'");
     expect(result.stdout).toContain("Importing translations for file 'sources/files/it/2_simple.csv'");
     expect(result.stdout).toContain("Importing translations for file 'sources/files/uk/1_simple.csv'");
@@ -163,7 +163,7 @@ describe('simple csv', () => {
   test('downloads translations for a single language on the branch', async () => {
     const result = await ctx.runner.run(['download', 'translations', '-l', 'uk', '-b', 'test-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     expect(await Bun.file(join(ctx.workspace, 'sources/files/uk/1_simple.csv')).text()).toBe(
@@ -178,7 +178,7 @@ describe('simple csv', () => {
   test('downloads translations for every target language on the branch', async () => {
     const result = await ctx.runner.run(['download', 'translations', '-b', 'test-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     expect(await Bun.file(join(ctx.workspace, 'sources/files/it/1_simple.csv')).text()).toBe(

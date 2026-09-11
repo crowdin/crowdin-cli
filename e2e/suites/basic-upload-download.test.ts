@@ -17,21 +17,21 @@ describe('basic upload sources and download translations', () => {
   test('uploads all source files to a fresh project', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('updates existing source files', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('downloads translations for every target language', async () => {
     const result = await ctx.runner.run(['download', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectFilesExist(

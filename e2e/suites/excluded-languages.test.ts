@@ -37,14 +37,14 @@ describe('excluded languages', () => {
   test('uploads sources excluding a language via the CLI flag', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '--excluded-language', 'de']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('uploads translations, skipping the language with no local files', async () => {
     const result = await ctx.runner.run(['upload', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stderr).toContain("File 'translations/de/1_android.xml' does not exist in the specified location");
     expect(result.stderr).toContain("File 'translations/de/2_android.xml' does not exist in the specified location");
     expect(result.stdout).toContain("File 'translations/it/1_android.xml'");
@@ -57,7 +57,7 @@ describe('excluded languages', () => {
   test('lists configured translation files for every target language regardless of exclusions', async () => {
     const result = await ctx.runner.run(['config', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('translations/de/1_android.xml');
     expect(result.stdout).toContain('translations/it/1_android.xml');
     expect(result.stdout).toContain('translations/uk/1_android.xml');
@@ -67,7 +67,7 @@ describe('excluded languages', () => {
   test('downloads translations, building only the non-excluded languages', async () => {
     const result = await ctx.runner.run(['download', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     expect(await Bun.file(join(ctx.workspace, 'translations/it/1_android.xml')).text()).toBe(
@@ -88,14 +88,14 @@ describe('excluded languages', () => {
   test('changes the excluded language via a new CLI flag value', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '--excluded-language', 'it']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('re-uploads translations, rejecting the newly excluded language', async () => {
     const result = await ctx.runner.run(['upload', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stderr).toContain("File 'translations/de/1_android.xml' does not exist in the specified location");
     expect(result.stderr).toContain("File 'translations/de/2_android.xml' does not exist in the specified location");
     expect(result.stderr).toContain(
@@ -111,7 +111,7 @@ describe('excluded languages', () => {
     await clearDownloadedTranslations(ctx);
     const result = await ctx.runner.run(['download', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     expect(await Bun.file(join(ctx.workspace, 'translations/de/1_android.xml')).exists()).toBe(true);
@@ -122,7 +122,7 @@ describe('excluded languages', () => {
   test('uploads sources without the CLI flag, leaving the exclusion unchanged', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -130,7 +130,7 @@ describe('excluded languages', () => {
     await clearDownloadedTranslations(ctx);
     const result = await ctx.runner.run(['download', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     // Omitting --excluded-language does not clear a previously-set exclusion (only an explicit
@@ -146,7 +146,7 @@ describe('excluded languages', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -154,7 +154,7 @@ describe('excluded languages', () => {
     await clearDownloadedTranslations(ctx);
     const result = await ctx.runner.run(['download', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     expect(await Bun.file(join(ctx.workspace, 'translations/de/1_android.xml')).exists()).toBe(true);
@@ -167,7 +167,7 @@ describe('excluded languages', () => {
 
     const result = await ctx.runner.run(['upload', 'sources', '--excluded-language', 'de']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -175,7 +175,7 @@ describe('excluded languages', () => {
     await clearDownloadedTranslations(ctx);
     const result = await ctx.runner.run(['download', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     // Both the config's 'it' and the CLI flag's 'de' are excluded (merged, not overridden).
@@ -190,7 +190,7 @@ describe('excluded languages', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -198,7 +198,7 @@ describe('excluded languages', () => {
     await clearDownloadedTranslations(ctx);
     const result = await ctx.runner.run(['download', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     // 1_android.xml excludes 'it' -> de/uk only. 2_android.xml excludes 'uk' -> de/it only.

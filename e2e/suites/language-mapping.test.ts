@@ -57,7 +57,7 @@ describe('language mapping', () => {
   test('uploads sources for every language-mapping placeholder', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     for (const group of [
       'android_code',
       'language',
@@ -77,7 +77,7 @@ describe('language mapping', () => {
   test('previews the translation upload with the default language mapping', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     for (const path of [
       'android_code/uk-rUA_/android.xml',
       'android_code/zh-rCN_/android.xml',
@@ -104,7 +104,7 @@ describe('language mapping', () => {
   test('uploads translations with the default language mapping', async () => {
     const result = await ctx.runner.run(['upload', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Importing translations for file 'android_code/uk-rUA_/android.xml'");
     expect(result.stdout).toContain("File 'android_code/uk-rUA_/android.xml'");
     expect(result.stdout).toContain("File 'locale/zh-CN_/android.xml'");
@@ -116,7 +116,7 @@ describe('language mapping', () => {
   test('previews the translation download with the default language mapping', async () => {
     const result = await ctx.runner.run(['download', 'translations', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('android_code/uk-rUA_/android.xml');
     expect(result.stdout).toContain('locale/zh-CN_/android.xml');
     expect(result.stdout).toContain('three_letters_code/ukr_/android.xml');
@@ -148,7 +148,7 @@ describe('language mapping', () => {
 
     const result = await ctx.runner.run(['download', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'android_code/uk-rUA_/android.xml' extracted");
     expect(result.stdout).toContain("File 'language/Chinese Simplified_/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -168,7 +168,7 @@ describe('language mapping', () => {
 
     const result = await ctx.runner.run(['upload', 'translations', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     // android_code now resolves from the server mapping (*_crwd), not the removed local override.
     expect(result.stdout).toContain(
       "File 'android_code/uk-rUA_crwd/android.xml' would be queued for translations import",
@@ -187,7 +187,7 @@ describe('language mapping', () => {
   test('lists target languages using the android_code mapping', async () => {
     const result = await ctx.runner.run(['language', 'list', '--code', 'android_code']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('uk-rUA_crwd');
     expect(result.stdout).toContain('zh-rCN_crwd');
     expect(result.stdout).toContain('Ukrainian');
@@ -198,7 +198,7 @@ describe('language mapping', () => {
   test('lists target languages using the three_letters_code mapping', async () => {
     const result = await ctx.runner.run(['language', 'list', '--code', 'three_letters_code']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('ukr_');
     expect(result.stdout).toContain('zho_');
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -207,7 +207,7 @@ describe('language mapping', () => {
   test('uploads translations under the server-side language mapping', async () => {
     const result = await ctx.runner.run(['upload', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Importing translations for file 'android_code/uk-rUA_crwd/android.xml'");
     expect(result.stdout).toContain("File 'android_code/uk-rUA_crwd/android.xml'");
     expect(result.stdout).toContain("File 'android_code/zh-rCN_crwd/android.xml'");
@@ -217,7 +217,7 @@ describe('language mapping', () => {
   test('previews the translation download under the server-side language mapping', async () => {
     const result = await ctx.runner.run(['download', 'translations', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('android_code/uk-rUA_crwd/android.xml');
     expect(result.stdout).toContain('android_code/zh-rCN_crwd/android.xml');
     expect(result.stdout).toContain('locale/uk-UA_/android.xml');
@@ -233,7 +233,7 @@ describe('language mapping', () => {
 
     const result = await ctx.runner.run(['download', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'android_code/uk-rUA_crwd/android.xml' extracted");
     expect(result.stdout).toContain("File 'android_code/zh-rCN_crwd/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();

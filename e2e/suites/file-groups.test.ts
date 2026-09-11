@@ -45,7 +45,7 @@ describe('file groups', () => {
     const result = await ctx.runner.run(['upload', 'translations']);
 
     // Same empty pattern as above, but here it does not fail the run.
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stderr).toContain(
       "No sources found for '/sources/*.pot' pattern. Check the source paths in your configuration file",
     );
@@ -76,7 +76,7 @@ describe('file groups', () => {
 
     // The empty pattern passes silently here, and the doubly-matched android.xml collapses to one
     // line per language: the download maps by path, so the second group's entry overwrites the first.
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/it/android.xml' extracted");
     expect(result.stdout).toContain("File 'translations/it/java.properties' extracted");
     expect(result.stdout).toContain("File 'translations/uk/android.xml' extracted");

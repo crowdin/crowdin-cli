@@ -32,7 +32,7 @@ describe('distribution', () => {
   async function listDistributions(): Promise<ListedDistribution[]> {
     const result = await ctx.runner.run(['distribution', 'list', '--output', 'json']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     return JSON.parse(result.stdout) as ListedDistribution[];
   }
@@ -50,7 +50,7 @@ describe('distribution', () => {
       'all.string',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const id = result.stdout.match(/#(\d+)/)?.[1] ?? '';
 
@@ -70,12 +70,12 @@ describe('distribution', () => {
   test('uploads the sources and translations the bundles export', async () => {
     const sources = await ctx.runner.run(['upload', 'sources']);
 
-    expect(sources.exitCode).toBe(0);
+    expect(sources).toMatchObject({ exitCode: 0 });
     expect(sources.stdout).toContain("File 'sources/1_android.xml'");
 
     const translations = await ctx.runner.run(['upload', 'translations']);
 
-    expect(translations.exitCode).toBe(0);
+    expect(translations).toMatchObject({ exitCode: 0 });
     expect(translations.stdout).toContain("File 'translations/uk/1_android.xml'");
   });
 
@@ -89,7 +89,7 @@ describe('distribution', () => {
   test('prints help when invoked without a subcommand', async () => {
     const result = await ctx.runner.run(['distribution']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Manage distributions');
     expect(result.stdout).toContain('release <hash>');
   });
@@ -104,7 +104,7 @@ describe('distribution', () => {
   test('reports a project with no distributions', async () => {
     const result = await ctx.runner.run(['distribution', 'list']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('No distributions found');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -134,7 +134,7 @@ describe('distribution', () => {
   test('adds a distribution for a bundle', async () => {
     const result = await ctx.runner.run(['distribution', 'add', 'D1', '--bundle-id', bundleId]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const [distribution] = await listDistributions();
 
@@ -147,7 +147,7 @@ describe('distribution', () => {
   test('lists the distribution with its hash and export mode', async () => {
     const result = await ctx.runner.run(['distribution', 'list']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(hash);
     expect(maskHash(normalize(result.stdout), hash)).toMatchSnapshot();
   });
@@ -155,7 +155,7 @@ describe('distribution', () => {
   test('lists the hash and name with --output plain', async () => {
     const result = await ctx.runner.run(['distribution', 'list', '--output', 'plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout.trim()).toBe(`${hash} D1`);
   });
 
@@ -188,7 +188,7 @@ describe('distribution', () => {
   test('renames a distribution', async () => {
     const result = await ctx.runner.run(['distribution', 'edit', hash, '--name', 'D1 renamed']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(await listDistributions()).toEqual([{ hash, name: 'D1 renamed', exportMode: 'bundle' }]);
   });
 
@@ -196,7 +196,7 @@ describe('distribution', () => {
     // editAction's other patch branch: `--bundle-id` becomes a replace on /bundleIds.
     const result = await ctx.runner.run(['distribution', 'edit', hash, '--bundle-id', secondBundleId]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(await listDistributions()).toEqual([{ hash, name: 'D1 renamed', exportMode: 'bundle' }]);
   });
 
@@ -212,7 +212,7 @@ describe('distribution', () => {
     // race, so only the terminal outcome is pinned.
     const result = await ctx.runner.run(['distribution', 'release', hash]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(`Distribution '${hash}' has been successfully released`);
     expect(result.stdout).not.toContain('null%');
   });

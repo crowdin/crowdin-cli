@@ -129,7 +129,7 @@ describe('ignore', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const ignoredFiles = ['/android-uk.xml', '/folder/android-uk.xml'];
     const expectedFiles = ALL_FILES.filter((file) => !ignoredFiles.includes(file)).sort();
@@ -142,7 +142,7 @@ describe('ignore', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const ignoredFiles = ['/1.xml', '/a.xml', '/folder/1.xml', '/folder/a.xml', '/folder/sub/1.xml'];
     const expectedFiles = ALL_FILES.filter((file) => !ignoredFiles.includes(file)).sort();
@@ -155,7 +155,7 @@ describe('ignore', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const ignoredFiles = ['/1.xml', '/folder/1.xml', '/folder/sub/1.xml'];
     const expectedFiles = ALL_FILES.filter((file) => !ignoredFiles.includes(file)).sort();
@@ -168,7 +168,7 @@ describe('ignore', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const ignoredFiles = ['/123.xml', '/folder/123.xml'];
     const expectedFiles = ALL_FILES.filter((file) => !ignoredFiles.includes(file)).sort();
@@ -181,7 +181,7 @@ describe('ignore', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const ignoredFiles = ['/123_test.xml', '/folder/123_test.xml'];
     const expectedFiles = ALL_FILES.filter((file) => !ignoredFiles.includes(file)).sort();
@@ -194,7 +194,7 @@ describe('ignore', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const ignoredFiles = [
       '/1.xml',
@@ -215,7 +215,7 @@ describe('ignore', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const ignoredFiles = [
       '/folder/1.xml',
@@ -236,7 +236,7 @@ describe('ignore', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     // The PHP original's ignoredFiles list also names a nonexistent `/folder/1.txt` here; since that
     // path is not in ALL_FILES, filtering it out is a no-op there and it is omitted here for clarity.
@@ -260,7 +260,7 @@ describe('ignore', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const ignoredFiles = [
       '/folder/1.xml',
@@ -282,7 +282,7 @@ describe('ignore', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Fetching project info');
     expect(result.stdout).toContain("Directory 'folder'");
     expect(result.stdout).toContain("Directory 'folder/sub'");
@@ -305,7 +305,7 @@ describe('ignore', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Fetching project info');
     expect(result.stdout).toContain("Directory 'folder'");
     expect(result.stdout).toContain("Directory 'folder/sub'");

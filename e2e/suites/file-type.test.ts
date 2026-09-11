@@ -66,7 +66,7 @@ describe('file type', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
     expect(await getUploadedFileType(ctx)).toEqual({ type: 'android', parserVersion: 6 });
   });
@@ -77,7 +77,7 @@ describe('file type', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
     expect(await getUploadedFileType(ctx)).toEqual({ type: 'android', parserVersion: 8 });
   });
@@ -88,7 +88,7 @@ describe('file type', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
     expect(await getUploadedFileType(ctx)).toEqual({ type: 'android', parserVersion: 11 });
   });
@@ -99,7 +99,7 @@ describe('file type', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
     expect(await getUploadedFileType(ctx)).toEqual({ type: 'android', parserVersion: 5 });
   });
@@ -110,7 +110,7 @@ describe('file type', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
     expect(await getUploadedFileType(ctx)).toEqual({ type: 'android', parserVersion: 4 });
   });
@@ -121,7 +121,7 @@ describe('file type', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
     expect(await getUploadedFileType(ctx)).toEqual({ type: 'android', parserVersion: 3 });
   });
@@ -132,7 +132,7 @@ describe('file type', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
     expect(await getUploadedFileType(ctx)).toEqual({ type: 'android', parserVersion: 2 });
   });
@@ -143,7 +143,7 @@ describe('file type', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
     expect(await getUploadedFileType(ctx)).toEqual({ type: 'android', parserVersion: 1 });
   });
