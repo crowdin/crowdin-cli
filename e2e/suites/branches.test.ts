@@ -19,7 +19,7 @@ describe('branches', () => {
   test('uploads a single source file to a brand-new branch', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test_list_string']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     // Success echoes the PROJECT path, and every config in this fixture sets `preserve_hierarchy: false`,
     // so the source's directory is dropped: `/sources_one_file/1_android.xml` lands as `1_android.xml`.
     // The dry-run previews below print the LOCAL path instead (`sources/1_android.xml`) - that asymmetry
@@ -33,21 +33,21 @@ describe('branches', () => {
 
     const result = await ctx.runner.run(['upload', 'sources', '--dryrun', '-b', 'test-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('previews the source upload dry run as a tree', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '--dryrun', '--tree', '-b', 'test-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('uploads the two source files for real, creating the branch', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File '1_android.xml'");
     expect(result.stdout).toContain("File '2_android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -65,7 +65,7 @@ describe('branches', () => {
 
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File '1_android.xml'");
     expect(result.stdout).toContain("File '2_android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -74,14 +74,14 @@ describe('branches', () => {
   test('previews the translation upload as a dry run', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '--dryrun', '-b', 'test-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('previews the translation dry run as a tree', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '--dryrun', '--tree', '-b', 'test-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -90,7 +90,7 @@ describe('branches', () => {
 
     const result = await ctx.runner.run(['upload', 'translations', '-b', 'test-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Importing translations for file 'translations/it/1_android.xml'");
     expect(result.stdout).toContain("Importing translations for file 'translations/it/2_android.xml'");
     expect(result.stdout).toContain("Importing translations for file 'translations/uk/1_android.xml'");
@@ -107,7 +107,7 @@ describe('branches', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '-b', 'test-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectFilesExist(

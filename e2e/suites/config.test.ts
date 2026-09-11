@@ -47,7 +47,7 @@ describe('config', () => {
   test('prints help when invoked without a subcommand', async () => {
     const result = await ctx.runner.run(['config']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('validate configuration');
     expect(result.stdout).toContain('sources');
     expect(result.stdout).toContain('translations');
@@ -64,7 +64,7 @@ describe('config', () => {
   test('lists the matched source files', async () => {
     const result = await ctx.runner.run(['config', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -79,7 +79,7 @@ describe('config', () => {
 
     const result = await ctx.runner.run(['@args.txt']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(lines(result.stdout).sort()).toEqual(SOURCE_PATHS);
   });
 
@@ -95,14 +95,14 @@ describe('config', () => {
   test('lists bare source paths with --output plain', async () => {
     const result = await ctx.runner.run(['config', 'sources', '--output', 'plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(lines(result.stdout).sort()).toEqual(SOURCE_PATHS);
   });
 
   test('serializes the source paths as a json list of strings', async () => {
     const result = await ctx.runner.run(['config', 'sources', '--output', 'json']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     // pathView declares no keys and its items are the paths themselves, so the document is a list of
     // bare strings rather than of objects.
     expect(JSON.parse(result.stdout)).toEqual(SOURCE_PATHS);
@@ -111,14 +111,14 @@ describe('config', () => {
   test('carries the same source list in the toon output', async () => {
     const result = await ctx.runner.run(['config', 'sources', '--output', 'toon']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(decode(result.stdout)).toEqual(SOURCE_PATHS);
   });
 
   test('renders the sources as a tree', async () => {
     const result = await ctx.runner.run(['config', 'sources', '--tree']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('╰─ ');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -126,7 +126,7 @@ describe('config', () => {
   test('lets a machine --output outrank --tree for sources', async () => {
     const result = await ctx.runner.run(['config', 'sources', '--tree', '--output', 'json']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     // The tree is an interactive rendering; a machine format is a parseable contract and wins, so
     // the glyphs must not appear and the document has to stay the same list.
     expect(result.stdout).not.toContain('╰─');
@@ -136,7 +136,7 @@ describe('config', () => {
   test('lists the translation files the config resolves to', async () => {
     const result = await ctx.runner.run(['config', 'translations', '--output', 'json']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     // One per source per target language, both groups flat-mapped together.
     expect(JSON.parse(result.stdout)).toEqual([
@@ -152,7 +152,7 @@ describe('config', () => {
   test('lets a machine --output outrank --tree for translations', async () => {
     const result = await ctx.runner.run(['config', 'translations', '--tree', '--output', 'plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).not.toContain('╰─');
     expect(lines(result.stdout)).toHaveLength(SOURCE_PATHS.length * TARGET_LANGUAGES.length);
   });
@@ -160,7 +160,7 @@ describe('config', () => {
   test('accepts a valid configuration', async () => {
     const result = await ctx.runner.run(['config', 'lint']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Your configuration file looks good');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -170,7 +170,7 @@ describe('config', () => {
 
     const result = await ctx.runner.run(['config', 'lint']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Your configuration file looks good');
   });
 
@@ -197,12 +197,12 @@ describe('config', () => {
   test('reports an empty listing rather than prose in a machine format', async () => {
     const text = await ctx.runner.run(['config', 'sources']);
 
-    expect(text.exitCode).toBe(0);
+    expect(text).toMatchObject({ exitCode: 0 });
     expect(text.stdout).toContain('No source files found');
 
     const json = await ctx.runner.run(['config', 'sources', '--output', 'json']);
 
-    expect(json.exitCode).toBe(0);
+    expect(json).toMatchObject({ exitCode: 0 });
     expect(JSON.parse(json.stdout)).toEqual([]);
   });
 

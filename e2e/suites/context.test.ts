@@ -66,7 +66,7 @@ describe('context', () => {
   async function readStats(args: string[] = []): Promise<ContextStats> {
     const result = await ctx.runner.run(['context', 'status', '--output', 'json', ...args]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     return JSON.parse(result.stdout) as ContextStats;
   }
@@ -92,7 +92,7 @@ describe('context', () => {
   test('prints help when invoked without a subcommand', async () => {
     const result = await ctx.runner.run(['context']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Manage strings context');
     expect(result.stdout).toContain('download');
     expect(result.stdout).toContain('upload');
@@ -110,7 +110,7 @@ describe('context', () => {
   test('uploads sources', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'app.xml'");
     expect(result.stdout).toContain("File 'web.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -131,7 +131,7 @@ describe('context', () => {
     ] as const) {
       const edit = await ctx.runner.run(['string', 'edit', String(id), '--context', context]);
 
-      expect(edit.exitCode).toBe(0);
+      expect(edit).toMatchObject({ exitCode: 0 });
     }
 
     const stats = await readStats();
@@ -145,7 +145,7 @@ describe('context', () => {
   test('reports the coverage as a table', async () => {
     const result = await ctx.runner.run(['context', 'status']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Context Status for Project');
     expect(maskProjectId(normalize(result.stdout))).toMatchSnapshot();
   });
@@ -174,7 +174,7 @@ describe('context', () => {
   test('downloads every string to the default context file', async () => {
     const result = await ctx.runner.run(['context', 'download']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Downloaded 3 strings');
     expect(result.stdout).toContain("'crowdin-context.jsonl' saved successfully");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -194,7 +194,7 @@ describe('context', () => {
   test('downloads only strings without any context under --status empty', async () => {
     const result = await ctx.runner.run(['context', 'download', '--status', 'empty', '--to', 'empty.jsonl']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Downloaded 2 strings');
 
     const records = await readRecords('empty.jsonl');
@@ -205,7 +205,7 @@ describe('context', () => {
   test('downloads only manually annotated strings under --status manual', async () => {
     const result = await ctx.runner.run(['context', 'download', '--status', 'manual', '--to', 'manual.jsonl']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Downloaded 1 strings');
 
     const records = await readRecords('manual.jsonl');
@@ -216,7 +216,7 @@ describe('context', () => {
   test('writes nothing when --status ai matches no string', async () => {
     const result = await ctx.runner.run(['context', 'download', '--status', 'ai', '--to', 'ai.jsonl']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stderr).toContain('No strings found');
     expect(await Bun.file(workspacePath('ai.jsonl')).exists()).toBe(false);
   });
@@ -224,7 +224,7 @@ describe('context', () => {
   test('downloads only the strings of a filtered file', async () => {
     const result = await ctx.runner.run(['context', 'download', '--file', '/app.xml', '--to', 'app.jsonl']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Downloaded 2 strings');
 
     const records = await readRecords('app.jsonl');
@@ -251,7 +251,7 @@ describe('context', () => {
   test('uploads nothing while every ai_context is empty', async () => {
     const result = await ctx.runner.run(['context', 'upload']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("No strings with AI context found in 'crowdin-context.jsonl'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -266,7 +266,7 @@ describe('context', () => {
 
     const result = await ctx.runner.run(['context', 'upload', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('would be uploaded');
 
     // Every record's context spans several lines (the AI section sits below the manual one behind
@@ -284,7 +284,7 @@ describe('context', () => {
   test('uploads the AI context', async () => {
     const result = await ctx.runner.run(['context', 'upload']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Updated strings 3/3');
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -300,7 +300,7 @@ describe('context', () => {
   test('keeps the manual context alongside the uploaded AI context', async () => {
     const result = await ctx.runner.run(['context', 'download', '--to', 'round-trip.jsonl']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const records = await readRecords('round-trip.jsonl');
     const welcome = records.find((record) => record.id === welcomeStringId);
@@ -326,7 +326,7 @@ describe('context', () => {
   test('breaks the coverage down per file', async () => {
     const result = await ctx.runner.run(['context', 'status', '--by-file']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('/app.xml');
     expect(result.stdout).toContain('/web.xml');
     expect(maskProjectId(normalize(result.stdout))).toMatchSnapshot();
@@ -335,7 +335,7 @@ describe('context', () => {
   test('breaks the coverage down per file in the plain output', async () => {
     const result = await ctx.runner.run(['context', 'status', '--by-file', '--output', 'plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('With AI context:');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -350,7 +350,7 @@ describe('context', () => {
   test('reports the strings a filtered reset would clear under --dryrun', async () => {
     const result = await ctx.runner.run(['context', 'reset', '--file', '/web.xml', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('would be updated');
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -362,7 +362,7 @@ describe('context', () => {
   test('clears the AI context of a filtered file only', async () => {
     const result = await ctx.runner.run(['context', 'reset', '--file', '/web.xml']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Updated strings 1/1');
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -374,7 +374,7 @@ describe('context', () => {
   test('clears every remaining AI context under --all, keeping the manual context', async () => {
     const result = await ctx.runner.run(['context', 'reset', '--all']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Updated strings 2/2');
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -387,7 +387,7 @@ describe('context', () => {
   test('reports nothing to reset once no AI context is left', async () => {
     const result = await ctx.runner.run(['context', 'reset', '--all']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stderr).toContain('No strings found');
   });
 
@@ -407,8 +407,8 @@ describe('context', () => {
     const skipped = await ctx.runner.run(['context', 'upload', '--dryrun', '--output', 'json']);
     const kept = await ctx.runner.run(['context', 'upload', '--dryrun', '--overwrite', '--output', 'json']);
 
-    expect(skipped.exitCode).toBe(0);
-    expect(kept.exitCode).toBe(0);
+    expect(skipped).toMatchObject({ exitCode: 0 });
+    expect(kept).toMatchObject({ exitCode: 0 });
     expect(JSON.parse(skipped.stdout)).toHaveLength(records.length - 1);
     expect(JSON.parse(kept.stdout)).toHaveLength(records.length);
   });

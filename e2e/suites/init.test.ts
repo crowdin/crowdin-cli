@@ -25,7 +25,7 @@ describe('init generates a configuration skeleton', () => {
     // `init` has no config to point `-c` at, and resolves a relative `-d` against cwd.
     const result = await ctx.runner.run(['init', '--quiet', '-d', 'crowdin.yaml'], { noConfig: true });
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const stdout = normalize(result.stdout);
     expect(stdout).toContain(`Generating Crowdin CLI configuration skeleton '${maskedDest}'`);
@@ -77,7 +77,7 @@ describe('init generates a configuration skeleton', () => {
       { noConfig: true },
     );
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const content = await Bun.file(destPath).text();
     const expectedContent = generate({
@@ -102,7 +102,7 @@ describe('init generates a configuration skeleton', () => {
 
     const result = await ctx.runner.run(['init', '--quiet', '-d', 'crowdin.yaml'], { noConfig: true });
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const stdout = normalize(result.stdout);
     expect(stdout).toContain(`Generating Crowdin CLI configuration skeleton '${maskedDest}'`);
@@ -139,7 +139,7 @@ describe('init generates a configuration skeleton', () => {
     const destPath = join(ctx.workspace, 'nested', 'sub', 'crowdin.yml');
     const result = await ctx.runner.run(['init', '--quiet', '-d', 'nested/sub/crowdin.yml'], { noConfig: true });
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(await Bun.file(destPath).exists()).toBe(true);
   });
 
@@ -151,7 +151,7 @@ describe('init generates a configuration skeleton', () => {
 
     const result = await ctx.runner.run(['init', '--quiet'], { noConfig: true, cwd: directory });
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(await Bun.file(join(directory, 'crowdin.yml')).exists()).toBe(true);
   });
 
@@ -177,11 +177,11 @@ describe('init generates a configuration skeleton', () => {
       { noConfig: true },
     );
 
-    expect(init.exitCode).toBe(0);
+    expect(init).toMatchObject({ exitCode: 0 });
 
     const result = await ctx.runner.run(['config', 'lint', '--config', 'lintable.yml'], { noConfig: true });
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Your configuration file looks good');
   });
 
@@ -191,7 +191,7 @@ describe('init generates a configuration skeleton', () => {
       noConfig: true,
     });
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     // init reports through intro/outro, which are text-only, so the file on disk is the whole
     // result - a consumer scripting `init` gets an empty document, not a record.
     expect(result.stdout.trim()).toBe('');

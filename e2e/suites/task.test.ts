@@ -35,7 +35,7 @@ describe('task', () => {
   async function listTitles(args: string[] = []): Promise<string[]> {
     const result = await ctx.runner.run(['task', 'list', ...args, '--output', 'json']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     return (JSON.parse(result.stdout) as ListedTask[]).map((task) => task.title).sort();
   }
@@ -52,13 +52,13 @@ describe('task', () => {
     // Creates the label and attaches it to every string, so a label-filtered task has material.
     const sources = await ctx.runner.run(['upload', 'sources', '--label', LABEL]);
 
-    expect(sources.exitCode).toBe(0);
+    expect(sources).toMatchObject({ exitCode: 0 });
     expect(sources.stdout).toContain("File 'sources/1_android.xml'");
     expect(sources.stdout).toContain("File 'sources/2_android.xml'");
 
     const translations = await ctx.runner.run(['upload', 'translations']);
 
-    expect(translations.exitCode).toBe(0);
+    expect(translations).toMatchObject({ exitCode: 0 });
     expect(translations.stdout).toContain("File 'translations/it/1_android.xml'");
     expect(translations.stderr).toContain("File 'translations/uk/1_android.xml' does not exist");
   });
@@ -66,7 +66,7 @@ describe('task', () => {
   test('prints help when invoked without a subcommand', async () => {
     const result = await ctx.runner.run(['task']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Manage tasks');
     expect(result.stdout).toContain('add <title>');
   });
@@ -81,7 +81,7 @@ describe('task', () => {
   test('reports a project with no tasks', async () => {
     const result = await ctx.runner.run(['task', 'list']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('No tasks found');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -203,7 +203,7 @@ describe('task', () => {
       'translate',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('uk Translate file one');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -224,7 +224,7 @@ describe('task', () => {
       LABEL,
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('uk Labelled file two');
   });
 
@@ -244,21 +244,21 @@ describe('task', () => {
       'Please proofread the second file',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('it Proofread file two');
   });
 
   test('lists every task with its id and target language', async () => {
     const result = await ctx.runner.run(['task', 'list']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('adds status, word count and due date with --verbose', async () => {
     const result = await ctx.runner.run(['task', 'list', '--verbose']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     // Counts come from the fixture: 3 x 4 words for file one, 2 x 4 for file two.
     expect(result.stdout).toContain('todo 12 NoDueDate');
     expect(result.stdout).toContain('todo 8 NoDueDate');
@@ -268,7 +268,7 @@ describe('task', () => {
   test('lists a bare id and title with --output plain', async () => {
     const result = await ctx.runner.run(['task', 'list', '--output', 'plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const lines = result.stdout.split('\n').filter((line) => line.length > 0);
 
@@ -288,7 +288,7 @@ describe('task', () => {
   test('serializes id, target language and title in a structured format', async () => {
     const result = await ctx.runner.run(['task', 'list', '--output', 'json']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const tasks = (JSON.parse(result.stdout) as ListedTask[]).sort((left, right) =>
       left.title < right.title ? -1 : 1,
@@ -329,7 +329,7 @@ describe('task', () => {
     // Nothing assigns anyone, so any id empties the list - listAction filters client-side.
     const result = await ctx.runner.run(['task', 'list', '--assignee-id', '999999']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('No tasks found');
   });
 

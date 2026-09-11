@@ -60,7 +60,7 @@ describe('custom language', () => {
   test('uploads sources', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File '1_android.xml'");
     expect(result.stdout).toContain("File '2_android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -69,7 +69,7 @@ describe('custom language', () => {
   test('uploads translations for both the custom and standard target language', async () => {
     const result = await ctx.runner.run(['upload', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/dtk/1_android.xml'");
     expect(result.stdout).toContain("File 'translations/dtk/2_android.xml'");
     expect(result.stdout).toContain("File 'translations/uk/1_android.xml'");
@@ -84,7 +84,7 @@ describe('custom language', () => {
 
     const result = await ctx.runner.run(['download', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     for (const language of ['dtk', 'uk']) {

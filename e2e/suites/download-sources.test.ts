@@ -57,7 +57,7 @@ describe('download sources', () => {
   test('uploads all nested source files to the project', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     // Captured before the assertions below, so a failure here does not cascade as 'No content was
     // captured' through the rest of the suite.
@@ -86,7 +86,7 @@ describe('download sources', () => {
   test('uploads the same nested source files to a brand-new branch', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'b1']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'folder_2/android_1.xml'");
     expect(result.stdout).toContain("File 'root/folder_1/f1/f2/android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -97,7 +97,7 @@ describe('download sources', () => {
 
     const result = await ctx.runner.run(['download', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     // Download success lines report the server-side project path (DownloadCommand.ts ~line 239:
     // `File '${download.relativePath}'`), which is `dest`-mapped for the folder_1 group.
     // folder_1's `dest` uses `%original_path%`, the source file's parent directory - so no doubled
@@ -128,7 +128,7 @@ describe('download sources', () => {
     // `--output plain` stands in for Java's `--plain`: bare downloaded paths instead of messages.
     const result = await ctx.runner.run(['download', 'sources', '--output', 'plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     // `--output plain` changes the messages, never which files are written.
@@ -148,7 +148,7 @@ describe('download sources', () => {
     // resolves the same 7 files as master.
     const result = await ctx.runner.run(['download', 'sources', '-b', 'b1']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectFilesExist(ctx.workspace, ...SOURCE_RELATIVE_PATHS);
@@ -165,7 +165,7 @@ describe('download sources', () => {
 
     const result = await ctx.runner.run(['download', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stderr).toContain(
       "No sources found for '/folder_not_exists/**/*.xml' pattern. Check the source paths in your configuration file",
     );
@@ -178,7 +178,7 @@ describe('download sources', () => {
 
     const result = await ctx.runner.run(['download', 'sources', '--reviewed']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     // This account is SaaS, so this hits the PHP test's non-Enterprise arm.
     expect(result.stderr).toContain('Operation is available only for Crowdin Enterprise');
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -189,7 +189,7 @@ describe('download sources', () => {
 
     const result = await ctx.runner.run(['download', 'sources', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     // The listing carries project paths, not the local ones the files are written to. Asserted as
     // an exact set: every local path is a substring of its project path, so `toContain` proves nothing.
@@ -217,7 +217,7 @@ describe('download sources', () => {
 
     const result = await ctx.runner.run(['download', 'sources', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     // The CLI's only multi-line diagnostic, so the one place line handling has to hold.
     expect(result.stderr).toContain(
       "Because the 'preserve_hierarchy' parameter is set to 'false':\n" +

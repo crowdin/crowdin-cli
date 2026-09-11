@@ -44,7 +44,7 @@ describe('download translations --all', () => {
   test('uploads sources', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Directory 'root'");
     expect(result.stdout).toContain("Directory 'root/folder'");
     expect(result.stdout).toContain("Directory 'root/{{cookiecutter.module_name}}'");
@@ -57,7 +57,7 @@ describe('download translations --all', () => {
   test('previews downloading all translations (dry run)', async () => {
     const result = await ctx.runner.run(['download', '--all', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('translations/it/android.xml');
     expect(result.stdout).toContain('translations/it/folder/android.xml');
     expect(result.stdout).toContain('translations/it/{{cookiecutter.module_name}}/android.xml');
@@ -70,11 +70,7 @@ describe('download translations --all', () => {
   test('downloads all translations', async () => {
     const result = await ctx.runner.run(['download', '--all']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/it/android.xml' extracted");
     expect(result.stdout).toContain("File 'translations/it/folder/android.xml' extracted");
     expect(result.stdout).toContain("File 'translations/it/{{cookiecutter.module_name}}/android.xml' extracted");
@@ -107,7 +103,7 @@ describe('download translations --all', () => {
   test('uploads sources to a new branch', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'b1']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'root/android.xml'");
     expect(result.stdout).toContain("File 'root/folder/android.xml'");
     expect(result.stdout).toContain("File 'root/{{cookiecutter.module_name}}/android.xml'");
@@ -119,11 +115,7 @@ describe('download translations --all', () => {
 
     const result = await ctx.runner.run(['download', '-b', 'b1', '--all']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/it/android.xml' extracted");
     expect(result.stdout).toContain("File 'translations/it/folder/android.xml' extracted");
     expect(result.stdout).toContain("File 'translations/it/{{cookiecutter.module_name}}/android.xml' extracted");
@@ -156,7 +148,7 @@ describe('download translations --all', () => {
   test('reports an empty archive when skipping untranslated files', async () => {
     const result = await ctx.runner.run(['download', '--skip-untranslated-files']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stderr).toContain(
       "Couldn't find any file to download. Since you are using the 'Skip untranslated files' option, please " +
         'make sure you have fully translated files',
@@ -169,11 +161,7 @@ describe('download translations --all', () => {
 
     const result = await ctx.runner.run(['download', '--keep-archive', '-b', 'b1', '--all']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/it/android.xml' extracted");
     expect(result.stdout).toContain("File 'translations/uk/android.xml' extracted");
     expect(normalize(redactWorkspace(ctx, result.stdout))).toMatchSnapshot();
@@ -199,7 +187,7 @@ describe('download translations --all', () => {
   test('deletes the branch', async () => {
     const result = await ctx.runner.run(['branch', 'delete', 'b1']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Branch 'b1' deleted");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -209,11 +197,7 @@ describe('download translations --all', () => {
 
     const result = await ctx.runner.run(['download', '--keep-archive', '--all']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/it/android.xml' extracted");
     expect(result.stdout).toContain("File 'translations/uk/android.xml' extracted");
     expect(normalize(redactWorkspace(ctx, result.stdout))).toMatchSnapshot();
@@ -228,11 +212,7 @@ describe('download translations --all', () => {
 
     const result = await ctx.runner.run(['download', '--keep-archive', '-l', 'uk', '--all']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Building translations for languages: uk');
     expect(result.stdout).toContain("File 'translations/uk/android.xml' extracted");
     expect(result.stdout).toContain("File 'translations/uk/folder/android.xml' extracted");
@@ -252,11 +232,7 @@ describe('download translations --all', () => {
 
     const result = await ctx.runner.run(['download', '--keep-archive', '--output', 'plain', '--all']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(redactWorkspace(ctx, result.stdout))).toMatchSnapshot();
 
     const zipName = await findKeptArchive(ctx);
@@ -269,7 +245,7 @@ describe('download translations --all', () => {
   test('narrows the build to the languages left after --exclude-language', async () => {
     const result = await ctx.runner.run(['download', 'translations', '--exclude-language', 'it', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     // Excludes subtract from the project's languages rather than replacing the set, and narrowing
     // it pins the build (lib/download/languages.ts).
     expect(result.stdout).toContain('translations/uk/');

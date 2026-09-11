@@ -24,7 +24,7 @@ describe('base path', () => {
   test('uploads sources with an explicit --base-path, creating the directory hierarchy', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '--base-path', '.']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Directory 'files'");
     expect(result.stdout).toContain("Directory 'files/src'");
     expect(result.stdout).toContain("Directory 'files/src/main'");
@@ -37,7 +37,7 @@ describe('base path', () => {
   test('updates the existing source file at the same base path', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '--base-path', '.']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'files/src/main/res/values/android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -45,7 +45,7 @@ describe('base path', () => {
   test('uploads translations at the base path', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '--base-path', '.']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Importing translations for file 'files/src/main/res/values-it/android.xml'");
     expect(result.stdout).toContain("Importing translations for file 'files/src/main/res/values-uk/android.xml'");
     expect(result.stdout).toContain("File 'files/src/main/res/values-it/android.xml'");
@@ -62,7 +62,7 @@ describe('base path', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '--base-path', '.']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectRestored(ctx.workspace, captured);
@@ -71,28 +71,28 @@ describe('base path', () => {
   test('lists project source files with --base-path', async () => {
     const result = await ctx.runner.run(['file', 'list', '--base-path', '.']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('files/src/main/res/values/android.xml');
   });
 
   test('lists configured source files with --base-path', async () => {
     const result = await ctx.runner.run(['config', 'sources', '--base-path', '.']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('lists configured translation files with --base-path', async () => {
     const result = await ctx.runner.run(['config', 'translations', '--base-path', '.']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('uploads sources to a new branch under a different base path', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'dev', '--base-path', 'dev']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Directory 'files'");
     expect(result.stdout).toContain("Directory 'files/src'");
     expect(result.stdout).toContain("Directory 'files/src/main'");
@@ -105,7 +105,7 @@ describe('base path', () => {
   test('updates sources on the branch (branch already exists)', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'dev', '--base-path', 'dev']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'files/src/main/res/values/android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -113,7 +113,7 @@ describe('base path', () => {
   test('uploads translations on the branch', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '-b', 'dev', '--base-path', 'dev']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'files/src/main/res/values-it/android.xml'");
     expect(result.stdout).toContain("File 'files/src/main/res/values-uk/android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -128,7 +128,7 @@ describe('base path', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '-b', 'dev', '--base-path', 'dev']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectRestored(ctx.workspace, captured);
@@ -140,7 +140,7 @@ describe('base path', () => {
 
     const result = await ctx.runner.run(['upload', 'sources', '--base-path', './files']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'src/main/res/values/android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -148,7 +148,7 @@ describe('base path', () => {
   test('uploads translations with a relative --base-path', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '--base-path', './files']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'src/main/res/values-it/android.xml'");
     expect(result.stdout).toContain("File 'src/main/res/values-uk/android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -163,7 +163,7 @@ describe('base path', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '--base-path', './files']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectRestored(ctx.workspace, captured);

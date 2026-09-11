@@ -55,11 +55,7 @@ describe('cli commands without an explicit config parameter', () => {
   test('uploads sources via crowdin.yaml default discovery (no -c)', async () => {
     const result = await ctx.runner.run(['upload', 'sources'], { noConfig: true, cwd: ctx.workspace });
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -67,11 +63,7 @@ describe('cli commands without an explicit config parameter', () => {
   test('uploads translations via crowdin.yaml default discovery (no -c)', async () => {
     const result = await ctx.runner.run(['upload', 'translations'], { noConfig: true, cwd: ctx.workspace });
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/it/android.xml'");
     expect(result.stdout).toContain("File 'translations/uk/android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -80,11 +72,7 @@ describe('cli commands without an explicit config parameter', () => {
   test('downloads translations via crowdin.yaml default discovery (no -c)', async () => {
     const result = await ctx.runner.run(['download', 'translations'], { noConfig: true, cwd: ctx.workspace });
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/it/android.xml' extracted");
     expect(result.stdout).toContain("File 'translations/uk/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -100,11 +88,7 @@ describe('cli commands without an explicit config parameter', () => {
 
     const result = await ctx.runner.run(['upload', 'sources'], { noConfig: true, cwd: ctx.workspace });
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -112,11 +96,7 @@ describe('cli commands without an explicit config parameter', () => {
   test('uploads translations via crowdin.yml default discovery (no -c)', async () => {
     const result = await ctx.runner.run(['upload', 'translations'], { noConfig: true, cwd: ctx.workspace });
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/it/android.xml'");
     expect(result.stdout).toContain("File 'translations/uk/android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -125,11 +105,7 @@ describe('cli commands without an explicit config parameter', () => {
   test('downloads translations via crowdin.yml default discovery (no -c)', async () => {
     const result = await ctx.runner.run(['download', 'translations'], { noConfig: true, cwd: ctx.workspace });
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/it/android.xml' extracted");
     expect(result.stdout).toContain("File 'translations/uk/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -162,11 +138,7 @@ describe('cli commands without an explicit config parameter', () => {
       { noConfig: true },
     );
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -191,11 +163,7 @@ describe('cli commands without an explicit config parameter', () => {
       { noConfig: true },
     );
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/it/android.xml' extracted");
     expect(result.stdout).toContain("File 'translations/uk/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
