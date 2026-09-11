@@ -395,7 +395,7 @@ describe('context', () => {
     const records = await readRecords('crowdin-context.jsonl');
 
     // One record left empty, the rest given an AI context. Without --overwrite the empty one is
-    // filtered out (ContextCommand.ts:227); with it, it is kept so its AI section can be removed.
+    // filtered out; with it, it is kept so its AI section can be removed.
     await writeRecords(
       'crowdin-context.jsonl',
       records.map((record, index) => ({

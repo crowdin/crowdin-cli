@@ -217,7 +217,6 @@ describe('distribution', () => {
     expect(result.stdout).not.toContain('null%');
   });
 
-  // An empty argument satisfies commander's positional and reaches the command's own guard.
   test('rejects an empty distribution name on add', async () => {
     const result = await ctx.runner.run(['distribution', 'add', '']);
 

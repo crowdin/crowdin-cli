@@ -86,14 +86,12 @@ describe('bundle', () => {
       '--export-pattern',
       'all.string',
     ]);
-    // `bundle add` echoes the created bundle through output.item(bundleView): text renders
-    // `#<id> <format> <exportPattern> <name>`, so the id comes from the `#<id>` token rather than
-    // from a console.table cell (the grid this used to parse is not what the command prints).
+    // Text renders `#<id> <format> <exportPattern> <name>`.
     bundleId = result.stdout.match(/#(\d+)/)?.[1] ?? '';
 
     expect(result).toMatchObject({ exitCode: 0 });
     expect(bundleId).not.toBe('');
-    expect(maskBundleId(normalize(result.stdout), bundleId)).toMatchSnapshot();
+    expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('adds a bundle with plain output', async () => {
@@ -110,8 +108,6 @@ describe('bundle', () => {
       '--output',
       'plain',
     ]);
-    // bundleView's plain line is `<id> <name>` - identifier first, then the name, per the
-    // plain-format contract (one bare line per entity, space-safe fields last).
     const plainLine = normalize(result.stdout);
     const localBundleId = plainLine.match(/^(\d+)\b/)?.[1] ?? '';
 
@@ -368,18 +364,10 @@ describe('bundle', () => {
 
 /**
  * Bundle ids are assigned by the server and are not project-scoped, so they differ on every run.
- * `normalize` only masks `#123`-style ids, which leaves the bare id in `bundle add` output (a table
- * cell, or the whole line with `--output plain`).
- *
- * Masking alone isn't enough for the table: its column widths are derived from the widest cell, so
- * an id one digit longer shifts every border. Collapsing runs of the padding characters makes the
- * snapshot width-independent while keeping the cell contents and structure.
+ * `normalize` only masks `#123`-style ids, which leaves the bare id in `--output plain`.
  */
 function maskBundleId(output: string, id: string): string {
-  return output
-    .replaceAll(new RegExp(`\\b${id}\\b`, 'g'), '<id>')
-    .replaceAll(/─+/g, '─')
-    .replaceAll(/ {2,}/g, ' ');
+  return output.replaceAll(new RegExp(`\\b${id}\\b`, 'g'), '<id>');
 }
 
 async function sortedLines(path: string): Promise<string[]> {

@@ -6,17 +6,13 @@ import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../h
 
 /**
  * Ported from `crowdin-backend/tests/Cli/Common/CliLanguageMappingTest.php`. Each of the 8 file
- * groups below exercises one language placeholder (`%android_code%`, `%language%`, `%locale%`,
- * `%locale_with_underscore%`, `%osx_code%`, `%osx_locale%`, `%three_letters_code%`,
- * `%two_letters_code%`) with a per-file `languages_mapping` override for `uk`/`zh-CN`, mirroring
- * `TranslationPathResolver`/`languagePlaceholders.ts` (`apps/crowdin-cli/src-next/lib/export/
- * languagePlaceholders.ts`), which resolves local `languages_mapping` before falling back to the
- * server-side project language mapping, in turn falling back to the language's default code.
+ * groups below exercises one language placeholder with a per-file `languages_mapping` override for
+ * `uk`/`zh-CN`. A local `languages_mapping` wins over the project's server-side mapping, which wins
+ * over the language's default code.
  *
  * The second half switches to `alt-configs/crowdin-no-mapping.yml` (same 8 groups, no local
  * `languages_mapping`) after setting the project's server-side language mapping via
- * `editProject`/`languageMapping` - the CLI's equivalent of the PHP test's
- * `languageMapping()->saveLanguage()`. That mapping mirrors every local override except
+ * `editProject`/`languageMapping`. That mapping mirrors every local override except
  * `android_code`, which is deliberately set to a different value (`*_crwd`) to prove the server
  * mapping - not a stale local one - is what takes effect once the local override is removed.
  */

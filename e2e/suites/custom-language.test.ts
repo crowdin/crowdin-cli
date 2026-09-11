@@ -19,8 +19,7 @@ const DOTHRAKI_LANGUAGE: LanguagesModel.AddLanguageRequest = {
 /**
  * Adds the custom 'Dothraki' language to the whole Crowdin account — this is account-level
  * (`POST /languages`), not project-scoped, and must exist *before* a project can be created with
- * it as a target language. Mirrors the PHP test's
- * `self::$user->client()->languages()->addLanguage(self::$user->getId(), 'Dothraki', 'dtk', 'dtk', 'dtk')`.
+ * it as a target language.
  *
  * The language outlives the project, so a second run must tolerate "code already taken"; every
  * other error still propagates.

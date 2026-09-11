@@ -5,17 +5,13 @@ import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * `download translations` only writes the languages/files included in the current build - it never
- * removes stale files from a previous download. Several tests below download a strict subset of an
- * earlier test's file set (e.g. only `it/1_android.xml` after a run that produced all four files), so
- * the destination is cleared first, mirroring the PHP original's own
- * `Common::RecursivelyRemoveDirectory($this->tmp('translations'))` calls at the same points.
+ * `download translations` never removes stale files from a previous download, and several tests
+ * below download a strict subset of an earlier test's file set, so the destination is cleared first.
  */
 async function clearDownloadedTranslations(ctx: SuiteContext): Promise<void> {
   await rm(join(ctx.workspace, 'translations'), { recursive: true, force: true });
 }
 
-/** Compares each downloaded `translations/<file>` against the matching `expected/<folder>/<file>` fixture. */
 async function expectDownloadedFilesMatch(ctx: SuiteContext, expectedFolder: string, files: string[]): Promise<void> {
   for (const file of files) {
     const actual = await Bun.file(join(ctx.workspace, 'translations', file)).text();
@@ -219,8 +215,7 @@ describe('export options', () => {
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     // uk/1_android.xml is 100% translated and approved, so skipping untranslated *files* and skipping
-    // untranslated *strings* converge on the same output for it (see the fixture note in the PHP
-    // original - both combos reuse `expected/skip-strings-approved` for this exact file).
+    // untranslated *strings* converge on the same output for it.
     await expectDownloadedFilesMatch(ctx, 'skip-strings-approved', ['uk/1_android.xml']);
   });
 
@@ -232,9 +227,7 @@ describe('export options', () => {
       '--skip-untranslated-files',
     ]);
 
-    // Java/PHP report exit code 2 for this validation error; DownloadCommand.ts throws a plain
-    // CliError with no explicit exit code, which defaults to ExitCode.GENERIC (1) - a real divergence
-    // from the original CLI, not a porting simplification.
+    // Java/PHP exit 2 here; DownloadCommand.ts throws a plain CliError, which exits 1.
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain(
       'You cannot skip strings and files at the same time. Please use one of these parameters instead.',

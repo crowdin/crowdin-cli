@@ -5,7 +5,6 @@ import AdmZip from 'adm-zip';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
-/** Finds a translation memory's numeric id by its exact name, via the API directly. */
 async function findTmId(ctx: SuiteContext, name: string): Promise<number> {
   const response = await ctx.client.translationMemoryApi.withFetchAll().listTm();
   const match = response.data.find((entry) => entry.data.name === name);
@@ -17,10 +16,7 @@ async function findTmId(ctx: SuiteContext, name: string): Promise<number> {
   return match.data.id;
 }
 
-/**
- * Every project on Crowdin.com gets an automatically created TM named after it
- * (`Project::getDefaultTmName()` in the PHP backend: `"{$name}'s TM"`).
- */
+/** Crowdin.com auto-creates a TM named after every project. */
 function defaultTmName(ctx: SuiteContext): string {
   return `${ctx.project.name}'s TM`;
 }
@@ -57,7 +53,6 @@ function extractTmxSegmentsByLanguage(xml: string): Record<string, string[]> {
   return byLanguage;
 }
 
-/** Order-independent line comparison for the exported CSV, matching how bundle.test.ts compares exported text. */
 async function sortedLines(path: string): Promise<string[]> {
   const content = await Bun.file(path).text();
   return content.split('\n').sort();
@@ -67,7 +62,7 @@ async function sortedLines(path: string): Promise<string[]> {
  * Order-independent XLSX content check. An xlsx is a zip container, so raw byte-equality isn't
  * reliable (zip/docProps metadata differs run to run) - unzip with `adm-zip` and compare the sorted
  * set of visible text runs from both the shared-strings table and the worksheet's own inline
- * strings, covering either encoding a workbook writer may choose (same approach as glossary.test.ts).
+ * strings, covering either encoding a workbook writer may choose.
  */
 function extractXlsxTexts(path: string): string[] {
   const zip = new AdmZip(path);
@@ -93,12 +88,12 @@ function extractXlsxTexts(path: string): string[] {
  * every `tm upload` below fail with "The name '...' is already taken". They are swept both before
  * the suite (self-healing) and after it.
  */
-/** Far outside the account's id range, so `tmService.get` answers 404 rather than someone's TM. */
-const MISSING_TM_ID = 999999999;
-
 const SUITE_TM_NAMES = ['simple-tm.tmx', 'simple-tm.csv', 'simple-tm.xlsx'].map(
   (file) => `Created in Crowdin CLI (${file})`,
 );
+
+/** Far outside the account's id range, so `tmService.get` answers 404 rather than someone's TM. */
+const MISSING_TM_ID = 999999999;
 
 /**
  * This suite's own rows out of an account-wide listing, sorted by name. Takes either a decoded value
@@ -285,12 +280,8 @@ describe('tm', () => {
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-tm.tmx)');
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-tm.csv)');
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-tm.xlsx)');
-    // No snapshot here: `tm list` lists everything on the account, so the output includes
-    // every other project's and user's entries on this shared test account and changes between
-    // runs. The name assertions above plus the API cross-check below are the stable contract.
-
-    // Cross-check the segment counts the PHP suite asserted via table text, directly via the
-    // API - `tm list` renders through `console.table`, which isn't something to hand-assert.
+    // No snapshot: `tm list` covers the whole account, so its output moves between runs. The segment
+    // counts are cross-checked through the API instead.
     const tms = await ctx.client.translationMemoryApi.withFetchAll().listTm();
     const segmentsByName = new Map(tms.data.map((entry) => [entry.data.name, entry.data.segmentsCount]));
     expect(segmentsByName.get(defaultTmName(ctx))).toBe(0);
@@ -318,7 +309,7 @@ describe('tm', () => {
 
     expect(toon).toMatchObject({ exitCode: 0 });
     // Two runs over an account-wide listing: a TM another suite adds between them must not read as
-    // a difference. This failed once under --parallel before the filter went in.
+    // a difference.
     expect(suiteEntries(decode(toon.stdout))).toEqual(suiteEntries(json.stdout));
   });
 
@@ -541,7 +532,5 @@ describe('tm', () => {
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-tm.tmx)');
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-tm.csv)');
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-tm.xlsx)');
-    // No snapshot, for the same reason as the listing test above: `tm list` covers the whole
-    // account, so its output moves with every other project and user on it.
   });
 });

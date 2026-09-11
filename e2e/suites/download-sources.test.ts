@@ -72,7 +72,6 @@ describe('download sources', () => {
     expect(result.stdout).toContain("Directory 'root/folder_1'");
     expect(result.stdout).toContain("Directory 'root/folder_1/f1'");
     expect(result.stdout).toContain("Directory 'root/folder_1/f1/f2'");
-    // File success lines report the `dest`-mapped project path, not the local one.
     expect(result.stdout).toContain("File 'folder_2/android_1.xml'");
     expect(result.stdout).toContain("File 'folder_2/android_2.xml'");
     expect(result.stdout).toContain("File 'folder_2/android_3.xml'");
@@ -98,10 +97,8 @@ describe('download sources', () => {
     const result = await ctx.runner.run(['download', 'sources']);
 
     expect(result).toMatchObject({ exitCode: 0 });
-    // Download success lines report the server-side project path (DownloadCommand.ts ~line 239:
-    // `File '${download.relativePath}'`), which is `dest`-mapped for the folder_1 group.
     // folder_1's `dest` uses `%original_path%`, the source file's parent directory - so no doubled
-    // filename segment in the result.
+    // filename segment.
     expect(result.stdout).toContain("File 'root/folder_1/android.xml'");
     expect(result.stdout).toContain("File 'root/folder_1/f1/android.xml'");
     expect(result.stdout).toContain("File 'root/folder_1/f1/f2/android.xml'");
@@ -179,7 +176,7 @@ describe('download sources', () => {
     const result = await ctx.runner.run(['download', 'sources', '--reviewed']);
 
     expect(result).toMatchObject({ exitCode: 0 });
-    // This account is SaaS, so this hits the PHP test's non-Enterprise arm.
+    // The test account is SaaS, not Enterprise.
     expect(result.stderr).toContain('Operation is available only for Crowdin Enterprise');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });

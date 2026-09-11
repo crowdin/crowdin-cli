@@ -5,7 +5,6 @@ import AdmZip from 'adm-zip';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
-/** Finds a glossary's numeric id by its exact name, via the API directly (bypassing CLI output). */
 async function findGlossaryId(ctx: SuiteContext, name: string): Promise<number> {
   const response = await ctx.client.glossariesApi.withFetchAll().listGlossaries();
   const match = response.data.find((entry) => entry.data.name === name);
@@ -17,10 +16,7 @@ async function findGlossaryId(ctx: SuiteContext, name: string): Promise<number> 
   return match.data.id;
 }
 
-/**
- * Every project on Crowdin.com gets an automatically created glossary named after it
- * (`Project::getDefaultGlossaryName()` in the PHP backend: `"{$name}'s Glossary"`).
- */
+/** Crowdin.com auto-creates a glossary named after every project. */
 function defaultGlossaryName(ctx: SuiteContext): string {
   return `${ctx.project.name}'s Glossary`;
 }
@@ -49,10 +45,9 @@ async function extractTbxContent(path: string): Promise<{ terms: string[]; descr
 
 /**
  * Order-independent XLSX content check. An xlsx is a zip container, so raw byte-equality isn't
- * reliable (zip/docProps metadata differs run to run) - unzip with `adm-zip` (already a project
- * dependency, see DownloadCommand/BundleCommand) and compare the sorted set of visible text runs
- * from both the shared-strings table and the worksheet's own inline strings, covering either
- * encoding a workbook writer may choose.
+ * reliable (zip/docProps metadata differs run to run) - unzip with `adm-zip` and compare the sorted
+ * set of visible text runs from both the shared-strings table and the worksheet's own inline
+ * strings, covering either encoding a workbook writer may choose.
  */
 function extractXlsxTexts(path: string): string[] {
   const zip = new AdmZip(path);
@@ -77,12 +72,12 @@ function extractXlsxTexts(path: string): string[] {
  * `glossary upload` below fail with "The name '...' is already taken". They are swept both before
  * the suite (self-healing) and after it.
  */
-/** Far outside the account's id range, so `glossaryService.get` answers 404 rather than someone's. */
-const MISSING_GLOSSARY_ID = 999999999;
-
 const SUITE_GLOSSARY_NAMES = ['simple-glossary.tbx', 'simple-glossary.csv', 'simple-glossary.xlsx'].map(
   (file) => `Created in Crowdin CLI (${file})`,
 );
+
+/** Far outside the account's id range, so `glossaryService.get` answers 404 rather than someone's. */
+const MISSING_GLOSSARY_ID = 999999999;
 
 /**
  * This suite's own rows out of an account-wide listing, sorted by name. Takes either a decoded value
@@ -240,9 +235,7 @@ describe('glossary', () => {
     // Spot-check one term/description pair from the uploaded TBX (see sources/simple-glossary.tbx).
     expect(result.stdout).toContain('zuerst');
     expect(result.stdout).toContain('zuerst Beschreibung');
-    // No snapshot here: `glossary list` lists everything on the account, so the output includes
-    // every other project's and user's entries on this shared test account and changes between
-    // runs. The name assertions above plus the API cross-check below are the stable contract.
+    // No snapshot: `glossary list` covers the whole account, so its output moves between runs.
   });
 
   test('uploads a CSV glossary with an explicit scheme, creating it', async () => {
@@ -328,8 +321,6 @@ describe('glossary', () => {
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-glossary.tbx)');
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-glossary.csv)');
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-glossary.xlsx)');
-    // No snapshot: `glossary list` covers the whole account, so every other project's default
-    // glossary shows up here and the output moves between runs.
   });
 
   test('serializes id, name and term count in the json listing', async () => {
@@ -544,7 +535,5 @@ describe('glossary', () => {
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-glossary.tbx)');
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-glossary.csv)');
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-glossary.xlsx)');
-    // No snapshot, for the same reason as the listing test above: `glossary list` covers the whole
-    // account, so its output moves with every other project and user on it.
   });
 });

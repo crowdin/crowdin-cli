@@ -4,17 +4,15 @@ import { createTestProject, deleteTestProject } from '../helpers/project.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Covers the flags `upload sources` owns (`cli/commands/upload/UploadSourcesCommand.ts`). The
- * command is the most-run one in the suite - a hundred-odd invocations - but almost always for its
- * side effect, so its own options went untested: `--cache` had no coverage at all, and the guards
- * that fire only against a string-based project had none either.
+ * Covers the flags `upload sources` owns (`cli/commands/upload/UploadSourcesCommand.ts`): `--cache`
+ * and the guards that fire only against a string-based project.
  *
- * `--cache` is the reason this suite exists: a checksum cache (`lib/upload/sourceCache.ts`) can
- * only be asserted across several runs, so the tests below run in sequence and share state.
+ * The checksum cache (`lib/upload/sourceCache.ts`) can only be asserted across several runs, so the
+ * tests below run in sequence and share state.
  *
- * Not attempted: the no-manager-access guard at `:120` (a project the token can read but not
- * manage) and `File ... is currently being updated` at `:393`, which is a race against a concurrent
- * update rather than something a test can arrange.
+ * Not attempted: the no-manager-access guard (a project the token can read but not manage) and
+ * `File ... is currently being updated`, which is a race against a concurrent update rather than
+ * something a test can arrange.
  */
 const SOURCE_PATHS = ['sources/alpha.json', 'sources/beta.json'];
 

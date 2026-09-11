@@ -333,7 +333,6 @@ describe('task', () => {
     expect(result.stdout).toContain('No tasks found');
   });
 
-  // An empty argument satisfies commander's `<title>` and reaches the command's own guard.
   test('rejects an empty task title', async () => {
     const result = await ctx.runner.run(['task', 'add', '']);
 

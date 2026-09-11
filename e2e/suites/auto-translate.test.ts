@@ -4,10 +4,9 @@ import { createTestProject, deleteTestProject } from '../helpers/project.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Covers `auto-translate`'s option surface (`cli/commands/auto-translate/AutoTranslateCommand.ts`).
- * `auto-translate-mt.test.ts` is a port of the PHP `CliPreTranslateTest` suite and drives the working paths of `--method`,
- * `--engine-id` and `--auto-approve-option`; what had no coverage is the validation order in
- * `defaultAction` and the flags that select what gets translated.
+ * Covers `auto-translate`'s validation order and the flags that select what gets translated
+ * (`cli/commands/auto-translate/AutoTranslateCommand.ts`). The MT paths belong to
+ * `auto-translate-mt.test.ts`.
  *
  * Every real run uses `--method tm`, which needs no engine and finishes against an empty TM.
  * `preTranslate` polls to completion, so a zero exit means the server finished the job.
@@ -63,8 +62,6 @@ describe('auto-translate', () => {
   });
 
   // The checks below run in the order `defaultAction` declares them, before the project is loaded.
-  // The `--engine-id` requirement is part of that order too; it is covered by
-  // `auto-translate-mt.test.ts`, which owns the MT paths.
   test('refuses --file together with --directory', async () => {
     const result = await ctx.runner.run([
       'auto-translate',
@@ -188,8 +185,6 @@ describe('auto-translate', () => {
     expect(result).toMatchObject({ exitCode: 0 });
   });
 
-  // With several --file values a missing one is a warning, and the run still translates the rest -
-  // the failure is reported only once the job is done.
   test('warns per missing file and fails at the end when several are given', async () => {
     const result = await ctx.runner.run([
       'auto-translate',
@@ -310,7 +305,6 @@ describe('auto-translate', () => {
     expect(result.stderr).toContain('Field cannot be set when [scope] has the current value');
   });
 
-  // The CLI forwards the value untouched, so a date without a time is the API's to reject.
   test('passes a --translation-modified-before value straight to the API', async () => {
     const result = await ctx.runner.run([
       'auto-translate',

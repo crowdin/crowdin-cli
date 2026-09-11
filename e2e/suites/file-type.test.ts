@@ -29,7 +29,6 @@ async function writeConfigWithType(ctx: SuiteContext, fileType: string): Promise
   await Bun.write(join(ctx.workspace, 'crowdin.yml'), yaml);
 }
 
-/** Equivalent of the PHP suite's `ProjectFilesHelper::deleteAllFiles()`. */
 async function deleteAllProjectFiles(ctx: SuiteContext): Promise<void> {
   const files = await ctx.client.sourceFilesApi.listProjectFiles(ctx.project.id);
   for (const file of files.data) {
@@ -42,7 +41,6 @@ interface UploadedFileType {
   parserVersion: number | undefined;
 }
 
-/** Reads back the server-side `type` + `parserVersion` of the uploaded `android.xml`, if present. */
 async function getUploadedFileType(ctx: SuiteContext): Promise<UploadedFileType> {
   const files = await ctx.client.sourceFilesApi.listProjectFiles(ctx.project.id);
   const file = files.data.find((f) => f.data.name === 'android.xml')?.data;

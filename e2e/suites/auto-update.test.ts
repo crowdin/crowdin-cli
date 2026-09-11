@@ -4,7 +4,6 @@ import { join } from 'node:path';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
-/** Written into a source file only after that file exists server-side; must never be uploaded. */
 const LOCAL_ONLY_STRING = 'local edit that --no-auto-update must not upload';
 
 describe('auto update', () => {
@@ -79,7 +78,6 @@ describe('auto update', () => {
     expect(texts).toContain('first string');
   });
 
-  /** Every source string text in the project, read via the API rather than inferred from CLI output. */
   async function projectStringTexts(ctx: SuiteContext): Promise<(string | undefined)[]> {
     const response = await ctx.client.sourceStringsApi.withFetchAll().listProjectStrings(ctx.project.id, {});
     return response.data.map((entry) => ('text' in entry.data ? (entry.data.text as string) : undefined));

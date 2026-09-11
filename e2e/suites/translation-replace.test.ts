@@ -11,17 +11,12 @@ import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.t
  * default branch and on a new one - the real subject being a second `upload sources` to a file that
  * already exists, and how translations behave around it.
  *
- * Two deliberate deviations from a literal port:
+ * PHP's `testUploadTranslationsBranch` calls the upload with no `-b test-branch`, unlike every other
+ * branch method in that file. It is ported literally, so the branch's own sources never receive
+ * translations and the branch download asserts existence only, not content.
  *
- * 1. PHP's `testUploadTranslationsBranch` calls the upload with no `-b test-branch`, unlike every
- *    other branch method in that file. Ported literally, so the branch's own sources never receive
- *    translations and the branch download builds from source fallback - which is why the branch
- *    download asserts existence and stdout only, not content equality.
- * 2. The per-language translation content is genuinely distinct between it/uk; PHP's fixture uses
- *    byte-identical text for every language, which would make a content assertion meaningless.
- *
- * `upload sources -b <branch>` prints no branch message at all, and directory/file success lines use
- * the local path with no branch prefix, so branch output is identical to the non-branch upload's.
+ * Unlike PHP's fixture, the translation content differs between it and uk, so a content assertion
+ * can tell the languages apart.
  */
 
 const MASTER_SOURCE_FILE_PATHS = [
@@ -32,13 +27,11 @@ const MASTER_SOURCE_FILE_PATHS = [
 
 const BRANCH_SOURCE_FILE_PATHS = MASTER_SOURCE_FILE_PATHS.map((path) => `/test-branch${path}`).sort();
 
-/** Equivalent of the PHP suite's `ProjectFilesHelper::getFilePaths(true)`. */
 async function projectFilePaths(ctx: SuiteContext): Promise<string[]> {
   const files = await ctx.client.sourceFilesApi.listProjectFiles(ctx.project.id, { recursion: '1' });
   return files.data.map((file) => file.data.path).sort();
 }
 
-/** Equivalent of the PHP suite's `Common::files($this->tmp('files'))`: a full recursive file listing. */
 async function listFilesRecursively(root: string): Promise<string[]> {
   const results: string[] = [];
 
@@ -101,9 +94,6 @@ describe('translation replace', () => {
     expect(await projectFilePaths(ctx)).toEqual(MASTER_SOURCE_FILE_PATHS);
   });
 
-  // No branch involved, so the branch-prefix lookup plays no part here - a second upload of
-  // byte-identical local files must take the update path, not create, and must not fail or
-  // duplicate anything.
   test('updates the existing sources without creating anything new', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -153,8 +143,7 @@ describe('translation replace', () => {
   });
 
   test('downloads translations, overwriting the local it/uk trees', async () => {
-    // Mirrors the PHP original's `Common::RecursivelyRemoveDirectory` calls: prove the download
-    // recreates these from the server rather than merely finding them already on disk.
+    // Prove the download recreates these from the server rather than finding them on disk.
     await rm(join(ctx.workspace, 'files', 'it'), { recursive: true, force: true });
     await rm(join(ctx.workspace, 'files', 'uk'), { recursive: true, force: true });
 
@@ -197,9 +186,8 @@ describe('translation replace', () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 
     expect(result).toMatchObject({ exitCode: 0 });
-    // Directories are per-branch entities in Crowdin, so the branch gets its own fresh set even
-    // though a same-named tree already exists on master; messages use the LOCAL path (no
-    // "test-branch/" prefix), matching file-tree.test.ts's confirmed branch-upload wording.
+    // Directories are per-branch entities in Crowdin, so the branch gets its own fresh set; the paths
+    // carry no "test-branch/" prefix.
     expect(result.stdout).toContain("Directory 'en'");
     expect(result.stdout).toContain("Directory 'en/src/main/resources/org/crowdin'");
     expect(result.stdout).toContain("File 'en/src/main/resources/android.xml'");
@@ -210,8 +198,6 @@ describe('translation replace', () => {
     expect(await projectFilePaths(ctx)).toEqual([...MASTER_SOURCE_FILE_PATHS, ...BRANCH_SOURCE_FILE_PATHS].sort());
   });
 
-  // The branch-prefix-stripped existing-file lookup (see the top-of-file comment) is what makes
-  // this the update path rather than a re-create.
   test('updates sources on the branch (branch already exists)', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 
@@ -229,16 +215,12 @@ describe('translation replace', () => {
     const result = await ctx.runner.run(['upload', 'translations', '--dryrun', '-b', 'test-branch']);
 
     expect(result).toMatchObject({ exitCode: 0 });
-    // Dry-run listing is driven purely by local file existence at the same local destination paths
-    // used on master (the config has no branch-name placeholder), so this is expected to read
-    // identically to the non-branch dry run above.
+    // The config has no branch-name placeholder, so this reads identically to the non-branch dry run.
     expect(result.stdout).toContain("File 'it/src/main/resources/android.xml' would be queued for translations import");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
-  // Deliberately ported literally without "-b test-branch" - see deviation #2 in the top-of-file
-  // comment. This re-uploads/replaces the translations already sitting on the MASTER files (uploaded
-  // a few tests above), NOT the branch's own files.
+  // No `-b`, as in PHP (see the file header): this replaces the translations on the MASTER files.
   test('re-uploads translations to the already-translated master files (no -b, matching the literal PHP call)', async () => {
     const result = await ctx.runner.run(['upload', 'translations']);
 
@@ -268,9 +250,7 @@ describe('translation replace', () => {
     expect(result.stdout).toContain("File 'uk/src/main/resources/org/crowdin/strings.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    // Only existence is asserted here, deliberately NOT content equality against `expected/` - see
-    // deviation #2 in the top-of-file comment: this build is scoped to the branch's own files, which
-    // never received a translation upload, so its content is an open question for the first live run.
+    // Existence only: this build covers the branch's own files, which never received translations.
     await expectFilesExist(
       ctx.workspace,
       'files/it/src/main/resources/android.xml',
@@ -281,9 +261,7 @@ describe('translation replace', () => {
       'files/uk/src/main/resources/org/crowdin/strings.xml',
     );
 
-    // The branch build downloads into the exact same local destination as the master build (the
-    // local landing path never carries the branch name), so the file SET is unchanged even though
-    // content correctness is an open question here (see the top-of-file comment, deviation #2).
+    // The local landing path never carries the branch name, so the file set is unchanged.
     expect(await listFilesRecursively(join(ctx.workspace, 'files'))).toEqual(EXPECTED_LOCAL_FILES_AFTER_DOWNLOAD);
   });
 });

@@ -72,11 +72,6 @@ describe('simple csv', () => {
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
-  // Currently red on one row: `ident9` declares `max_length` 10 but the uk fixture translates it as
-  // 'файл 1 стрічка 9' (16 chars), so Crowdin rejects that translation on import and the download
-  // falls back to the source text. `expected/uk/*.csv` still asserts the translated value, while the
-  // it-side fixture already encodes the untranslated fallback - the uk expectation looks like the
-  // stale one, but confirm which side is wrong before changing either.
   test('downloads translations for a single language', async () => {
     const result = await ctx.runner.run(['download', 'translations', '-l', 'uk']);
 
@@ -159,7 +154,6 @@ describe('simple csv', () => {
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
-  // Fails on the same `ident9` row as the non-branch download tests above.
   test('downloads translations for a single language on the branch', async () => {
     const result = await ctx.runner.run(['download', 'translations', '-l', 'uk', '-b', 'test-branch']);
 
@@ -174,7 +168,6 @@ describe('simple csv', () => {
     );
   });
 
-  // Fails on the same `ident9` row as the non-branch download tests above.
   test('downloads translations for every target language on the branch', async () => {
     const result = await ctx.runner.run(['download', 'translations', '-b', 'test-branch']);
 
@@ -195,15 +188,9 @@ describe('simple csv', () => {
     );
   });
 
-  // Real, expected-red-by-design behavior (not a CLI bug): the API rejects a CSV `scheme` missing the
-  // "Source String"/"Translation" elements at file-creation time. The branch and directory structure
-  // still get created (that happens before the per-file create call), but every file fails with the
-  // backend's validation error, and the command exits non-zero. `The file schema must include the
-  // "Source String" and "Translation" elements` is confirmed as the real API validation message (same
-  // backend the PHP test observed it against, via CrowdinValidationError in
-  // node_modules/@crowdin/crowdin-api-client); the surrounding CLI wrapper text
-  // (`Failed to create file <name>. <message>`, from FileService.createProjectFile / toCliError.ts) is
-  // new TS-CLI wording with no PHP equivalent, so it's left to the snapshot instead of asserted literally.
+  // The API rejects a CSV `scheme` missing the "Source String"/"Translation" elements at file creation.
+  // The branch and directory still get created (before the per-file create call), but every file fails
+  // and the command exits non-zero. The CLI's wrapper text is left to the snapshot.
   test('rejects a scheme missing the Source String/Translation elements, on a new branch', async () => {
     await switchConfig(ctx, 'invalid-scheme');
 

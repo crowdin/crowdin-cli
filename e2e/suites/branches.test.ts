@@ -21,9 +21,7 @@ describe('branches', () => {
 
     expect(result).toMatchObject({ exitCode: 0 });
     // Success echoes the PROJECT path, and every config in this fixture sets `preserve_hierarchy: false`,
-    // so the source's directory is dropped: `/sources_one_file/1_android.xml` lands as `1_android.xml`.
-    // The dry-run previews below print the LOCAL path instead (`sources/1_android.xml`) - that asymmetry
-    // is what makes these two assertion styles differ inside one suite.
+    // so `/sources_one_file/1_android.xml` lands as `1_android.xml`. The dry runs below print the local path.
     expect(result.stdout).toContain("File '1_android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });

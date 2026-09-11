@@ -273,7 +273,6 @@ describe('comment', () => {
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
-  // Same inference, driven by --status instead.
   test('infers the issue type when only --status is given', async () => {
     const result = await ctx.runner.run(['comment', 'list', '--status', 'unresolved']);
 
@@ -356,8 +355,6 @@ describe('comment', () => {
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
-  // An empty argument satisfies commander's `<text>` and reaches the command's own guard, where a
-  // missing one is caught earlier as a usage error.
   test('rejects empty comment text', async () => {
     const result = await ctx.runner.run(['comment', 'add', '']);
 

@@ -169,8 +169,6 @@ describe('project', () => {
   });
 
   test('creates a project with no target languages when --language is omitted', async () => {
-    // `--language` is deliberately optional (`cli/commands/project/options.ts`) - `buildOption` now
-    // enforces `required`, so an omitted language would fail at parse time if it were still set.
     const id = await addProject(projectName('nolang'), []);
 
     expect((await ctx.client.projectsGroupsApi.getProject(id)).data.targetLanguageIds).toEqual([]);

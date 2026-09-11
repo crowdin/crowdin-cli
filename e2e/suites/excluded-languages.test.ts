@@ -4,8 +4,7 @@ import { join } from 'node:path';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
-/** Equivalent of the PHP suite's `ProjectFilesHelper::deleteAllFiles()` — used before a config
- * switch so the next `upload sources` recreates every file fresh under the new file group(s). */
+/** Run before a config switch, so the next `upload sources` recreates every file under the new group(s). */
 async function deleteAllProjectFiles(ctx: SuiteContext): Promise<void> {
   const files = await ctx.client.sourceFilesApi.listProjectFiles(ctx.project.id);
   for (const file of files.data) {

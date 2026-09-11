@@ -6,10 +6,9 @@ import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../h
 
 /**
  * Covers `config sources` / `config translations` / `config lint`
- * (`cli/commands/config/ConfigCommand.ts`). Seven other suites run these in passing, but only ever
- * on a config built to succeed, which leaves three things untested: `lint`'s own two checks (the
- * source-pattern and languages-mapping validations, which no other command runs), the gate where a
- * machine `--output` outranks `--tree`, and every structured rendering of the listings.
+ * (`cli/commands/config/ConfigCommand.ts`): `lint`'s own two checks (the source-pattern and
+ * languages-mapping validations, which no other command runs), the gate where a machine `--output`
+ * outranks `--tree`, and every structured rendering of the listings.
  *
  * The alt-configs exist because those checks need a config built to *fail*, which a suite's default
  * config can't also be.
@@ -68,9 +67,6 @@ describe('config', () => {
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
-  // `@file` expansion happens in cli.ts before commander parses (expandArgFiles), so nothing below
-  // the entry point can see it. The tokenizer has unit tests; what needs an end-to-end run is that
-  // the expansion is wired in at all, and that an expanded command reaches config resolution.
   test('runs a command supplied by an @arg-file', async () => {
     await Bun.write(
       join(ctx.workspace, 'args.txt'),
@@ -138,7 +134,6 @@ describe('config', () => {
 
     expect(result).toMatchObject({ exitCode: 0 });
 
-    // One per source per target language, both groups flat-mapped together.
     expect(JSON.parse(result.stdout)).toEqual([
       'translations/it/app.xml',
       'translations/it/deep.xml',
@@ -223,9 +218,7 @@ describe('config', () => {
   });
 
   test('reports a spinner-wrapped failure as one record carrying the exit code too', async () => {
-    // This failure comes from `withSpinner`, which marks it reported - the path that used to lose
-    // `code` while a plain try/catch kept it, so whether a consumer saw `code` depended on which
-    // service happened to raise the error.
+    // This failure comes from `withSpinner`, which marks it reported; the record must still carry `code`.
     const result = await ctx.runner.run(['config', 'sources', '--project-id', '999999999', '--output', 'json']);
 
     expect(result.exitCode).toBe(102);
@@ -240,13 +233,13 @@ describe('config', () => {
   test('reports a missing configuration file as not found', async () => {
     const result = await ctx.runner.run(['config', 'lint', '--config', 'no-such-config.yml'], { noConfig: true });
 
-    // A missing file is NotFound (102); invalid content is Validation (2), as the tests above show.
+    // A missing file is NotFound (102); invalid content is Validation (2).
     expect(result.exitCode).toBe(102);
     expect(result.stderr).toContain('no-such-config.yml');
   });
 
   test('prints a stack trace instead of the one-line message with --debug', async () => {
-    // Hidden global flag (global/options.ts:47). The config is still the no-source-match one from
+    // Hidden global flag. The config is still the no-source-match one from
     // the tests above, so the run fails the same way - only the rendering differs.
     const plain = await ctx.runner.run(['config', 'lint']);
     const debug = await ctx.runner.run(['config', 'lint', '--debug']);
