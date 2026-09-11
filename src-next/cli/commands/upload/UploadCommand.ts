@@ -114,7 +114,7 @@ export default class UploadCommand {
     await this.sourcesCommand.action(command);
   };
 
-  // Kept as thin aliases so existing callers/tests can drive each subcommand off UploadCommand.
+  // Thin aliases so callers/tests can drive each subcommand off UploadCommand.
   uploadSourcesAction = (command: Command) => this.sourcesCommand.action(command);
   uploadTranslationsAction = (command: Command) => this.translationsCommand.action(command);
 }

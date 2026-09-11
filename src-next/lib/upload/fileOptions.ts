@@ -15,8 +15,7 @@ export function buildExportOptions(
   exportPattern?: string,
 ): SourceFilesModel.ExportOptions {
   const extension = path.extname(localFilePath).toLowerCase();
-  // Expand `**` in the export pattern from the matched source subpath (mirrors Java buildExportOptions).
-  // Java collapses separator runs in the export pattern before sending it (UploadSourcesAction:539).
+  // Expand `**` in the export pattern from the matched source subpath, and collapse separator runs.
   const resolvedExportPattern =
     exportPattern !== undefined
       ? collapseSeparators(replaceDoubleAsterisk(fileConfig.source, exportPattern, toPosixPath(localFilePath)))
@@ -113,9 +112,9 @@ function omitUndefined<T extends Record<string, unknown>>(value: T): T | undefin
 }
 
 /**
- * Maps a local source path to its path inside the Crowdin project, mirroring Java's
- * UploadSourcesAction: an explicit `dest` wins, otherwise the common path is stripped unless
- * `preserve_hierarchy` is enabled (in which case `commonPath` is empty).
+ * Maps a local source path to its path inside the Crowdin project: an explicit `dest` wins,
+ * otherwise the common path is stripped unless `preserve_hierarchy` is enabled (in which case
+ * `commonPath` is empty).
  */
 export function resolveProjectPath(localFilePath: string, patterns: { dest?: string }, commonPath: string): string {
   if (patterns.dest) {
@@ -135,11 +134,10 @@ export function resolveContextPath(pattern: string, localFilePath: string): stri
 
 /**
  * Substitutes the file-dependent placeholders (`%file_name%`, `%original_path%`, …) in a `dest` or
- * `context` pattern, mirroring Java's PlaceholderUtil.replaceFileDependentPlaceholders.
+ * `context` pattern.
  *
- * `localFilePath` is posix and relative to basePath — Java's `fileParent` is likewise
- * basePath-relative. The download archive key passes a server project path instead, matching Java's
- * `new File(prepareDest(dest, file))`.
+ * `localFilePath` is posix and relative to basePath. The download archive key passes a server
+ * project path instead.
  */
 export function replaceFileDependentPlaceholders(pattern: string, localFilePath: string): string {
   const parsed = path.posix.parse(localFilePath);
@@ -163,23 +161,20 @@ export function replaceFileDependentPlaceholders(pattern: string, localFilePath:
     resolved = expandDestDoubleAsterisk(resolved, localFilePath, parsed.dir);
   }
 
-  // Java ends the method by collapsing separator runs and dropping a leading one.
   return stripLeadingSlashes(collapseSeparators(resolved));
 }
 
 /**
- * Resolves the `dest` config option into a project file path, mirroring Java's
- * PropertiesBeanUtils.prepareDest: file-dependent placeholders are substituted from the local
- * source path and any leading separator is stripped.
+ * Resolves the `dest` config option into a project file path: file-dependent placeholders are
+ * substituted from the local source path and any leading separator is stripped.
  */
 export function prepareDest(dest: string, localFilePath: string): string {
-  // replaceFileDependentPlaceholders already drops the leading separator, as Java's does.
   return toPosixPath(replaceFileDependentPlaceholders(dest, localFilePath));
 }
 
 /**
- * Computes the common directory prefix of the given POSIX file paths (relative to basePath),
- * mirroring Java's SourcesUtils.getCommonPath. Returns a string ending in '/' or an empty string.
+ * Computes the common directory prefix of the given POSIX file paths (relative to basePath).
+ * Returns a string ending in '/' or an empty string.
  */
 export function getCommonPath(filePaths: string[]): string {
   if (filePaths.length === 0) {

@@ -44,8 +44,8 @@ const allPlaceholders = [
 
 export default allPlaceholders;
 
-// Mirrors Java's PlaceholderUtil.validStringPattern: any path segment that is wrapped in % must be
-// a known placeholder. Segments that aren't fully %-wrapped (literals, globs) are left untouched.
+// Any path segment that is wrapped in % must be a known placeholder. Segments that aren't fully
+// %-wrapped (literals, globs) are left untouched.
 export function validTranslationPattern(pattern: string): boolean {
   for (const segment of pattern.split('/')) {
     if (segment.startsWith('%') && segment.endsWith('%') && !allPlaceholders.includes(segment)) {

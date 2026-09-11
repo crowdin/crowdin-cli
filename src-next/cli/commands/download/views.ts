@@ -2,8 +2,7 @@ import type { View } from '@/cli/utils/output.ts';
 
 /**
  * What became of one downloaded file. Text output streams its own per-file messages as the
- * download runs; this is the summary json/toon get instead, since `output.success` is text-only
- * and those formats otherwise saw an empty stdout for a command that wrote real files to disk.
+ * download runs; this is the summary json/toon get instead, since `output.success` is text-only.
  *
  * Kept separate from upload's UploadedFile despite the identical shape: the action vocabularies
  * differ, and merging them would give each command a union naming outcomes it can never produce.
@@ -19,7 +18,7 @@ export interface DownloadedFile {
 export const downloadedFileView: View<DownloadedFile> = {
   // text streams its own per-file messages and never renders this list.
   text: (file) => file.path,
-  // Java's Dryrun plain view prints bare paths, one per line; the real run matches it.
+  // Bare paths, one per line, the same as the dry-run listing.
   plain: (file) => file.path,
   keys: ['path', 'action', 'reason'],
 };

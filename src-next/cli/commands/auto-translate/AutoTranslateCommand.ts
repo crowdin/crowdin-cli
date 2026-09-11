@@ -150,7 +150,6 @@ export default class AutoTranslateCommand {
     const { translationModifiedBefore, sourceLanguage: sourceLanguageId } = options;
     const replaceTranslations = this.resolveReplaceTranslationsOption(options.replaceTranslationsOption);
 
-    // Validation order mirrors the Java `checkOptions` method.
     if (directoryPath && files.length > 0) {
       throw new CliError("Either '--file' or '--directory' can be specified");
     }

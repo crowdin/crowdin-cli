@@ -42,7 +42,7 @@ export const translation: OptionDef = {
   description: 'Path to the translation files',
 };
 
-// Config-option `--dest` for file-based commands (Java ParamsWithFiles.destParam: long-only, no `-d`).
+// Config-option `--dest` for file-based commands (long-only, no `-d`).
 // Distinct from init's `--destination` (which saves the config skeleton, defaulting to crowdin.yml):
 // here it overrides the in-project file destination, so it must have no default — otherwise the value
 // would always override the configured `dest`.
@@ -65,7 +65,7 @@ export const noPreserveHierarchy: OptionDef = {
 };
 
 export const dryRun: OptionDef = {
-  // Matches the Java CLI flag spelling (`--dryrun`); Commander exposes it as `options.dryrun`.
+  // One word, the spelling existing scripts use; Commander exposes it as `options.dryrun`.
   name: 'dryrun',
   type: 'boolean',
   description: 'Print a command output without execution',
@@ -86,8 +86,7 @@ export const branch: OptionDef = {
   description: 'Specify branch name',
 };
 
-// Config option tiers, mirroring the Java picocli param tiers (BaseParams -> ProjectParams -> ParamsWithFiles).
-// Each tier is defined once here so a command never drifts from its expected option set.
+// Config option tiers, each defined once here so a command never drifts from its expected option set.
 const baseConfigOptions = [token, baseUrl, basePath];
 const projectConfigOptions = [...baseConfigOptions, projectId];
 const filesConfigOptions = [
@@ -99,11 +98,11 @@ const filesConfigOptions = [
   noPreserveHierarchy,
 ];
 
-// BaseParams: commands that talk to the API without a project context (tm, glossary).
+// Commands that talk to the API without a project context (tm, glossary).
 export const baseConfigGroup: OptionGroupDef = { group: 'Config options:', options: baseConfigOptions };
 
-// ProjectParams: project-scoped commands (branch, file, string, task, ...).
+// Project-scoped commands (branch, file, string, task, ...).
 export const projectConfigGroup: OptionGroupDef = { group: 'Config options:', options: projectConfigOptions };
 
-// ParamsWithFiles: file-based commands (upload, download, auto-translate, config).
+// File-based commands (upload, download, auto-translate, config).
 export const filesConfigGroup: OptionGroupDef = { group: 'Config options:', options: filesConfigOptions };

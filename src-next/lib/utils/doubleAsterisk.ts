@@ -2,14 +2,12 @@ import CliError from '@/cli/errors/CliError.ts';
 import { collapseSeparators, stripLeadingSlashes, stripTrailingSlashes } from './path.ts';
 
 /*
- * Java expands `**` two different ways, and this file ports both. They are not interchangeable:
+ * `**` expands two different ways, and they are not interchangeable:
  *
- *   replaceDoubleAsterisk    (TranslationsUtils)  - for `translation`/export patterns. Matches the
- *                                                   file against the group's `source` glob, so its
- *                                                   result changes with that glob.
- *   expandDestDoubleAsterisk (PlaceholderUtil)    - for `dest`/`context`, which have no glob to
- *                                                   match against; works off the file's parent path
- *                                                   and the pattern's own prefix/postfix.
+ *   replaceDoubleAsterisk    - for `translation`/export patterns. Matches the file against the
+ *                              group's `source` glob, so its result changes with that glob.
+ *   expandDestDoubleAsterisk - for `dest`/`context`, which have no glob to match against; works off
+ *                              the file's parent path and the pattern's own prefix/postfix.
  *
  * Same pattern and file through both: `/out/**\/app.json` + `src/nested/deep/app.json` gives
  * `/out/nested/deep/app.json` for a `/src/**\/*.json` source, but `out/src/nested/deep/app.json`
@@ -17,13 +15,12 @@ import { collapseSeparators, stripLeadingSlashes, stripTrailingSlashes } from '.
  */
 
 /**
- * Substitutes the `**`-matched portion of a source file path into a translation pattern, mirroring
- * Java's TranslationsUtils.replaceDoubleAsterisk. The `source` pattern is split on `**`; each node is
- * trimmed from the file path so that what remains is the subpath the `**` actually matched, and that
- * subpath replaces `**` in the translation pattern. Operates on POSIX paths (use toPosixPath first).
+ * Substitutes the `**`-matched portion of a source file path into a translation pattern. The
+ * `source` pattern is split on `**`; each node is trimmed from the file path so that what remains is
+ * the subpath the `**` actually matched, and that subpath replaces `**` in the translation pattern.
+ * Operates on POSIX paths (use toPosixPath first).
  *
- * `sourceFile` must be relative to the base path (no leading separator), matching Java's
- * `StringUtils.removeStart(projectFile, basePath)`.
+ * `sourceFile` must be relative to the base path (no leading separator).
  */
 export function replaceDoubleAsterisk(sourcePattern: string, translationPattern: string, sourceFile: string): string {
   if (!translationPattern || !sourceFile) {
@@ -70,14 +67,13 @@ export function replaceDoubleAsterisk(sourcePattern: string, translationPattern:
     }
   }
 
-  // Replacer function, not a string: Java's String.replace(CharSequence, CharSequence) is literal,
-  // while a string replacement would interpret `$&`/`$'`/`$$` in path-derived text.
+  // Replacer function, not a string, so `$&`/`$'`/`$$` in path-derived text stay literal.
   return translationPattern.replaceAll('**', () => file).replace(/\/+/g, '/');
 }
 
 /**
- * Escapes the characters Java's Utils.regexPath escapes (`\ ( ) + [ ]`) for use in a regex, leaving
- * `* ? .` as regex metacharacters — matching Java's behavior where remaining glob chars act as regex.
+ * Escapes `\ ( ) + [ ]` for use in a regex, leaving `* ? .` as regex metacharacters so the remaining
+ * glob chars act as regex.
  */
 function regexPath(path: string): string {
   return path
@@ -90,8 +86,8 @@ function regexPath(path: string): string {
 }
 
 /**
- * Mirrors Apache Commons StringUtils.substring(str, start, end): negative indices count from the end,
- * the range is clamped, and an inverted range yields an empty string (instead of JS's arg-swapping).
+ * Negative indices count from the end, the range is clamped, and an inverted range yields an empty
+ * string (instead of JS's arg-swapping).
  */
 function apacheSubstring(str: string, start: number, end: number): string {
   let startIndex = start < 0 ? str.length + start : start;
@@ -119,9 +115,6 @@ function apacheSubstring(str: string, start: number, end: number): string {
 /**
  * Replaces `**` in a resolved `dest`/`context` pattern with the slice of the source file's parent
  * path that the wildcard stands for.
- *
- * This is a different algorithm from `replaceDoubleAsterisk` (a port of Java's TranslationsUtils),
- * which serves `translation` patterns and matches against the `source` glob instead.
  */
 export function expandDestDoubleAsterisk(pattern: string, localFilePath: string, fileParent: string): string {
   const prefixFormat = substringBefore(pattern, '**');
@@ -153,13 +146,10 @@ export function expandDestDoubleAsterisk(pattern: string, localFilePath: string,
     expanded = removeEnd(expanded, stripTrailingSlashes(postfix));
   }
 
-  // Java's String.replace(CharSequence, CharSequence) substitutes every occurrence, not just the
-  // first, and does so literally — hence a replacer function rather than a string, which would
-  // interpret `$&`/`$'`/`$$` in the path-derived replacement.
+  // Replacer function, not a string, so `$&`/`$'`/`$$` in path-derived text stay literal.
   return pattern.replaceAll('**', () => expanded);
 }
 
-// Apache commons-lang semantics, which the ported block above depends on.
 function substringBefore(value: string, separator: string): string {
   const index = value.indexOf(separator);
   return index === -1 ? value : value.slice(0, index);
@@ -191,7 +181,7 @@ function removeEnd(value: string, remove: string): string {
   return remove.length > 0 && value.endsWith(remove) ? value.slice(0, -remove.length) : value;
 }
 
-/** Java Utils.getParentDirectory: the parent with a trailing separator, or '/' when there is none. */
+/** The parent with a trailing separator, or '/' when there is none. */
 function parentDirectory(value: string): string {
   const trimmed = stripTrailingSlashes(value);
 

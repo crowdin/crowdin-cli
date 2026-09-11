@@ -98,9 +98,8 @@ export default class ProjectCommand {
 
     const sourceLanguageId = options.sourceLanguage || 'en';
     const targetLanguageIds = options.language ?? [];
-    // No `identifier`: the API generates one from the name, and a name with a space or any other
-    // character the identifier rules reject ('CLI 27') made the request fail outright. Java never
-    // sends one either.
+    // No `identifier`: the API generates one from the name, whereas a name with a space or any other
+    // character the identifier rules reject ('CLI 27') would fail the request outright.
     const data: CreateProjectPayload = projectService.isEnterprise()
       ? {
           name,

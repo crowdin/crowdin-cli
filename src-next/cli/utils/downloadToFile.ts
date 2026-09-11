@@ -9,9 +9,9 @@ import CliError from '@/cli/errors/CliError.ts';
  * Streams a download to a local file, creating the parent directory.
  *
  * Not `Bun.write(path, response)`: on Bun 1.4.0 that call never settles when the GC collects the
- * Response while the body is still arriving (oven-sh/bun#40278), so the CLI stops with no file, no
- * error and no exit. Piping the body through node's stream pipeline is the same single streaming
- * pass without the stall.
+ * Response while the body is still arriving, so the CLI stops with no file, no error and no exit.
+ * Piping the body through node's stream pipeline is the same single streaming pass without the
+ * stall.
  *
  * Two spellings that look tidier are silently wrong on the same version: `Bun.write(path,
  * response.body)` stringifies the stream and writes 23 bytes of "[object ReadableStream]", and

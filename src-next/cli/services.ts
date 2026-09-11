@@ -63,9 +63,9 @@ export function createGetApiClient(getConfig: GetConfig) {
       throw new ValidationError("Required option 'api_token' is missing");
     }
 
-    // Proxy parity with the Java CLI: HTTP_PROXY_HOST/PORT/USER/PASSWORD env vars.
-    // Bun's fetch honors HTTPS_PROXY/HTTP_PROXY (incl. credentials in the URL), so we
-    // translate the custom vars into the standard ones and force the fetch HTTP client.
+    // Bun's fetch honors HTTPS_PROXY/HTTP_PROXY (incl. credentials in the URL), so the custom
+    // HTTP_PROXY_HOST/PORT/USER/PASSWORD vars are translated into the standard ones and the fetch
+    // HTTP client is forced.
     const proxy = proxyUrlFromEnv();
 
     if (proxy) {

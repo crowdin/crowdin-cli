@@ -319,8 +319,6 @@ export default class StringCommand {
       throw new CliError('Specify some parameters to edit the string');
     }
 
-    // Commander yields option values as strings, so the request builders below would forward
-    // '999' to an int field and the API would reject it.
     const [maxLength] = toNumberArray(options.maxLength, "The '--max-length' value must be numeric");
 
     if (maxLength !== undefined && maxLength < 0) {
@@ -469,7 +467,7 @@ export default class StringCommand {
   }
 
   private buildPluralText(options: AddOptions, text: string): SourceStringsModel.PluralText {
-    // The API requires the 'other' form; Java fills it from the positional text argument.
+    // The API requires the 'other' form; the positional text argument fills it.
     const plural: SourceStringsModel.PluralText = { other: text };
 
     for (const key of PLURAL_KEYS) {

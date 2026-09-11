@@ -9,7 +9,7 @@ interface ReleaseStatus {
   progress?: number | null;
 }
 
-// The release poll stops on any of these; only "failed" is an error (Java treats success/finished alike).
+// The release poll stops on any of these; only "failed" is an error.
 const RELEASE_TERMINAL_STATUSES = new Set(['success', 'finished', 'failed']);
 
 export class DistributionService {
@@ -20,8 +20,7 @@ export class DistributionService {
 
   async list(): Promise<DistributionView[]> {
     try {
-      // Java threads limit/offset through executeRequestFullList here, so it returns every
-      // distribution; without withFetchAll this stops at the API's default page size.
+      // Without withFetchAll this stops at the API's default page size.
       const response = await this.client.distributionsApi.withFetchAll().listDistributions(this.projectId);
 
       return response.data.map((entry) => entry.data);

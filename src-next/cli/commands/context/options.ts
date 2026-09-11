@@ -40,8 +40,8 @@ export const byFile: OptionDef = {
   description: 'Break down stats per file',
 };
 
-// download + status share the same string-filter set; reset uses its own wording
-// (Java crowdin.context.reset.*). Grouped so each flag's wording sits together.
+// download + status share the same string-filter set; reset uses its own wording. Grouped so each
+// flag's wording sits together.
 export const filter = {
   file: {
     name: 'file',

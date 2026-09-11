@@ -43,7 +43,7 @@ export const output: OptionDef = {
   choices: ['json', 'toon', 'plain'],
 };
 
-// Hidden: prints full stack traces instead of the one-line error message (ports Java GenericCommand --debug).
+// Hidden: prints full stack traces instead of the one-line error message.
 export const debug: OptionDef = {
   name: 'debug',
   type: 'boolean',

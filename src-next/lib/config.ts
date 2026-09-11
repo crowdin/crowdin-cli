@@ -4,7 +4,7 @@ import { containsPattern } from './config/projectFileMatch.ts';
 import { filePatterns, languagePatterns } from './export/patterns.ts';
 import { collapseSeparators, stripLeadingSlashes } from './utils/path.ts';
 
-// Accepted base_url hosts, ported from Java PropertiesBeanUtils.isUrlOfficial / isUrlForTesting.
+// Accepted base_url hosts.
 const BASE_URL_PATTERNS = [
   /^https:\/\/[^.]+\.(api\.)?crowdin\.com$/, // <org>.crowdin.com, <org>.api.crowdin.com (enterprise)
   /^https:\/\/(api\.)?crowdin\.com$/, // crowdin.com, api.crowdin.com (official)
@@ -14,19 +14,18 @@ const BASE_URL_PATTERNS = [
   /^https:\/\/.+\.e-test\.crowdin\.com$/,
 ];
 
-// Documented config `update_option` values → API enum (Java PropertiesBeanUtils.getUpdateOption).
+// Documented config `update_option` values → API enum.
 const UPDATE_OPTION_MAP = {
   update_as_unapproved: 'keep_translations',
   update_without_changes: 'keep_translations_and_approvals',
 } as const;
 
-// Strips a trailing /api, /api/v2, or slash (Java BaseProperties normalizes with removePattern).
+// Strips a trailing /api, /api/v2, or slash.
 function normalizeBaseUrl(url: string): string {
   return url.replace(/\/(api(\/|\/v2\/?)?)?$/, '');
 }
 
-// Java coerces booleans via setBooleanPropertyIfExists ("1" -> true, else Boolean.valueOf),
-// so accept 0/1 and their string forms in addition to real booleans.
+// Accepts 0/1 and their string forms in addition to real booleans.
 const coercedBoolean = z.preprocess((value) => {
   if (value === 1 || value === '1' || value === true || value === 'true') {
     return true;
@@ -40,8 +39,8 @@ const coercedBoolean = z.preprocess((value) => {
 }, z.boolean());
 
 /**
- * A file is multilingual via a `scheme` or an explicit `multilingual: true`, the rule Java's
- * FileBean applies when it decides a language placeholder is not required.
+ * A file is multilingual via a `scheme` or an explicit `multilingual: true`; its `translation` then
+ * needs no language placeholder.
  */
 export function isMultilingualFile(file: { scheme?: unknown; multilingual?: boolean }): boolean {
   return file.scheme !== undefined || file.multilingual === true;
@@ -49,9 +48,9 @@ export function isMultilingualFile(file: { scheme?: unknown; multilingual?: bool
 
 export const ConfigSchema = z
   .object({
-    // Optional here because the base tier (glossary, tm) talks to the API without a project context,
-    // exactly like Java's BaseProperties. Project-scoped commands restore the requirement via
-    // assertProjectConfigured; cli/config.ts maps commands to tiers.
+    // Optional here because the base tier (glossary, tm) talks to the API without a project context.
+    // Project-scoped commands restore the requirement via assertProjectConfigured; cli/config.ts maps
+    // commands to tiers.
     projectId: z.preprocess(
       (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
       z.coerce
@@ -59,9 +58,8 @@ export const ConfigSchema = z
         .gt(0, "Option 'project_id' must be a numeric value")
         .optional(),
     ),
-    // Java only rejects an empty token (BaseProperties: isEmpty → missed_api_token); token length/
-    // validity is the API's job (401), not the config's - a local min-length check blamed the config
-    // file for a short --token flag.
+    // Only an empty token is rejected: validity is the API's job (401), and a local length check
+    // would blame the config file for a short --token flag.
     apiToken: z.string().min(1, "Required option 'api_token' is missing").optional(),
     basePath: z.string().default('.'),
     baseUrl: z
@@ -83,8 +81,8 @@ export const ConfigSchema = z
       })
       .optional(),
     // Optional: commands like `project list`, `language list`, `browse`, `context status` need only
-    // credentials (Java used a fileless ProjectProperties). Defaults to [] so file-command consumers
-    // and the superRefine below always see an array.
+    // credentials. Defaults to [] so file-command consumers and the superRefine below always see an
+    // array.
     files: z
       .array(
         z
@@ -103,7 +101,6 @@ export const ConfigSchema = z
                 error: 'translation parameter cannot be empty',
                 abort: true,
               })
-              // Java's PropertiesBuilder.hasRelativePaths rejects both forms, not just '../'.
               .refine((arg) => !arg.includes('../') && !arg.includes('/./'), {
                 error: "The 'translation' parameter can't contain any relative paths '../' or './'",
                 abort: true,
@@ -112,7 +109,7 @@ export const ConfigSchema = z
             context: z.string().optional(),
             scheme: z.union([z.string(), z.record(z.string(), z.number())]).optional(),
             multilingual: coercedBoolean.optional(),
-            // Parsed for Java config parity but inert: Java reads `multilingual` only.
+            // Accepted but inert: only `multilingual` marks a file multilingual.
             multilingual_spreadsheet: coercedBoolean.optional(),
             update_option: z
               .enum(Object.keys(UPDATE_OPTION_MAP) as [keyof typeof UPDATE_OPTION_MAP])
@@ -135,8 +132,7 @@ export const ConfigSchema = z
             export_only_approved: coercedBoolean.optional(),
             export_strings_that_passed_workflow: coercedBoolean.optional(),
           })
-          // Java normalizes the file section once, at config load
-          // (FileBean.populateWithDefaultValues); every consumer then reads settled values.
+          // Normalized once, at config load; every consumer then reads settled values.
           .transform((file) => {
             const translation = collapseSeparators(file.translation);
             const isMultilingual = isMultilingualFile(file);
@@ -145,11 +141,11 @@ export const ConfigSchema = z
             const normalized = {
               ...file,
               // A leading slash is never load-bearing for source/ignore/dest: every consumer strips
-              // or ignores it, so Java only collapses separator runs and leaves it as written.
+              // or ignores it, so only separator runs collapse and it stays as written.
               source: collapseSeparators(file.source),
               // `translation` becomes the uploaded exportPattern, where the slash *is* load-bearing:
               // the API rejects an exportPattern starting with '/' unless it carries a language
-              // placeholder, which is exactly the multilingual/scheme case Java strips it for.
+              // placeholder, which is exactly the multilingual/scheme case it is stripped for.
               translation:
                 isMultilingual && !hasLanguagePlaceholder
                   ? stripLeadingSlashes(translation)
@@ -181,9 +177,8 @@ export const ConfigSchema = z
         });
       }
 
-      // Java rejects this at config load (FileBean.checkProperties via
-      // PropertiesBuilder.checkForDoubleAsterisks), so it is a validation error (exit 2) rather
-      // than a CliError thrown later from replaceDoubleAsterisk while resolving a path.
+      // Rejected at config load, so it is a validation error (exit 2) rather than a CliError thrown
+      // later from replaceDoubleAsterisk while resolving a path.
       if (file.translation.includes('**') && !file.source.includes('**')) {
         ctx.addIssue({
           code: 'custom',
@@ -192,8 +187,8 @@ export const ConfigSchema = z
         });
       }
 
-      // Java FileBean.checkDest: when `source` matches more than one file, `dest` must vary per file
-      // — otherwise every match collapses onto the same project path.
+      // When `source` matches more than one file, `dest` must vary per file — otherwise every match
+      // collapses onto the same project path.
       if (
         file.dest &&
         (filePatterns.some((pattern) => file.source.includes(pattern)) || containsPattern(file.source)) &&
@@ -207,7 +202,6 @@ export const ConfigSchema = z
         });
       }
 
-      // Mirrors Java FileBean.checkProperties.
       if (!isMultilingualFile(file) && !languagePatterns.some((pattern) => file.translation.includes(pattern))) {
         ctx.addIssue({
           code: 'custom',
@@ -226,22 +220,20 @@ export const ConfigSchema = z
     });
   });
 
-// Mirrors Java's BaseProperties: credentials and file rules, no project context required.
+// Credentials and file rules, no project context required.
 export type Config = z.infer<typeof ConfigSchema>;
 
-// Mirrors Java's ProjectProperties: a Config whose project_id has been validated. Only the
-// project-scoped services ask for this; everything else is happy with a plain Config.
+// A Config whose project_id has been validated. Only the project-scoped services ask for this;
+// everything else is happy with a plain Config.
 export type ProjectConfig = Config & { projectId: number };
 
-// Project-scoped commands (Java ProjectProperties.checkProperties -> error.config.missed_project_id).
 export function assertProjectConfigured(config: Config): asserts config is ProjectConfig {
   if (config.projectId === undefined) {
     throw new InvalidConfigurationError("Required option 'project_id' is missing");
   }
 }
 
-// File commands (upload/download/config lint) call this to restore Java's parity error, which the
-// optional `files` section drops (PropertiesWithFiles.checkProperties -> empty_or_missed_section_files).
+// File commands (upload/download/config lint) call this, since the schema lets `files` be empty.
 export function assertFilesConfigured(config: Config): void {
   if (config.files.length === 0) {
     throw new InvalidConfigurationError("Required section 'files' is missing (or empty) in the configuration file");
