@@ -6,7 +6,7 @@ import { join } from 'node:path';
 // Pure argv -> stdout, no network. Spawning (rather than importing) is deliberate: it preserves the
 // trailing empty arg the shell sends to request "complete the next token".
 
-const CLI = join(import.meta.dir, '..', '..', 'src-next', 'cli.ts');
+const CLI = join(import.meta.dir, '..', '..', '..', 'src-next', 'cli.ts');
 
 async function complete(args: string[]): Promise<string> {
   const proc = Bun.spawn(['bun', CLI, 'complete', ...args], {
