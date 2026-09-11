@@ -3,24 +3,23 @@ import path from 'node:path';
 import { autocomplete, confirm, isCancel, password, text } from '@clack/prompts';
 import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import { dump as dumpYaml, load as loadYaml } from 'js-yaml';
+import { load as loadYaml } from 'js-yaml';
 import AuthorizationError from '@/cli/errors/AuthorizationError.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { authorizeViaBrowser } from '@/cli/utils/browserAuth.ts';
 import { colors } from '@/cli/utils/colors.ts';
 import { expandTilde } from '@/cli/utils/localPath.ts';
-import { openUrl } from '@/cli/utils/open.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import { buildUserAgent } from '@/cli/utils/userAgent.ts';
 import { generate } from '@/lib/config/yamlGenerator.ts';
 import patterns, { validTranslationPattern } from '@/lib/export/patterns.ts';
-import { DEFAULT_IDENTITY_FILE, getIdentityFilePath } from '@/lib/identityFiles.ts';
+import { DEFAULT_IDENTITY_FILE, getIdentityFilePath, saveCredentials } from '@/lib/identityFiles.ts';
 import { getOrganization } from '@/lib/organization/credentials.ts';
 import { basePath, baseUrl, noPreserveHierarchy, projectId, source, token, translation } from '../common/options.ts';
-import { getAuthorizationUrl, startBrowserAuthorization } from './browserAuthServer.ts';
 import { destination, quiet } from './options.ts';
 
 interface InitCommandOptions extends GlobalOptions {
@@ -240,24 +239,7 @@ export default class InitCommand {
       return null;
     }
 
-    const authorizationUrl = getAuthorizationUrl();
-    const authorization = startBrowserAuthorization();
-
-    if (!openUrl(authorizationUrl)) {
-      output.warning(`Error opening a web browser. Please open the following link manually:\n${authorizationUrl}`);
-    }
-
-    output.spinner('browserAuth', 'start', 'Waiting for authorization in browser...');
-
-    try {
-      const result = await authorization;
-      output.spinner('browserAuth', 'stop', 'Browser authorization finished successfully');
-
-      return result;
-    } catch (error) {
-      output.spinner('browserAuth', 'error', 'Browser authorization failed');
-      throw error;
-    }
+    return authorizeViaBrowser(output);
   }
 
   private async isEnterprise(output: Output) {
@@ -407,23 +389,7 @@ export default class InitCommand {
   }
 
   protected async writeApiToken(apiToken: string): Promise<boolean> {
-    const apiTokenFilePath = getIdentityFilePath(DEFAULT_IDENTITY_FILE);
-
-    try {
-      let existing: Record<string, unknown> = {};
-
-      if (await Bun.file(apiTokenFilePath).exists()) {
-        existing = (loadYaml(await Bun.file(apiTokenFilePath).text()) as Record<string, unknown>) ?? {};
-      }
-
-      existing.api_token = apiToken;
-
-      await Bun.write(apiTokenFilePath, dumpYaml(existing));
-
-      return true;
-    } catch {
-      return false;
-    }
+    return saveCredentials({ apiToken });
   }
 
   private cancelHandler(value: unknown, output: Output): void {
