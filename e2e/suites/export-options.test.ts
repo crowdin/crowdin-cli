@@ -56,14 +56,14 @@ describe('export options', () => {
   test('uploads sources for both files', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File '1_android.xml'");
     expect(result.stdout).toContain("File '2_android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     const configResult = await ctx.runner.run(['config', 'sources']);
 
-    expect(configResult.exitCode).toBe(0);
+    expect(configResult).toMatchObject({ exitCode: 0 });
     expect(configResult.stdout).toContain('1_android.xml');
     expect(configResult.stdout).toContain('2_android.xml');
   });
@@ -71,7 +71,7 @@ describe('export options', () => {
   test('reports no fully translated files when skipping untranslated files via the CLI flag, before any translations exist', async () => {
     const result = await ctx.runner.run(['download', 'translations', '--skip-untranslated-files']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stderr).toContain(
       "Couldn't find any file to download. Since you are using the 'Skip untranslated files' option, please " +
         'make sure you have fully translated files',
@@ -84,7 +84,7 @@ describe('export options', () => {
 
     const result = await ctx.runner.run(['download', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stderr).toContain(
       "Couldn't find any file to download. Since you are using the 'Skip untranslated files' option, please " +
         'make sure you have fully translated files',
@@ -99,7 +99,7 @@ describe('export options', () => {
 
     const result = await ctx.runner.run(['upload', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/it/1_android.xml'");
     expect(result.stdout).toContain("File 'translations/it/2_android.xml'");
     expect(result.stdout).toContain("File 'translations/uk/1_android.xml'");
@@ -130,7 +130,7 @@ describe('export options', () => {
 
     const result = await ctx.runner.run(['upload', 'translations', '--auto-approve-imported']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/it/1_android.xml'");
     expect(result.stdout).toContain("File 'translations/it/2_android.xml'");
     expect(result.stdout).toContain("File 'translations/uk/1_android.xml'");
@@ -146,7 +146,7 @@ describe('export options', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '--skip-untranslated-strings']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectDownloadedFilesMatch(ctx, 'skip-strings', [
@@ -162,7 +162,7 @@ describe('export options', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '--skip-untranslated-files']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectDownloadedFilesMatch(ctx, 'skip-files', ['it/1_android.xml', 'uk/1_android.xml']);
@@ -173,7 +173,7 @@ describe('export options', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '--export-only-approved']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectDownloadedFilesMatch(ctx, 'approved', [
@@ -194,7 +194,7 @@ describe('export options', () => {
       '--export-only-approved',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectDownloadedFilesMatch(ctx, 'skip-strings-approved', [
@@ -215,7 +215,7 @@ describe('export options', () => {
       '--export-only-approved',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     // uk/1_android.xml is 100% translated and approved, so skipping untranslated *files* and skipping
@@ -248,7 +248,7 @@ describe('export options', () => {
 
     const result = await ctx.runner.run(['download', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectDownloadedFilesMatch(ctx, 'skip-strings', [
@@ -265,7 +265,7 @@ describe('export options', () => {
 
     const result = await ctx.runner.run(['download', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectDownloadedFilesMatch(ctx, 'skip-files', ['it/1_android.xml', 'uk/1_android.xml']);
@@ -277,7 +277,7 @@ describe('export options', () => {
 
     const result = await ctx.runner.run(['download', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectDownloadedFilesMatch(ctx, 'approved', [
@@ -294,7 +294,7 @@ describe('export options', () => {
 
     const result = await ctx.runner.run(['download', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectDownloadedFilesMatch(ctx, 'skip-strings-approved', [
@@ -311,7 +311,7 @@ describe('export options', () => {
 
     const result = await ctx.runner.run(['download', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectDownloadedFilesMatch(ctx, 'skip-strings-approved', ['uk/1_android.xml']);
@@ -322,7 +322,7 @@ describe('export options', () => {
 
     const result = await ctx.runner.run(['download', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stderr).toContain('Exporting strings that passed workflow is supported only for Crowdin Enterprise');
     expect(result.stdout).toContain("File 'translations/it/1_android.xml' extracted");
     expect(result.stdout).toContain("File 'translations/it/2_android.xml' extracted");
@@ -337,7 +337,7 @@ describe('export options', () => {
 
     const result = await ctx.runner.run(['download', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/it/1_android.xml' extracted");
     expect(result.stdout).toContain("File 'translations/uk/1_android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();

@@ -21,7 +21,7 @@ describe('auto update', () => {
   test('uploads sources, creating both files', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File '1_android.xml'");
     expect(result.stdout).toContain("File '2_android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -34,7 +34,7 @@ describe('auto update', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File '1_android.xml'");
     expect(result.stdout).toContain("File '2_android.xml'");
     expect(result.stdout).toContain("File '3_android.xml'");
@@ -64,7 +64,7 @@ describe('auto update', () => {
 
     const result = await ctx.runner.run(['upload', 'sources', '--no-auto-update']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File '1_android.xml' already exists and will not be updated");
     expect(result.stdout).toContain("File '2_android.xml' already exists and will not be updated");
     expect(result.stdout).toContain("File '3_android.xml' already exists and will not be updated");

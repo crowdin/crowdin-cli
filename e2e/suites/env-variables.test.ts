@@ -40,11 +40,7 @@ describe('env variables', () => {
   test('uploads sources using credentials read from an env file', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File '1_android.xml'");
     expect(result.stdout).toContain("File '2_android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -53,11 +49,7 @@ describe('env variables', () => {
   test('uploads translations using credentials read from an env file', async () => {
     const result = await ctx.runner.run(['upload', 'translations']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/it/1_android.xml'");
     expect(result.stdout).toContain("File 'translations/it/2_android.xml'");
     expect(result.stdout).toContain("File 'translations/uk/1_android.xml'");
@@ -73,11 +65,7 @@ describe('env variables', () => {
 
     const result = await ctx.runner.run(['download', 'translations']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/it/1_android.xml' extracted");
     expect(result.stdout).toContain("File 'translations/it/2_android.xml' extracted");
     expect(result.stdout).toContain("File 'translations/uk/1_android.xml' extracted");
@@ -110,11 +98,7 @@ describe('env variables', () => {
       env: { TEST_API_TOKEN_ENV: ctx.env.token as string },
     });
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File '1_android.xml'");
     expect(result.stdout).toContain("File '2_android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();

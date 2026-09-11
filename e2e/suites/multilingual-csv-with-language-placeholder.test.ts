@@ -27,7 +27,7 @@ describe('multilingual csv with language placeholder', () => {
   test('uploads multilingual CSV sources', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Directory 'sources'");
     expect(result.stdout).toContain("File 'sources/1_multilingual.csv'");
     expect(result.stdout).toContain("File 'sources/2_multilingual.csv'");
@@ -37,7 +37,7 @@ describe('multilingual csv with language placeholder', () => {
   test('uploads translations for every target language', async () => {
     const result = await ctx.runner.run(['upload', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Importing translations for file 'translations/it/1_multilingual.csv'");
     expect(result.stdout).toContain("Importing translations for file 'translations/it/2_multilingual.csv'");
     expect(result.stdout).toContain("Importing translations for file 'translations/uk/1_multilingual.csv'");
@@ -52,7 +52,7 @@ describe('multilingual csv with language placeholder', () => {
   test('uploads translations for a single language via --language', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '--language', 'uk']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Importing translations for file 'translations/uk/1_multilingual.csv'");
     expect(result.stdout).toContain("Importing translations for file 'translations/uk/2_multilingual.csv'");
     expect(result.stdout).toContain("File 'translations/uk/1_multilingual.csv'");
@@ -65,7 +65,7 @@ describe('multilingual csv with language placeholder', () => {
   test('previews the translation download (dryrun)', async () => {
     const result = await ctx.runner.run(['download', 'translations', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('translations/it/1_multilingual.csv');
     expect(result.stdout).toContain('translations/it/2_multilingual.csv');
     expect(result.stdout).toContain('translations/uk/1_multilingual.csv');
@@ -78,7 +78,7 @@ describe('multilingual csv with language placeholder', () => {
 
     const result = await ctx.runner.run(['download', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/it/1_multilingual.csv' extracted");
     expect(result.stdout).toContain("File 'translations/it/2_multilingual.csv' extracted");
     expect(result.stdout).toContain("File 'translations/uk/1_multilingual.csv' extracted");
@@ -104,7 +104,7 @@ describe('multilingual csv with language placeholder', () => {
 
     const result = await ctx.runner.run(['upload', 'sources', '--base-path', 'rev2']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'sources/1_multilingual.csv'");
     expect(result.stdout).toContain("File 'sources/2_multilingual.csv'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -113,7 +113,7 @@ describe('multilingual csv with language placeholder', () => {
   test('downloads translations at the new translations-v2 destination', async () => {
     const result = await ctx.runner.run(['download', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations-v2/it/1_multilingual.csv' extracted");
     expect(result.stdout).toContain("File 'translations-v2/it/2_multilingual.csv' extracted");
     expect(result.stdout).toContain("File 'translations-v2/uk/1_multilingual.csv' extracted");
@@ -126,7 +126,7 @@ describe('multilingual csv with language placeholder', () => {
 
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Directory 'sources'");
     expect(result.stdout).toContain("File 'sources/1_multilingual.csv'");
     expect(result.stdout).toContain("File 'sources/2_multilingual.csv'");
@@ -136,7 +136,7 @@ describe('multilingual csv with language placeholder', () => {
   test('updates sources on the branch (branch already exists)', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'sources/1_multilingual.csv'");
     expect(result.stdout).toContain("File 'sources/2_multilingual.csv'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -145,7 +145,7 @@ describe('multilingual csv with language placeholder', () => {
   test('uploads translations on the branch', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '-b', 'test-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Importing translations for file 'translations/it/1_multilingual.csv'");
     expect(result.stdout).toContain("Importing translations for file 'translations/it/2_multilingual.csv'");
     expect(result.stdout).toContain("Importing translations for file 'translations/uk/1_multilingual.csv'");
@@ -163,7 +163,7 @@ describe('multilingual csv with language placeholder', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '-b', 'test-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/it/1_multilingual.csv' extracted");
     expect(result.stdout).toContain("File 'translations/it/2_multilingual.csv' extracted");
     expect(result.stdout).toContain("File 'translations/uk/1_multilingual.csv' extracted");

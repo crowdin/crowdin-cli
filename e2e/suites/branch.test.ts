@@ -76,7 +76,7 @@ describe('branch', () => {
   test('prints help when invoked without a subcommand', async () => {
     const result = await ctx.runner.run(['branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Manage branches in a Crowdin project');
 
     for (const subcommand of ['list', 'add', 'delete', 'edit', 'clone', 'merge']) {
@@ -96,7 +96,7 @@ describe('branch', () => {
   test('lists the branch a new project starts with', async () => {
     const result = await ctx.runner.run(['branch', 'list']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(DEFAULT_BRANCH);
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -111,7 +111,7 @@ describe('branch', () => {
   test('adds a branch', async () => {
     const result = await ctx.runner.run(['branch', 'add', MAIN_BRANCH]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(MAIN_BRANCH);
     expect(normalize(result.stdout)).toMatchSnapshot();
     expect(await listBranchNames()).toEqual([DEFAULT_BRANCH, MAIN_BRANCH]);
@@ -120,7 +120,7 @@ describe('branch', () => {
   test('warns instead of failing when the branch already exists', async () => {
     const result = await ctx.runner.run(['branch', 'add', MAIN_BRANCH]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stderr).toContain(`Branch '${MAIN_BRANCH}' already exists in the project`);
     expect(await listBranchNames()).toEqual([DEFAULT_BRANCH, MAIN_BRANCH]);
   });
@@ -128,7 +128,7 @@ describe('branch', () => {
   test('adds a branch with a title', async () => {
     const result = await ctx.runner.run(['branch', 'add', FEATURE_BRANCH, '--title', 'Feature work']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect((await findBranch(FEATURE_BRANCH)).title).toBe('Feature work');
   });
 
@@ -147,7 +147,7 @@ describe('branch', () => {
       String(fileBasedProjectId),
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const branch = await findBranch('prioritized', fileBasedProjectId);
 
@@ -166,7 +166,7 @@ describe('branch', () => {
       String(fileBasedProjectId),
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect((await findBranch('prioritized', fileBasedProjectId)).priority).toBe('low');
   });
 
@@ -182,7 +182,7 @@ describe('branch', () => {
   test('normalizes a branch name and keeps the original as the title', async () => {
     const result = await ctx.runner.run(['branch', 'add', SLASHED_BRANCH]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(NORMALIZED_BRANCH);
 
     const branch = await findBranch(NORMALIZED_BRANCH);
@@ -193,7 +193,7 @@ describe('branch', () => {
   test('lists every branch', async () => {
     const result = await ctx.runner.run(['branch', 'list']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     for (const name of [DEFAULT_BRANCH, MAIN_BRANCH, FEATURE_BRANCH, NORMALIZED_BRANCH]) {
       expect(result.stdout).toContain(name);
@@ -203,7 +203,7 @@ describe('branch', () => {
   test('lists branch names only in the plain output', async () => {
     const result = await ctx.runner.run(['branch', 'list', '--output', 'plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout.trim().split('\n').sort()).toEqual(
       [DEFAULT_BRANCH, FEATURE_BRANCH, MAIN_BRANCH, NORMALIZED_BRANCH].sort(),
     );
@@ -212,7 +212,7 @@ describe('branch', () => {
   test('lists branches as structured data', async () => {
     const result = await ctx.runner.run(['branch', 'list', '--output', 'json']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const branches = JSON.parse(result.stdout) as { id: number; name: string }[];
 
@@ -227,7 +227,7 @@ describe('branch', () => {
     const name = `${STRUCTURED_BRANCH}-${format}`;
     const result = await ctx.runner.run(['branch', 'add', name, '--output', format]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(format === 'json' ? JSON.parse(result.stdout) : decode(result.stdout)).toEqual({
       id: expect.any(Number),
       name,
@@ -251,7 +251,7 @@ describe('branch', () => {
   test('renames a branch', async () => {
     const result = await ctx.runner.run(['branch', 'edit', FEATURE_BRANCH, '--name', RENAMED_BRANCH]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(RENAMED_BRANCH);
     expect(await listBranchNames()).toContain(RENAMED_BRANCH);
     expect(await listBranchNames()).not.toContain(FEATURE_BRANCH);
@@ -260,14 +260,14 @@ describe('branch', () => {
   test('edits the title', async () => {
     const result = await ctx.runner.run(['branch', 'edit', RENAMED_BRANCH, '--title', 'Renamed feature']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect((await findBranch(RENAMED_BRANCH)).title).toBe('Renamed feature');
   });
 
   test('clones a branch', async () => {
     const result = await ctx.runner.run(['branch', 'clone', MAIN_BRANCH, CLONE_TARGET]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(CLONE_TARGET);
     expect(normalize(result.stdout)).toMatchSnapshot();
     expect(await listBranchNames()).toContain(CLONE_TARGET);
@@ -290,21 +290,21 @@ describe('branch', () => {
   test('merges a branch, carrying its strings into the target', async () => {
     const add = await ctx.runner.run(['branch', 'add', MERGE_SOURCE]);
 
-    expect(add.exitCode).toBe(0);
+    expect(add).toMatchObject({ exitCode: 0 });
 
     const addString = await ctx.runner.run(['string', 'add', MERGED_STRING, '-b', MERGE_SOURCE]);
 
-    expect(addString.exitCode).toBe(0);
+    expect(addString).toMatchObject({ exitCode: 0 });
 
     const dryRun = await ctx.runner.run(['branch', 'merge', MERGE_SOURCE, MAIN_BRANCH, '--dryrun']);
 
-    expect(dryRun.exitCode).toBe(0);
+    expect(dryRun).toMatchObject({ exitCode: 0 });
     expect(dryRun.stdout).toContain(`Merged branch '${MERGE_SOURCE}' into '${MAIN_BRANCH}'`);
     expect(await branchStringTexts(MAIN_BRANCH)).toEqual([]);
 
     const result = await ctx.runner.run(['branch', 'merge', MERGE_SOURCE, MAIN_BRANCH]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Merge summary');
     expect(normalize(result.stdout)).toMatchSnapshot();
     expect(await branchStringTexts(MAIN_BRANCH)).toEqual([MERGED_STRING]);
@@ -314,14 +314,14 @@ describe('branch', () => {
   test('deletes the source branch with --delete-after-merge', async () => {
     const result = await ctx.runner.run(['branch', 'merge', MERGE_SOURCE, MAIN_BRANCH, '--delete-after-merge']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(await listBranchNames()).not.toContain(MERGE_SOURCE);
   });
 
   test('warns instead of failing when deleting a branch that does not exist', async () => {
     const result = await ctx.runner.run(['branch', 'delete', 'no-such-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stderr).toContain("Branch 'no-such-branch' doesn't exist in the project");
   });
 
@@ -329,7 +329,7 @@ describe('branch', () => {
     const result = await ctx.runner.run(['branch', 'delete', 'no-such-branch', '--output', format]);
     const parse = format === 'json' ? JSON.parse : decode;
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout.trim()).toBe('');
     expect(parse(result.stderr)).toEqual({
       level: 'warning',
@@ -340,7 +340,7 @@ describe('branch', () => {
   test('deletes a branch', async () => {
     const result = await ctx.runner.run(['branch', 'delete', CLONE_TARGET]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(`Branch '${CLONE_TARGET}' deleted`);
     expect(normalize(result.stdout)).toMatchSnapshot();
     expect(await listBranchNames()).not.toContain(CLONE_TARGET);

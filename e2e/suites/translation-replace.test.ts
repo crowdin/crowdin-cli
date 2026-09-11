@@ -86,7 +86,7 @@ describe('translation replace', () => {
   test('uploads sources, creating the nested directory hierarchy', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Directory 'en'");
     expect(result.stdout).toContain("Directory 'en/src'");
     expect(result.stdout).toContain("Directory 'en/src/main'");
@@ -107,7 +107,7 @@ describe('translation replace', () => {
   test('updates the existing sources without creating anything new', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).not.toContain('created');
     expect(result.stdout).toContain("File 'en/src/main/resources/android.xml'");
     expect(result.stdout).toContain("File 'en/src/main/resources/org/crowdin/android.xml'");
@@ -120,7 +120,7 @@ describe('translation replace', () => {
   test('previews uploading translations as a dry run', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'it/src/main/resources/android.xml' would be queued for translations import");
     expect(result.stdout).toContain(
       "File 'uk/src/main/resources/org/crowdin/strings.xml' would be queued for translations import",
@@ -131,7 +131,7 @@ describe('translation replace', () => {
   test('uploads translations for it and uk', async () => {
     const result = await ctx.runner.run(['upload', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Importing translations for file 'it/src/main/resources/android.xml'");
     expect(result.stdout).toContain("Importing translations for file 'uk/src/main/resources/org/crowdin/strings.xml'");
     expect(result.stdout).toContain("File 'it/src/main/resources/android.xml'");
@@ -146,7 +146,7 @@ describe('translation replace', () => {
   test('previews downloading translations as a dry run', async () => {
     const result = await ctx.runner.run(['download', 'translations', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('it/src/main/resources/android.xml');
     expect(result.stdout).toContain('uk/src/main/resources/org/crowdin/strings.xml');
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -160,7 +160,7 @@ describe('translation replace', () => {
 
     const result = await ctx.runner.run(['download', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'it/src/main/resources/android.xml' extracted");
     expect(result.stdout).toContain("File 'uk/src/main/resources/org/crowdin/strings.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -196,7 +196,7 @@ describe('translation replace', () => {
   test('uploads sources to a brand-new branch, creating the directory hierarchy again', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     // Directories are per-branch entities in Crowdin, so the branch gets its own fresh set even
     // though a same-named tree already exists on master; messages use the LOCAL path (no
     // "test-branch/" prefix), matching file-tree.test.ts's confirmed branch-upload wording.
@@ -215,11 +215,7 @@ describe('translation replace', () => {
   test('updates sources on the branch (branch already exists)', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).not.toContain('created');
     expect(result.stdout).toContain("File 'en/src/main/resources/android.xml'");
     expect(result.stdout).toContain("File 'en/src/main/resources/org/crowdin/android.xml'");
@@ -232,7 +228,7 @@ describe('translation replace', () => {
   test('previews uploading translations as a dry run on the branch', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '--dryrun', '-b', 'test-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     // Dry-run listing is driven purely by local file existence at the same local destination paths
     // used on master (the config has no branch-name placeholder), so this is expected to read
     // identically to the non-branch dry run above.
@@ -246,7 +242,7 @@ describe('translation replace', () => {
   test('re-uploads translations to the already-translated master files (no -b, matching the literal PHP call)', async () => {
     const result = await ctx.runner.run(['upload', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Importing translations for file 'it/src/main/resources/android.xml'");
     expect(result.stdout).toContain("File 'it/src/main/resources/android.xml'");
     expect(result.stdout).toContain("File 'uk/src/main/resources/org/crowdin/strings.xml'");
@@ -256,7 +252,7 @@ describe('translation replace', () => {
   test('previews downloading translations on the branch as a dry run', async () => {
     const result = await ctx.runner.run(['download', 'translations', '-b', 'test-branch', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('it/src/main/resources/android.xml');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -267,11 +263,7 @@ describe('translation replace', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '-b', 'test-branch']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'it/src/main/resources/android.xml' extracted");
     expect(result.stdout).toContain("File 'uk/src/main/resources/org/crowdin/strings.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();

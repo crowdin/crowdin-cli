@@ -35,7 +35,7 @@ describe('app', () => {
   async function listInstalled(): Promise<ListedApp[]> {
     const result = await ctx.runner.run(['app', 'list', '--output', 'json']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     return JSON.parse(result.stdout) as ListedApp[];
   }
@@ -60,7 +60,7 @@ describe('app', () => {
   test('prints help when invoked without a subcommand', async () => {
     const result = await ctx.runner.run(['app']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Manage apps');
     expect(result.stdout).toContain('list');
     expect(result.stdout).toContain('install');
@@ -77,7 +77,7 @@ describe('app', () => {
   test('lists the installed applications as structured data', async () => {
     const result = await ctx.runner.run(['app', 'list', '--output', 'json']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     listedApps = JSON.parse(result.stdout) as ListedApp[];
 
@@ -93,7 +93,7 @@ describe('app', () => {
   test('lists identifiers alone with --output plain', async () => {
     const result = await ctx.runner.run(['app', 'list', '--output', 'plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout.split('\n').filter((line) => line.length > 0)).toEqual(
       listedApps.map((app) => app.identifier),
     );
@@ -102,7 +102,7 @@ describe('app', () => {
   test('renders the same applications in the default text format', async () => {
     const result = await ctx.runner.run(['app', 'list']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     if (listedApps.length === 0) {
       expect(result.stdout).toContain('No applications found');
@@ -157,7 +157,7 @@ describe('app', () => {
 
     installedByThisRun = result.exitCode === 0;
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Application has been installed');
     expect(result.stdout).toContain(`${INSTALLABLE_IDENTIFIER} ${INSTALLABLE_NAME}`);
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -173,7 +173,7 @@ describe('app', () => {
   test('uninstalls the application again', async () => {
     const result = await ctx.runner.run(['app', 'uninstall', INSTALLABLE_IDENTIFIER]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Application has been uninstalled');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });

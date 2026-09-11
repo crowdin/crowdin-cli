@@ -60,11 +60,7 @@ describe('translation patterns', () => {
   test('uploads sources across every placeholder-pattern file group', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     for (const path of [
       'android_code/android.xml',
@@ -87,7 +83,7 @@ describe('translation patterns', () => {
   test('previews the translation upload across every placeholder-pattern file group', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     for (const path of TRANSLATION_PATHS) {
       expect(result.stdout).toContain(`File '${path}' would be queued for translations import`);
@@ -99,11 +95,7 @@ describe('translation patterns', () => {
   test('uploads translations across every placeholder-pattern file group', async () => {
     const result = await ctx.runner.run(['upload', 'translations']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     for (const path of TRANSLATION_PATHS) {
       expect(result.stdout).toContain(`File '${path}'`);
@@ -115,7 +107,7 @@ describe('translation patterns', () => {
   test('previews the translation download across every placeholder-pattern file group', async () => {
     const result = await ctx.runner.run(['download', 'translations', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     for (const path of TRANSLATION_PATHS) {
       expect(result.stdout).toContain(path);
@@ -131,11 +123,7 @@ describe('translation patterns', () => {
 
     const result = await ctx.runner.run(['download', 'translations']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     for (const path of TRANSLATION_PATHS) {
       expect(result.stdout).toContain(`File '${path}' extracted`);
@@ -149,7 +137,7 @@ describe('translation patterns', () => {
   test('lists configured translation files across every placeholder-pattern file group', async () => {
     const result = await ctx.runner.run(['config', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     for (const path of TRANSLATION_PATHS) {
       expect(result.stdout).toContain(path);

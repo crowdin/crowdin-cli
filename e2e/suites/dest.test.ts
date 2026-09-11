@@ -60,11 +60,7 @@ describe('dest', () => {
   test('uploads sources across dest-remapped file groups', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     // Success echoes the `dest`-remapped project path, not the local one.
     expect(result.stdout).toContain("File 'Android.xml'");
@@ -85,11 +81,7 @@ describe('dest', () => {
   test('uploads translations across dest-remapped file groups', async () => {
     const result = await ctx.runner.run(['upload', 'translations']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     // Local translation paths come from each group's `translation:` pattern alone - `dest` never
     // enters into them.
@@ -135,11 +127,7 @@ describe('dest', () => {
 
     const result = await ctx.runner.run(['download', 'translations']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectRestored(ctx.workspace, captured);
@@ -148,11 +136,7 @@ describe('dest', () => {
   test('uploads sources to a branch with dest remapping', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     // No branch-creation message is printed, here or in Java.
     expect(result.stdout).toContain("File 'Android.xml'");
     expect(result.stdout).toContain("Directory 'Folder'");
@@ -168,11 +152,7 @@ describe('dest', () => {
   test('uploads translations to the branch', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '-b', 'test-branch']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'android_it_IT.xml'");
     expect(result.stdout).toContain("File 'android_uk_UA.xml'");
 
@@ -182,11 +162,7 @@ describe('dest', () => {
   test('downloads translations from the branch', async () => {
     const result = await ctx.runner.run(['download', 'translations', '-b', 'test-branch']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectFilesExist(ctx.workspace, 'android_it_IT.xml', 'android_uk_UA.xml');
@@ -216,11 +192,7 @@ describe('dest', () => {
       { noConfig: true },
     );
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Directory 'SingleDest'");
     expect(result.stdout).toContain("Directory 'SingleDest/xml'");
     expect(result.stdout).toContain("Directory 'SingleDest/xml/android'");

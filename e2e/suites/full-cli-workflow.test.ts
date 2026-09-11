@@ -19,99 +19,91 @@ describe('full CLI project workflow', () => {
   test('previews the source upload', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('previews the source upload as a tree', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '--dryrun', '--tree']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('previews the source upload as plain output', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '--dryrun', '--output', 'plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('uploads all source files to a fresh project', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('updates existing source files', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('previews the translation upload', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('previews the translation upload as a tree', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '--dryrun', '--tree']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('previews the translation upload as plain output', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '--dryrun', '--output', 'plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('uploads translations for every target language', async () => {
     const result = await ctx.runner.run(['upload', 'translations']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('uploads translations for a single language', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '--language', 'uk']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('previews the translation download', async () => {
     const result = await ctx.runner.run(['download', 'translations', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('previews the translation download as a tree', async () => {
     const result = await ctx.runner.run(['download', 'translations', '--dryrun', '--tree']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('previews the translation download as plain output', async () => {
     const result = await ctx.runner.run(['download', 'translations', '--dryrun', '--output', 'plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -129,11 +121,7 @@ describe('full CLI project workflow', () => {
 
     const result = await ctx.runner.run(['download', 'translations']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectFilesExist(
@@ -161,11 +149,7 @@ describe('full CLI project workflow', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '--language', 'uk']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectFilesExist(
@@ -180,7 +164,7 @@ describe('full CLI project workflow', () => {
   test('lists project source files', async () => {
     const result = await ctx.runner.run(['file', 'list']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('sources/alpha.md');
     expect(result.stdout).toContain('sources/beta.md');
     expect(result.stdout).toContain('sources/gamma.md');
@@ -189,49 +173,49 @@ describe('full CLI project workflow', () => {
   test('lists project source files as a tree', async () => {
     const result = await ctx.runner.run(['file', 'list', '--tree']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('lists configured source files', async () => {
     const result = await ctx.runner.run(['config', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('lists configured source files as a tree', async () => {
     const result = await ctx.runner.run(['config', 'sources', '--tree']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('lists configured translation files', async () => {
     const result = await ctx.runner.run(['config', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('lists configured translation files as a tree', async () => {
     const result = await ctx.runner.run(['config', 'translations', '--tree']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('lists target languages', async () => {
     const result = await ctx.runner.run(['language', 'list']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('downloads sources', async () => {
     const result = await ctx.runner.run(['download', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectFilesExist(ctx.workspace, 'sources/alpha.md', 'sources/beta.md', 'sources/gamma.md');
@@ -240,7 +224,7 @@ describe('full CLI project workflow', () => {
   test('validates a correct configuration file', async () => {
     const result = await ctx.runner.run(['config', 'lint']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 

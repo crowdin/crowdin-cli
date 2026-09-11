@@ -107,7 +107,7 @@ describe('file tree', () => {
   test('previews uploading sources as a dry run', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(
       "File 'php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties' would be created",
     );
@@ -132,7 +132,7 @@ describe('file tree', () => {
   test('uploads sources, creating the full nested directory hierarchy', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     // Representative sample of the 42 distinct directories this creates; the rest is snapshotted.
     expect(result.stdout).toContain("Directory 'php'");
     expect(result.stdout).toContain("Directory 'php/hudson.php'");
@@ -159,7 +159,7 @@ describe('file tree', () => {
   test('updates the existing sources (no new directories)', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).not.toContain('created');
     expect(result.stdout).toContain(
       "File 'php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties'",
@@ -182,7 +182,7 @@ describe('file tree', () => {
   test('uploads translations for a single language (uk)', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '-l', 'uk']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(
       "File 'uk/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties'",
     );
@@ -203,7 +203,7 @@ describe('file tree', () => {
   test('uploads translations for all languages', async () => {
     const result = await ctx.runner.run(['upload', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(
       "File 'it/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties'",
     );
@@ -236,7 +236,7 @@ describe('file tree', () => {
   test('previews downloading translations as a dry run', async () => {
     const result = await ctx.runner.run(['download', 'translations', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(
       'it/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties',
     );
@@ -252,11 +252,7 @@ describe('file tree', () => {
 
     const result = await ctx.runner.run(['download', 'translations']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(
       "File 'it/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties' extracted",
     );
@@ -271,7 +267,7 @@ describe('file tree', () => {
   test('lists the uploaded source files', async () => {
     const result = await ctx.runner.run(['file', 'list']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties');
     expect(result.stdout).toContain('php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties');
     expect(result.stdout).toContain(
@@ -290,7 +286,7 @@ describe('file tree', () => {
   test('uploads sources to a brand-new branch, creating the directory hierarchy again', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'branch1']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     // `upload sources -b <branch>` prints no branch-creation message at all (getOrCreateBranch is
     // silent) - confirmed by reading UploadSourcesCommand.ts, matching this effort's established
     // BranchCommand/UploadSourcesCommand wording note. Directory/file messages use the LOCAL path,
@@ -322,11 +318,7 @@ describe('file tree', () => {
   test('updates sources on the branch (branch already exists)', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'branch1']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).not.toContain('created');
     expect(result.stdout).toContain(
       "File 'php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties'",
@@ -351,11 +343,7 @@ describe('file tree', () => {
   test('uploads translations for a single language (uk) on the branch', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '-b', 'branch1', '-l', 'uk']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(
       "File 'uk/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties'",
     );
@@ -375,11 +363,7 @@ describe('file tree', () => {
   test('uploads translations for all languages on the branch', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '-b', 'branch1']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(
       "File 'it/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties'",
     );
@@ -394,7 +378,7 @@ describe('file tree', () => {
   test('previews downloading translations on the branch as a dry run', async () => {
     const result = await ctx.runner.run(['download', 'translations', '-b', 'branch1', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(
       'it/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties',
     );
@@ -408,11 +392,7 @@ describe('file tree', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '-b', 'branch1']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(
       "File 'it/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties' extracted",
     );
@@ -429,7 +409,7 @@ describe('file tree', () => {
   test('lists source files on the branch', async () => {
     const result = await ctx.runner.run(['file', 'list', '-b', 'branch1']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     // Unlike `upload`'s success messages, `file list`'s paths come straight from the server's raw
     // (branch-prefixed) `file.data.path` with only a leading-slash strip - no `stripBranchPrefix` -
     // so these DO carry the "branch1/" prefix, matching the PHP original.

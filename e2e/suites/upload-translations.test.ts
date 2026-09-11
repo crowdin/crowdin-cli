@@ -63,7 +63,7 @@ describe('upload translations', () => {
   test('uploads the sources the rest of the suite translates', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     sharedStringId = await findStringId('shared');
     secretStringId = await findStringId('secret');
@@ -77,7 +77,7 @@ describe('upload translations', () => {
   test('imports neither an identical string nor a hidden one by default', async () => {
     const result = await ctx.runner.run(['upload', 'translations']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     // `shared` carries the same text in source and translation; `secret` is hidden.
     expect(await translationCount(sharedStringId)).toBe(0);
@@ -87,7 +87,7 @@ describe('upload translations', () => {
   test('imports a translation equal to the source with --import-eq-suggestions', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '--import-eq-suggestions']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(await translationCount(sharedStringId)).toBeGreaterThan(0);
     // Still untouched: this flag decides about identical text, not about hidden strings, so the
     // next test cannot pass on the back of this run.
@@ -97,7 +97,7 @@ describe('upload translations', () => {
   test('imports a translation for a hidden string with --translate-hidden', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '--translate-hidden']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(await translationCount(secretStringId)).toBeGreaterThan(0);
   });
 

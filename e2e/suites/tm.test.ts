@@ -216,7 +216,7 @@ describe('tm', () => {
   test('uploads a TMX translation memory, creating it', async () => {
     const result = await ctx.runner.run(['tm', 'upload', 'sources/simple-tm.tmx', '--language', 'en']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Imported in #');
     expect(result.stdout).toContain("'Created in Crowdin CLI (simple-tm.tmx)' translation memory");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -244,7 +244,7 @@ describe('tm', () => {
       '--first-line-contains-header',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("'Created in Crowdin CLI (simple-tm.csv)' translation memory");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -270,7 +270,7 @@ describe('tm', () => {
       'zh-CN=5',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("'Created in Crowdin CLI (simple-tm.xlsx)' translation memory");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -280,7 +280,7 @@ describe('tm', () => {
   test('lists all translation memories in the project', async () => {
     const result = await ctx.runner.run(['tm', 'list']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(defaultTmName(ctx));
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-tm.tmx)');
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-tm.csv)');
@@ -302,7 +302,7 @@ describe('tm', () => {
   test('serializes id, name and segment count in the json listing', async () => {
     const result = await ctx.runner.run(['tm', 'list', '--output', 'json']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const listed = JSON.parse(result.stdout) as { id: number; name: string; segmentsCount: number }[];
     const suiteTms = listed.filter((tm) => SUITE_TM_NAMES.includes(tm.name));
@@ -316,7 +316,7 @@ describe('tm', () => {
     const json = await ctx.runner.run(['tm', 'list', '--output', 'json']);
     const toon = await ctx.runner.run(['tm', 'list', '--output', 'toon']);
 
-    expect(toon.exitCode).toBe(0);
+    expect(toon).toMatchObject({ exitCode: 0 });
     // Two runs over an account-wide listing: a TM another suite adds between them must not read as
     // a difference. This failed once under --parallel before the filter went in.
     expect(suiteEntries(decode(toon.stdout))).toEqual(suiteEntries(json.stdout));
@@ -325,7 +325,7 @@ describe('tm', () => {
   test('lists bare names in the plain output', async () => {
     const result = await ctx.runner.run(['tm', 'list', '--output', 'plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const names = result.stdout.split('\n').filter((line) => line.length > 0);
 
@@ -375,7 +375,7 @@ describe('tm', () => {
 
     const result = await ctx.runner.run(['tm', 'download', String(tmxId), '--format', 'tmx']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Building translation memory');
     expect(result.stdout).toContain(`'${file}' downloaded successfully`);
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -390,7 +390,7 @@ describe('tm', () => {
 
     const result = await ctx.runner.run(['tm', 'download', String(csvId), '--format', 'csv']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Building translation memory');
     expect(result.stdout).toContain(`'${file}' downloaded successfully`);
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -405,7 +405,7 @@ describe('tm', () => {
 
     const result = await ctx.runner.run(['tm', 'download', String(xlsxId), '--format', 'xlsx']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Building translation memory');
     expect(result.stdout).toContain(`'${file}' downloaded successfully`);
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -430,7 +430,7 @@ describe('tm', () => {
       'uk',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(`'${file}' downloaded successfully`);
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -446,7 +446,7 @@ describe('tm', () => {
 
     const result = await ctx.runner.run(['tm', 'download', String(tmxId)]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(`'${file}' downloaded successfully`);
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -457,7 +457,7 @@ describe('tm', () => {
 
     const result = await ctx.runner.run(['tm', 'download', String(defaultTmId)]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(`'${file}' downloaded successfully`);
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -466,12 +466,12 @@ describe('tm', () => {
     const file = 'download/plain-output.tmx';
     const plain = await ctx.runner.run(['tm', 'download', String(tmxId), '--to', file, '--output', 'plain']);
 
-    expect(plain.exitCode).toBe(0);
+    expect(plain).toMatchObject({ exitCode: 0 });
     expect(plain.stdout.trim()).toBe(file);
 
     const json = await ctx.runner.run(['tm', 'download', String(tmxId), '--to', file, '--output', 'json']);
 
-    expect(json.exitCode).toBe(0);
+    expect(json).toMatchObject({ exitCode: 0 });
     expect(JSON.parse(json.stdout)).toBe(file);
   });
 
@@ -490,7 +490,7 @@ describe('tm', () => {
       'json',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const imported = JSON.parse(result.stdout) as { id: number; name: string; segmentsCount: number };
 
@@ -520,7 +520,7 @@ describe('tm', () => {
       'json',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect((JSON.parse(result.stdout) as { id: number }).id).toBe(csvId);
   });
 
@@ -536,7 +536,7 @@ describe('tm', () => {
 
     const result = await ctx.runner.run(['tm', 'list', '-T', ctx.env.token as string]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(defaultTmName(ctx));
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-tm.tmx)');
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-tm.csv)');

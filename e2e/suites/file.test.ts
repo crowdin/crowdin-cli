@@ -30,7 +30,7 @@ describe('file', () => {
   async function listedPaths(args: string[] = []): Promise<string[]> {
     const result = await ctx.runner.run(['file', 'list', '--output', 'json', ...args]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     return (JSON.parse(result.stdout) as { path: string }[]).map((file) => file.path).sort();
   }
@@ -38,7 +38,7 @@ describe('file', () => {
   test('prints help when invoked without a subcommand', async () => {
     const result = await ctx.runner.run(['file']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Manage source files and translations in a Crowdin project');
 
     for (const subcommand of ['list', 'upload', 'download', 'delete']) {
@@ -98,7 +98,7 @@ describe('file', () => {
   test('uploads a file, creating its directory', async () => {
     const result = await ctx.runner.run(['file', 'upload', SOURCE_FILE]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Directory 'sources'");
     expect(result.stdout).toContain(SOURCE_FILE);
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -108,7 +108,7 @@ describe('file', () => {
   test('updates the file on a second upload', async () => {
     const result = await ctx.runner.run(['file', 'upload', SOURCE_FILE]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(`File '${SOURCE_FILE}'`);
     expect(await listedPaths()).toEqual([`/${SOURCE_FILE}`]);
   });
@@ -116,7 +116,7 @@ describe('file', () => {
   test('skips an existing file with --no-auto-update', async () => {
     const result = await ctx.runner.run(['file', 'upload', SOURCE_FILE, '--no-auto-update']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(`Project already contains the file '${SOURCE_FILE}'`);
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -125,19 +125,19 @@ describe('file', () => {
   test('reports a skipped upload in json but not in plain', async () => {
     const json = await ctx.runner.run(['file', 'upload', SOURCE_FILE, '--no-auto-update', '--output', 'json']);
 
-    expect(json.exitCode).toBe(0);
+    expect(json).toMatchObject({ exitCode: 0 });
     expect(JSON.parse(json.stdout)).toEqual([{ path: SOURCE_FILE, action: 'skipped', reason: 'auto-update disabled' }]);
 
     const plain = await ctx.runner.run(['file', 'upload', SOURCE_FILE, '--no-auto-update', '--output', 'plain']);
 
-    expect(plain.exitCode).toBe(0);
+    expect(plain).toMatchObject({ exitCode: 0 });
     expect(plain.stdout.trim()).toBe('');
   });
 
   test('uploads a file to a --dest path of its own', async () => {
     const result = await ctx.runner.run(['file', 'upload', SOURCE_FILE, '-d', '/custom/renamed.xml']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Directory 'custom'");
     expect(result.stdout).toContain('custom/renamed.xml');
     expect(await listedPaths()).toEqual(['/custom/renamed.xml', `/${SOURCE_FILE}`]);
@@ -146,7 +146,7 @@ describe('file', () => {
   test('uploads a file into a branch it creates', async () => {
     const result = await ctx.runner.run(['file', 'upload', EXTRA_FILE, '-b', BRANCH]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(`Branch '${BRANCH}'`);
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -158,7 +158,7 @@ describe('file', () => {
   test('downloads a source file back to its own path', async () => {
     const result = await ctx.runner.run(['file', 'download', `/${SOURCE_FILE}`]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(`File '/${SOURCE_FILE}'`);
     expect(normalize(result.stdout)).toMatchSnapshot();
     expect(await Bun.file(join(ctx.workspace, SOURCE_FILE)).text()).toContain('Welcome aboard');
@@ -167,7 +167,7 @@ describe('file', () => {
   test('downloads a source file into --dest', async () => {
     const result = await ctx.runner.run(['file', 'download', `/${SOURCE_FILE}`, '-d', 'downloaded']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     await expectFilesExist(ctx.workspace, 'downloaded/app.xml');
   });
 
@@ -181,14 +181,14 @@ describe('file', () => {
   test('uploads a translation for a file', async () => {
     const result = await ctx.runner.run(['file', 'upload', 'translations/uk/app.xml', '-l', 'uk', '-d', SOURCE_FILE]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/uk/app.xml'");
   });
 
   test('downloads the translations of a file', async () => {
     const result = await ctx.runner.run(['file', 'download', `/${SOURCE_FILE}`, '-l', 'uk']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(`File 'uk/${SOURCE_FILE}'`);
     expect(await Bun.file(join(ctx.workspace, 'uk', SOURCE_FILE)).text()).toContain('Ласкаво просимо');
   });
@@ -210,7 +210,7 @@ describe('file', () => {
   test('deletes a file inside a branch', async () => {
     const result = await ctx.runner.run(['file', 'delete', `/${EXTRA_FILE}`, '-b', BRANCH]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(`File '/${EXTRA_FILE}' deleted`);
     expect(normalize(result.stdout)).toMatchSnapshot();
     expect(await listedPaths(['-b', BRANCH])).toEqual([]);
@@ -219,7 +219,7 @@ describe('file', () => {
   test('deletes a file', async () => {
     const result = await ctx.runner.run(['file', 'delete', '/custom/renamed.xml']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File '/custom/renamed.xml' deleted");
     expect(await listedPaths()).toEqual([`/${SOURCE_FILE}`]);
   });

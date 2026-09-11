@@ -223,7 +223,7 @@ describe('glossary', () => {
   test('uploads a TBX glossary, creating it', async () => {
     const result = await ctx.runner.run(['glossary', 'upload', 'sources/simple-glossary.tbx', '--language', 'uk']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Imported in #');
     expect(result.stdout).toContain("'Created in Crowdin CLI (simple-glossary.tbx)' glossary");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -234,7 +234,7 @@ describe('glossary', () => {
   test('lists glossaries verbosely, including their terms', async () => {
     const result = await ctx.runner.run(['glossary', 'list', '-v']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(defaultGlossaryName(ctx));
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-glossary.tbx)');
     // Spot-check one term/description pair from the uploaded TBX (see sources/simple-glossary.tbx).
@@ -277,7 +277,7 @@ describe('glossary', () => {
       '--first-line-contains-header',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("'Created in Crowdin CLI (simple-glossary.csv)' glossary");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -313,7 +313,7 @@ describe('glossary', () => {
       'description_uk=10',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("'Created in Crowdin CLI (simple-glossary.xlsx)' glossary");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -323,7 +323,7 @@ describe('glossary', () => {
   test('lists all glossaries in the project', async () => {
     const result = await ctx.runner.run(['glossary', 'list']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(defaultGlossaryName(ctx));
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-glossary.tbx)');
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-glossary.csv)');
@@ -335,7 +335,7 @@ describe('glossary', () => {
   test('serializes id, name and term count in the json listing', async () => {
     const result = await ctx.runner.run(['glossary', 'list', '--output', 'json']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const listed = JSON.parse(result.stdout) as { id: number; name: string; terms: number }[];
     const suite = listed.filter((glossary) => SUITE_GLOSSARY_NAMES.includes(glossary.name));
@@ -350,7 +350,7 @@ describe('glossary', () => {
     const plainRun = await ctx.runner.run(['glossary', 'list', '--output', 'json']);
     const verboseRun = await ctx.runner.run(['glossary', 'list', '--output', 'json', '-v']);
 
-    expect(verboseRun.exitCode).toBe(0);
+    expect(verboseRun).toMatchObject({ exitCode: 0 });
     // Two runs over an account-wide listing: another user's glossary must not read as a difference.
     expect(suiteEntries(verboseRun.stdout)).toEqual(suiteEntries(plainRun.stdout));
   });
@@ -359,14 +359,14 @@ describe('glossary', () => {
     const json = await ctx.runner.run(['glossary', 'list', '--output', 'json']);
     const toon = await ctx.runner.run(['glossary', 'list', '--output', 'toon']);
 
-    expect(toon.exitCode).toBe(0);
+    expect(toon).toMatchObject({ exitCode: 0 });
     expect(suiteEntries(decode(toon.stdout))).toEqual(suiteEntries(json.stdout));
   });
 
   test('lists bare names in the plain output', async () => {
     const result = await ctx.runner.run(['glossary', 'list', '--output', 'plain']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const names = result.stdout.split('\n').filter((line) => line.length > 0);
 
@@ -402,7 +402,7 @@ describe('glossary', () => {
 
     const result = await ctx.runner.run(['glossary', 'download', String(tbxGlossaryId), '--format', 'tbx']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Building glossary');
     expect(result.stdout).toContain(`'${file}' downloaded successfully`);
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -418,7 +418,7 @@ describe('glossary', () => {
 
     const result = await ctx.runner.run(['glossary', 'download', String(csvGlossaryId), '--format', 'csv']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Building glossary');
     expect(result.stdout).toContain(`'${file}' downloaded successfully`);
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -433,7 +433,7 @@ describe('glossary', () => {
 
     const result = await ctx.runner.run(['glossary', 'download', String(xlsxGlossaryId), '--format', 'xlsx']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Building glossary');
     expect(result.stdout).toContain(`'${file}' downloaded successfully`);
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -448,7 +448,7 @@ describe('glossary', () => {
 
     const result = await ctx.runner.run(['glossary', 'download', String(tbxGlossaryId)]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(`'${file}' downloaded successfully`);
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -459,7 +459,7 @@ describe('glossary', () => {
 
     const result = await ctx.runner.run(['glossary', 'download', String(defaultGlossaryId)]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(`'${file}' downloaded successfully`);
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -469,7 +469,7 @@ describe('glossary', () => {
 
     const result = await ctx.runner.run(['glossary', 'download', String(csvGlossaryId), '--to', file]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(`'${file}' downloaded successfully`);
     // Compared against the CSV baseline, not merely checked for existence: without the inference the
     // export would default to TBX and still be written to this path.
@@ -490,7 +490,7 @@ describe('glossary', () => {
       'plain',
     ]);
 
-    expect(plain.exitCode).toBe(0);
+    expect(plain).toMatchObject({ exitCode: 0 });
     expect(plain.stdout.trim()).toBe(file);
 
     const json = await ctx.runner.run([
@@ -503,7 +503,7 @@ describe('glossary', () => {
       'json',
     ]);
 
-    expect(json.exitCode).toBe(0);
+    expect(json).toMatchObject({ exitCode: 0 });
     expect(JSON.parse(json.stdout)).toBe(file);
   });
 
@@ -524,7 +524,7 @@ describe('glossary', () => {
       'json',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
 
     const imported = JSON.parse(result.stdout) as { id: number; name: string; terms: number };
 
@@ -539,7 +539,7 @@ describe('glossary', () => {
 
     const result = await ctx.runner.run(['glossary', 'list', '-T', ctx.env.token as string]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(defaultGlossaryName(ctx));
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-glossary.tbx)');
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-glossary.csv)');

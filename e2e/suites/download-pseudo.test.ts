@@ -41,7 +41,7 @@ describe('download pseudo', () => {
   test('uploads the single source file', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -52,7 +52,7 @@ describe('download pseudo', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Building pseudo translations');
     expect(result.stdout).toContain('Downloading translations');
     expect(result.stdout).toContain("File 'translations/uk/android.xml' extracted");
@@ -67,7 +67,7 @@ describe('download pseudo', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/zh/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -80,7 +80,7 @@ describe('download pseudo', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/fr/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -93,7 +93,7 @@ describe('download pseudo', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/ar/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -106,7 +106,7 @@ describe('download pseudo', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/en/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -119,7 +119,7 @@ describe('download pseudo', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/en/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -132,7 +132,7 @@ describe('download pseudo', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/en/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -145,7 +145,7 @@ describe('download pseudo', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/en/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -196,7 +196,7 @@ describe('download pseudo', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '--pseudo', '--dryrun']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('translations/uk/android.xml');
     expect(await Bun.file(join(ctx.workspace, 'translations/uk/android.xml')).exists()).toBe(false);
   });
@@ -210,7 +210,7 @@ describe('download pseudo', () => {
     // set (DownloadCommand.ts:410), so uk still lands despite naming a different language here.
     const result = await ctx.runner.run(['download', 'translations', '--pseudo', '-l', 'fr']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/uk/android.xml' extracted");
     expect(await Bun.file(join(ctx.workspace, 'translations/uk/android.xml')).exists()).toBe(true);
   });
@@ -221,12 +221,12 @@ describe('download pseudo', () => {
 
     const upload = await ctx.runner.run(['upload', 'sources', '-b', 'pseudo-branch']);
 
-    expect(upload.exitCode).toBe(0);
+    expect(upload).toMatchObject({ exitCode: 0 });
 
     // The branch id is the one field a pseudo build carries beyond the localization settings.
     const result = await ctx.runner.run(['download', 'translations', '--pseudo', '-b', 'pseudo-branch']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("File 'translations/uk/android.xml' extracted");
   });
 
@@ -237,7 +237,7 @@ describe('download pseudo', () => {
     // Nothing here is approved, so a normal download of this config falls back to the source text.
     const normal = await ctx.runner.run(['download', 'translations']);
 
-    expect(normal.exitCode).toBe(0);
+    expect(normal).toMatchObject({ exitCode: 0 });
     expect(await Bun.file(join(ctx.workspace, 'translations/uk/android.xml')).text()).toContain('first string');
 
     // Also the only reachable case of the omitted report's second list: archive entries matching
@@ -250,7 +250,7 @@ describe('download pseudo', () => {
     // (DownloadCommand.ts:560), so the same config yields transformed text instead of the source.
     const pseudo = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
-    expect(pseudo.exitCode).toBe(0);
+    expect(pseudo).toMatchObject({ exitCode: 0 });
     expect(pseudo.stdout).toContain("File 'translations/uk/android.xml' extracted");
     expect(await Bun.file(join(ctx.workspace, 'translations/uk/android.xml')).text()).not.toContain('first string');
   });

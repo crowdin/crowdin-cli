@@ -70,11 +70,7 @@ describe('auto-translate via MT', () => {
   test('uploads sources', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     // Success lines report the PROJECT path, not the local one, and the fixture's
     // `preserve_hierarchy: false` strips the shared `sources/` parent (see the note on the next
     // test), so what lands in the project - and in the output - is the bare filename.
@@ -90,11 +86,7 @@ describe('auto-translate via MT', () => {
   test('pre-translates via translation memory (TM)', async () => {
     const result = await ctx.runner.run(['auto-translate', '--file', '1_android.xml', '-l', 'uk', '--method', 'tm']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Fetching project info');
     expect(result.stdout).toContain('Auto-translation is running...');
     expect(result.stdout).toContain('Auto-translation is finished (100%)');
@@ -125,11 +117,7 @@ describe('auto-translate via MT', () => {
       String(crowdinMtEngineId),
     ]);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Fetching project info');
     expect(result.stdout).toContain('Auto-translation is running...');
     expect(result.stdout).toContain('Auto-translation is finished (100%)');
@@ -150,11 +138,7 @@ describe('auto-translate via MT', () => {
       'all',
     ]);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     // `output.warning` is a diagnostic too, so it lands on stderr for the same reason as the
     // `--engine-id` error above; the auto-translation progress itself still goes to stdout.
     expect(result.stderr).toContain("'--auto-approve-option' is used only for the TM Auto-Translation method");
@@ -186,11 +170,7 @@ describe('auto-translate via MT', () => {
       { noConfig: true },
     );
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Fetching project info');
     expect(result.stdout).toContain('Auto-translation is running...');
     expect(result.stdout).toContain('Auto-translation is finished (100%)');

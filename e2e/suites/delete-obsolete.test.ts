@@ -36,7 +36,7 @@ describe('delete obsolete', () => {
   test('uploads all sources', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '--base-path', 'sources']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain("Directory 'destination'");
     expect(result.stdout).toContain("Directory 'lang'");
     expect(result.stdout).toContain("File '1_android.xml'");
@@ -85,7 +85,7 @@ describe('delete obsolete', () => {
   test('deletes obsolete files and directories for real with --delete-obsolete', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '--base-path', 'sources_rev3', '--delete-obsolete']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     // sources_rev3/ only keeps 1_android.xml and 1_simple.csv - everything else that was still
@@ -100,7 +100,7 @@ describe('delete obsolete', () => {
 
     const result = await ctx.runner.run(['upload', 'sources', '--base-path', 'sources_rev4', '--delete-obsolete']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     // sources_rev4/ has only 1_android.xml, and the new config remaps every file under
@@ -123,7 +123,7 @@ describe('delete obsolete', () => {
       '--dryrun',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     // sources_rev5/ (1_android.xml, 2_android.xml) already matches the current dest mapping
@@ -137,7 +137,7 @@ describe('delete obsolete', () => {
 
     const result = await ctx.runner.run(['upload', 'sources', '--base-path', 'sources_rev5', '--delete-obsolete']);
 
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     // No obsolete files/directories remain at this point - a real --delete-obsolete run changes
