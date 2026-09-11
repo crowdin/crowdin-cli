@@ -50,8 +50,6 @@ describe('init generates a configuration skeleton', () => {
   });
 
   test('writes flag values into the skeleton in quiet mode', async () => {
-    // The empty case above never exercises the flag-to-file wiring; with values passed the
-    // `api_token` line appears alongside the custom base_url, preserve_hierarchy and project id.
     const destPath = join(ctx.workspace, 'crowdin-full.yml');
 
     const result = await ctx.runner.run(
@@ -91,7 +89,6 @@ describe('init generates a configuration skeleton', () => {
     });
 
     expect(content).toBe(expectedContent);
-    // The load-bearing difference from the empty case.
     expect(content).toContain('api_token');
   });
 
@@ -112,7 +109,6 @@ describe('init generates a configuration skeleton', () => {
     );
     expect(stdout).toMatchSnapshot();
 
-    // Must skip regeneration, not overwrite the existing file.
     expect(await Bun.file(destPath).text()).toBe(contentBefore);
   });
 
@@ -125,7 +121,6 @@ describe('init generates a configuration skeleton', () => {
     // Lint failures are diagnostics, so the whole report is on stderr and stdout stays empty.
     const stderr = normalize(result.stderr);
     expect(stderr).toContain('Configuration file is invalid.');
-    // Divergence from PHP, whose message is capitalized and ends with "Specify the source paths...".
     expect(stderr).toContain('source parameter cannot be empty');
     expect(stderr).toContain('translation parameter cannot be empty');
     // The empty `project_id` fails as a zod range error rather than PHP's "Required option" one,
@@ -156,7 +151,6 @@ describe('init generates a configuration skeleton', () => {
   });
 
   test('generates a skeleton that lints clean once the paths are filled in', async () => {
-    // The counterpart of the incomplete-skeleton test above.
     const init = await ctx.runner.run(
       [
         'init',

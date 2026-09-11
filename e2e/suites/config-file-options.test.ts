@@ -105,7 +105,7 @@ describe('config file options', () => {
   test('treats a file as multilingual without a scheme', async () => {
     await switchConfig(ctx, 'multilingual');
 
-    // `multilingual: true` alone makes isMultilingualFile true (lib/config.ts:60), so the pattern
+    // `multilingual: true` alone makes isMultilingualFile true, so the pattern
     // may carry no language placeholder; every other multilingual fixture gets there via `scheme:`.
     const result = await ctx.runner.run(['config', 'translations', '--output', 'plain']);
 

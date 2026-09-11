@@ -19,7 +19,6 @@ describe('dest', () => {
     await teardownSuite(ctx);
   });
 
-  /** The paths the files actually occupy in the project, which is where `dest` resolution lands. */
   async function projectPaths(branchName?: string): Promise<string[]> {
     let branchId: number | undefined;
 
@@ -137,7 +136,6 @@ describe('dest', () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 
     expect(result).toMatchObject({ exitCode: 0 });
-    // No branch-creation message is printed, here or in Java.
     expect(result.stdout).toContain("File 'Android.xml'");
     expect(result.stdout).toContain("Directory 'Folder'");
     expect(result.stdout).toContain("File 'Folder/Android.xml'");
@@ -145,7 +143,6 @@ describe('dest', () => {
 
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    // The branch holds the same dest-remapped tree, each path carrying the branch name.
     expect(await projectPaths('test-branch')).toEqual(DEST_PATHS.map((path) => `/test-branch${path}`));
   });
 

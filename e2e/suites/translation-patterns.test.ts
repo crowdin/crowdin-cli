@@ -5,21 +5,9 @@ import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.t
 
 /**
  * Port of crowdin-backend's `tests/Cli/Common/CliTranslationPatternsTest.php`: ten file groups,
- * one per `translation:` placeholder token (`%android_code%`, `%language%`, `%locale%`,
- * `%locale_with_underscore%`, `%osx_code%`, `%osx_locale%`, `%three_letters_code%`,
- * `%two_letters_code%`, plus two groups combining `%original_path%` with a language token and
- * with `%android_code%`), exercised through upload sources -> dryrun/real upload translations ->
- * dryrun/real download translations -> `config translations` listing, against target languages
- * `uk` and `zh-CN` (matching the PHP fixture's `%android_code%`/`%three_letters_code%`/etc. values,
- * which come straight from the server's Language object and are identical for the TS CLI).
- *
- * `%original_path%` resolves to the source file's parent directory, matching Java's
- * `PlaceholderUtil.fileParent` (`getValueForExportPattern`'s `originalPath` branch returns
- * `parsed.dir`, `src-next/lib/config/translationPathResolver.ts`). It once resolved to the full
- * source path *including* the filename, which made this suite's two `%original_path%` groups
- * (`android_code`, `two_letters_code_with_original_path`) resolve to doubled-filename paths that
- * matched nothing on disk, so their translations were excluded from the path assertions below.
- * They are asserted like every other group now.
+ * one per `translation:` placeholder token plus two combining `%original_path%` with a language
+ * token, exercised through upload sources -> dryrun/real upload translations -> dryrun/real
+ * download translations -> `config translations`, against target languages `uk` and `zh-CN`.
  */
 
 // The local translation path each of the ten file groups resolves to, for both target languages.

@@ -7,13 +7,11 @@ function stripLeadingSlash(path: string): string {
   return path.startsWith('/') ? path.slice(1) : path;
 }
 
-/** Remote project file paths, for asserting what delete-obsolete actually did/didn't remove. */
 async function projectFilePaths(ctx: SuiteContext): Promise<string[]> {
   const files = await ctx.client.sourceFilesApi.listProjectFiles(ctx.project.id);
   return files.data.map((file) => stripLeadingSlash(file.data.path)).sort();
 }
 
-/** Remote project directory paths. */
 async function projectDirectoryPaths(ctx: SuiteContext): Promise<string[]> {
   const directories = await ctx.client.sourceFilesApi.listProjectDirectories(ctx.project.id);
   return directories.data.map((directory) => stripLeadingSlash(directory.data.path)).sort();
@@ -22,9 +20,8 @@ async function projectDirectoryPaths(ctx: SuiteContext): Promise<string[]> {
 describe('delete obsolete', () => {
   let ctx: SuiteContext;
 
-  // PHP re-renders `base_path` per step to walk the fixture revisions; here `base_path` stays "." and
-  // each run passes `--base-path <revision>` instead. The two steps that also change a `dest` swap
-  // the whole config.
+  // Each run passes `--base-path <revision>` to walk the fixture revisions; the two steps that also
+  // change a `dest` swap the whole config.
   beforeAll(async () => {
     ctx = await setupSuite('delete-obsolete', { targetLanguageIds: ['it', 'uk'] });
   });
@@ -140,8 +137,7 @@ describe('delete obsolete', () => {
     expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    // No obsolete files/directories remain at this point - a real --delete-obsolete run changes
-    // nothing on the server, matching PHP's "No obsolete files/directories were found" steady state.
+    // Nothing obsolete remains, so a real --delete-obsolete run changes nothing on the server.
     expect(await projectFilePaths(ctx)).toEqual(beforeFiles);
   });
 });

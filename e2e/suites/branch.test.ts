@@ -6,7 +6,7 @@ import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.t
 
 /**
  * Covers the `branch` command itself (`cli/commands/branch/BranchCommand.ts`). `branches.test.ts`
- * only exercises the `-b` flag of upload/download; nothing touched add/list/edit/clone/merge.
+ * covers the `-b` flag of upload/download.
  *
  * The project is strings-based, because `clone` and `merge` refuse to run against any other type.
  * That also makes the merge assertable without a file round trip: `string add -b` puts strings on
@@ -374,7 +374,6 @@ describe('branch', () => {
     expect(result.stderr).toContain('This command is only available for string-based projects');
   });
 
-  // An empty argument satisfies commander's `<name>` and reaches the command's own guard.
   test.each([['add'], ['delete'], ['edit']])('rejects an empty branch name on %s', async (subcommand) => {
     const result = await ctx.runner.run(['branch', subcommand, '']);
 
