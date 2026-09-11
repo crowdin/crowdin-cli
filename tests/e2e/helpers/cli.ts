@@ -20,7 +20,7 @@ export interface CliRunOptions {
 }
 
 const DEFAULT_TIMEOUT_MS = 120_000;
-const REPO_ROOT = join(import.meta.dir, '..', '..');
+const REPO_ROOT = join(import.meta.dir, '..', '..', '..');
 
 // Ambient credentials a dev machine may have and CI never does: these vars, and a `~/.crowdin.yml`
 // identity file, which outranks the config file.

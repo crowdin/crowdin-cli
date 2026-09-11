@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import rootPkg from '../../package.json';
-import launcherPkg from '../../packages/npm/cli/package.json';
+import rootPkg from '../../../package.json';
+import launcherPkg from '../../../packages/npm/cli/package.json';
 
 interface PlatformManifest {
   name: string;
@@ -16,7 +16,7 @@ interface PlatformManifest {
   publishConfig: { access: string };
 }
 
-const packagesRoot = path.resolve(import.meta.dir, '../../packages/npm');
+const packagesRoot = path.resolve(import.meta.dir, '../../../packages/npm');
 const platformNames = Object.keys(launcherPkg.optionalDependencies);
 
 function loadManifest(packageName: string): PlatformManifest {

@@ -14,7 +14,7 @@ import {
 } from './project.ts';
 import { copyFixtures, createWorkspace, removeWorkspace } from './workspace.ts';
 
-/** Fixtures live at `e2e/fixtures/<suite>`, resolved relative to this helper. */
+/** Fixtures live at `tests/e2e/fixtures/<suite>`, resolved relative to this helper. */
 const FIXTURES_ROOT = join(import.meta.dir, '..', 'fixtures');
 
 export interface SuiteContext {
@@ -42,7 +42,7 @@ export interface SetupSuiteOptions {
 
 /**
  * Compose the per-suite lifecycle: temp workspace, fixtures copied from
- * `e2e/fixtures/<suite>`, a fresh Crowdin project, and a rendered `crowdin.yml`
+ * `tests/e2e/fixtures/<suite>`, a fresh Crowdin project, and a rendered `crowdin.yml`
  * wired into a `CliRunner`. Call from `beforeAll` with the suite name.
  */
 export async function setupSuite(suite: string, opts: SetupSuiteOptions = {}): Promise<SuiteContext> {

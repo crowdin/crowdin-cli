@@ -1,10 +1,10 @@
 import { afterAll, describe, expect, it } from 'bun:test';
 import { chmodSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { isMusl, platformPackageName, resolveBinaryPath } from '../../packages/npm/cli/bin/launcher.js';
-import launcherPkg from '../../packages/npm/cli/package.json';
+import { isMusl, platformPackageName, resolveBinaryPath } from '../../../packages/npm/cli/bin/launcher.js';
+import launcherPkg from '../../../packages/npm/cli/package.json';
 
-const repoRoot = path.resolve(import.meta.dir, '../..');
+const repoRoot = path.resolve(import.meta.dir, '../../..');
 const launcherEntry = './packages/npm/cli/bin/launcher.js';
 
 describe('platformPackageName', () => {
