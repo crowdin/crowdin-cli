@@ -5,8 +5,7 @@ import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Covers `file upload` / `download` / `delete` (`cli/commands/file/FileCommand.ts`). `file list` is
- * used incidentally by other suites; the other three had no coverage at all.
+ * Covers `file upload` / `download` / `delete` (`cli/commands/file/FileCommand.ts`).
  *
  * These address a single file by its Crowdin path, which is a different code path from the
  * config-driven `upload sources` / `download translations` the rest of the suites exercise - no

@@ -17,10 +17,6 @@ import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.t
  *    prefix reaches the project path from the first test on, the `sources` directory is created
  *    once and never again, and the final test's explicit `--preserve-hierarchy` changes nothing -
  *    it exists for 1:1 parity with the PHP original.
- *
- * `upload sources` always reports the LOCAL file path, so the assertions never change shape between
- * the plain and `--dest`/branch tests; only the snapshots and the one API check observe the
- * project-side path.
  */
 describe('upload single file', () => {
   let ctx: SuiteContext;
@@ -132,7 +128,6 @@ describe('upload single file', () => {
 
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    // stdout never shows the `--dest`-resolved project path, so the API is the only witness.
     const files = await ctx.client.sourceFilesApi.listProjectFiles(ctx.project.id, { recursion: '1' });
     const destFile = files.data.find((file) => file.data.path === '/sources/androidDest.xml');
     expect(destFile).toBeDefined();
@@ -186,8 +181,7 @@ describe('upload single file', () => {
 
     expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Fetching project info');
-    // The branch is created silently, and the empty-file warning names the bare local path - not
-    // the PHP original's branch-prefixed project path.
+    // The branch is created silently, and the empty-file warning carries no branch prefix.
     expect(result.stderr).toContain("File 'sources/empty_android.xml' was skipped since it is empty");
 
     expect(normalize(result.stdout)).toMatchSnapshot();

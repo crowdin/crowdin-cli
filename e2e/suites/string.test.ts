@@ -5,31 +5,11 @@ import { createTestProject, deleteTestProject } from '../helpers/project.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Port of crowdin-backend/tests/Cli/Common/CliStringTest.php.
+ * Port of crowdin-backend/tests/Cli/Common/CliStringTest.php, covering `StringCommand.ts`
+ * (list/add/edit/delete) and `CommentCommand.ts` (add/list/resolve).
  *
- * Real command mapping: `StringCommand.ts` (list/add/edit/delete) and `CommentCommand.ts`
- * (add/list/resolve, confirmed at src-next/cli/commands/comment/CommentCommand.ts). Unlike the PHP
- * original's plain-text lines, `string list`/`comment list`/`comment add` all render through
- * `output.table()` -> `console.table()` (confirmed in StringCommand.ts/CommentCommand.ts), so
- * assertions below use `toContain()` on substantive cell values (identifiers/text/messages) plus
- * `toMatchSnapshot()`, never the PHP literal block - same approach as glossary.test.ts.
- *
- * Divergences from the PHP original, confirmed by reading source (not guessed):
- * - `string list --file <missing>` throws a plain `CliError` (exit 1) in `resolveSingleFileId`,
- *   not the PHP CLI's exit 102 "Project doesn't contain the file" - see StringCommand.ts.
- * - `string add --file <missing>` warns with the PHP's exact wording ("Project doesn't contain the
- *   '<file>' file") but then throws a *different* generic CliError (exit 1, not 102) once no valid
- *   file remains - see StringCommand.ts's `addAction`.
- * - `string add ""` (empty text) is rejected by the TS CLI itself before any API call ("Source
- *   string text can not be empty"), so the API's dual text/identifier `isEmpty` errors the PHP test
- *   observed never occur here - only one, CLI-side, error fires.
- * - The "file does not support online string managing/editing" wording is API-owned text; the PHP
- *   constant in crowdin-backend (`StringService::FILE_DOES_NOT_SUPPORT_ONLINE_EDITING_MESSAGE`)
- *   reads "File '%s' (id: %d) does not support online string editing", which does not literally
- *   match the PHP CLI test's hardcoded "File does not support online string managing" (likely the
- *   Java CLI's own static per-code message, not a relay of the API's text). Since the TS CLI relays
- *   `error.message` verbatim (toCliError.ts), only the substring common to both candidates ("does
- *   not support online string") is asserted - confirm the exact wording in the .snap on first run.
+ * The "file does not support online string managing/editing" wording is API-owned and has differed
+ * between sources, so only the common substring "does not support online string" is asserted.
  */
 describe('string', () => {
   let ctx: SuiteContext;
@@ -43,7 +23,7 @@ describe('string', () => {
   beforeAll(async () => {
     ctx = await setupSuite('string');
     // The string-based guards need a project of the other kind to fire against; this suite's own is
-    // file-based. Addressed with `--project-id`, as branch.test.ts does for the mirror case.
+    // file-based.
     stringsBasedProjectId = (await createTestProject(ctx.client, { suite: 'string-strings-based', stringsBased: true }))
       .id;
   });
@@ -60,7 +40,6 @@ describe('string', () => {
     await teardownSuite(ctx);
   });
 
-  /** Finds a branch's numeric id by exact name, via the API directly (bypassing CLI output). */
   async function findBranchId(name: string): Promise<number> {
     const response = await ctx.client.sourceFilesApi.withFetchAll().listProjectBranches(ctx.project.id, { name });
     const match = response.data.find((entry) => entry.data.name === name);
@@ -72,7 +51,6 @@ describe('string', () => {
     return match.data.id;
   }
 
-  /** Finds a project file's numeric id by its exact remote path (e.g. `/text.txt`). */
   async function findFileId(projectPath: string): Promise<number> {
     const response = await ctx.client.sourceFilesApi.withFetchAll().listProjectFiles(ctx.project.id);
     const match = response.data.find((entry) => entry.data.path === projectPath);
@@ -84,7 +62,6 @@ describe('string', () => {
     return match.data.id;
   }
 
-  /** Finds a source string's numeric id by its exact text, optionally scoped to a branch/file. */
   async function findStringId(text: string, scope: { branchId?: number; fileId?: number } = {}): Promise<number> {
     const response = await ctx.client.sourceStringsApi.withFetchAll().listProjectStrings(ctx.project.id, {
       ...(scope.branchId !== undefined ? { branchId: scope.branchId } : {}),
@@ -100,7 +77,6 @@ describe('string', () => {
     return match.data.id;
   }
 
-  /** Finds a string comment's numeric id by its exact text, via the API directly. */
   async function findCommentId(text: string): Promise<number> {
     const response = await ctx.client.stringCommentsApi.withFetchAll().listStringComments(ctx.project.id);
     const match = response.data.find((entry) => entry.data.text === text);
@@ -112,7 +88,6 @@ describe('string', () => {
     return match.data.id;
   }
 
-  /** Resolves label ids to their titles, via the API directly. */
   async function labelTitles(labelIds: number[]): Promise<string[]> {
     if (labelIds.length === 0) {
       return [];
@@ -165,8 +140,7 @@ describe('string', () => {
   });
 
   test('lists source strings filtered by file', async () => {
-    // Restores the full config (token + project id + both file entries), mirroring the PHP
-    // original's `self::prepareConfig()` reset at the start of the equivalent method.
+    // Restores the full config (token + project id + both file entries).
     await switchConfig(ctx, 'default');
 
     const result = await ctx.runner.run(['string', 'list', '--file', 'android.xml']);
@@ -217,9 +191,7 @@ describe('string', () => {
 
     thirdStringId = await findStringId('third string');
     const added = await ctx.client.sourceStringsApi.getString(ctx.project.id, thirdStringId);
-    // The PHP original assumed Crowdin md5-hashes an Android-XML string's identifier server-side.
-    // A live read says otherwise: `--identifier str3` is stored verbatim - which is exactly the
-    // re-verification the helper's own comment asked for.
+    // Stored verbatim - the PHP original assumed Crowdin md5-hashes an Android-XML identifier.
     expect(added.data.identifier).toBe('str3');
     expect(added.data.maxLength).toBe(0);
     expect(added.data.context).toBe('str3');
@@ -357,8 +329,7 @@ describe('string', () => {
   test('reports a missing file when listing by file', async () => {
     const result = await ctx.runner.run(['string', 'list', '--file', 'not-exists-file.xml']);
 
-    // Real TS behavior: `resolveSingleFileId` throws a plain CliError (exit 1), unlike the PHP
-    // CLI's exit 102 - see StringCommand.ts.
+    // Exit 1, where the PHP CLI exited 102.
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("File 'not-exists-file.xml' not found");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -367,8 +338,7 @@ describe('string', () => {
   test('warns then fails adding a string to a missing file', async () => {
     const result = await ctx.runner.run(['string', 'add', 'simple string', '--file', 'not-exists-file.xml']);
 
-    // Real TS behavior: the missing-file warning matches the PHP wording verbatim, but the final
-    // thrown error (exit 1, not the PHP CLI's exit 102) is TS-specific - see StringCommand.ts.
+    // The warning matches the PHP wording, but the final error exits 1 where the PHP CLI exited 102.
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("Project doesn't contain the 'not-exists-file.xml' file");
     expect(result.stderr).toContain('No valid file specified for the string');
@@ -386,8 +356,7 @@ describe('string', () => {
   test('requires non-empty text when adding a string', async () => {
     const result = await ctx.runner.run(['string', 'add', '', '--file', 'android.xml']);
 
-    // The TS CLI rejects an empty text argument itself, before any API call, so the API's dual
-    // text/identifier `isEmpty` errors the PHP original observed never occur - see StringCommand.ts.
+    // Rejected by the CLI before any API call, so the API's own `isEmpty` errors never occur.
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain('Source string text can not be empty');
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -470,9 +439,7 @@ describe('string', () => {
     ]);
 
     expect(result).toMatchObject({ exitCode: 0 });
-    // One copy from the initial upload, one from the branch upload - see "uploads sources to a new
-    // branch" above. Counting substring occurrences (not table rows) sidesteps console.table's
-    // formatting, mirroring file-groups.test.ts's duplicate-count assertion.
+    // One copy from the initial upload, one from the branch upload.
     const matches = result.stdout.split('first string source` with tag</span>').length - 1;
     expect(matches).toBe(2);
     expect(normalize(result.stdout)).toMatchSnapshot();

@@ -6,21 +6,14 @@ import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * `download --keep-archive` prints `Archive saved to <config.basePath>/<name>` and `config.basePath`
- * is resolved to an *absolute* path (see `resolveBasePath` in `cli/config.ts`), so it always embeds
- * the per-run temp workspace dir. Redact it before snapshotting so the `.snap` doesn't bake in a
- * machine/run-specific path that would never match again.
+ * `--keep-archive` prints `Archive saved to <config.basePath>/<name>`, and `basePath` is absolute, so
+ * the line embeds the per-run workspace.
  */
 function redactWorkspace(ctx: SuiteContext, text: string): string {
   return text.split(ctx.workspace).join('<workspace>');
 }
 
-/**
- * Unlike the Java/PHP CLI (`CrowdinTranslations_<timestamp>.zip`), `DownloadCommand.ts` names the
- * kept archive deterministically (`crowdin-translations.zip`, or `-<index>.zip` if multiple export
- * groups are built - not the case for this suite's single `files:` entry). Still scan for it rather
- * than hardcoding the name, mirroring the PHP test's `getZipFileName` directory scan.
- */
+/** Scanned rather than hardcoded: the name gains an `-<index>` suffix when several export groups are built. */
 async function findKeptArchive(ctx: SuiteContext): Promise<string | undefined> {
   const entries = await readdir(join(ctx.workspace, 'files'));
   return entries.find((entry) => entry.startsWith('crowdin-translations') && entry.endsWith('.zip'));
@@ -224,9 +217,8 @@ describe('download translations --all', () => {
     expect(await Bun.file(join(ctx.workspace, 'files', zipName as string)).exists()).toBe(true);
   });
 
-  // `--output plain` stands in for the PHP/Java `--plain` flag: `output.success`/`output.info` are
-  // gated on `format === 'text'` (`cli/utils/output.ts`), and the machine formats get the closing
-  // summary instead - the kept zip plus the extracted paths, as the PHP CLI listed them.
+  // `--output plain` stands in for the Java `--plain` flag: the closing summary lists the kept zip and
+  // the extracted paths.
   test('keeps the downloaded archive with plain output', async () => {
     await removeKeptArchive(ctx);
 

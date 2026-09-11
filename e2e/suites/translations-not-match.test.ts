@@ -34,10 +34,8 @@ describe('translations not match', () => {
   });
 
   test('uploads sources, alongside a directly-uploaded file the config never covers', async () => {
-    // Mirrors the PHP original's raw `apiV2()->uploadFile()` call: a source file added straight
-    // through the API, bypassing the CLI/config entirely. It gets no per-file `exportPattern`, so no
-    // later config can ever map it locally - it's the permanent "extra" source the whole suite's
-    // mismatch scenario needs.
+    // Added straight through the API, so it gets no per-file `exportPattern` and no config can ever
+    // map it locally - the permanent "extra" source the mismatch scenario needs.
     const content = new Uint8Array(await Bun.file(join(ctx.workspace, 'sources/java.properties')).arrayBuffer());
     const storage = await ctx.client.uploadStorageApi.addStorage('java.properties', content);
     await ctx.client.sourceFilesApi.createFile(ctx.project.id, { storageId: storage.data.id, name: 'java.properties' });
@@ -222,10 +220,6 @@ describe('translations not match', () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 
     expect(result).toMatchObject({ exitCode: 0 });
-    // `upload sources -b <branch>` creates/reuses the branch silently (`getOrCreateBranch`) and its
-    // success messages use the LOCAL path with no branch prefix - confirmed via `UploadSourcesCommand.ts`,
-    // matching this porting effort's established branch-upload wording note. PHP's "Branch 'x'" /
-    // "test-branch/sources/..." wording does not apply to the TS CLI.
     expect(result.stdout).toContain("Directory 'sources'");
     expect(result.stdout).toContain("File 'sources/1_android.xml'");
     expect(result.stdout).toContain("File 'sources/2_android.xml'");

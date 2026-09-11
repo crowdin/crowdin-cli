@@ -14,9 +14,6 @@ import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.t
  * `crowdin.yaml` phase requires `crowdin.yml` to be absent, and since `setupSuite` always writes one,
  * `beforeAll` deletes it; every call passes `noConfig: true` so the harness never appends its own
  * `-c`, leaving this suite in full control of which filename exists.
- *
- * PHP's `push`/`pull` helpers hit the aliases of `upload sources` / `download translations`; the
- * explicit subcommand form is used below, as everywhere else in this effort.
  */
 async function writeDiscoveryConfig(ctx: SuiteContext, fileName: 'crowdin.yml' | 'crowdin.yaml'): Promise<void> {
   await Bun.write(
@@ -41,9 +38,7 @@ describe('cli commands without an explicit config parameter', () => {
   beforeAll(async () => {
     ctx = await setupSuite('without-config-param', { targetLanguageIds: ['it', 'uk'] });
 
-    // Drop setupSuite's own auto-rendered crowdin.yml (see the fixture comment) and start phase 1
-    // with only crowdin.yaml present, mirroring the PHP setUpBeforeClass's
-    // copy(crowdin.yml, crowdin.yaml) + disableConfig() (which deletes crowdin.yml).
+    // Phase 1: only crowdin.yaml present.
     await rm(join(ctx.workspace, 'crowdin.yml'), { force: true });
     await writeDiscoveryConfig(ctx, 'crowdin.yaml');
   });
@@ -81,8 +76,7 @@ describe('cli commands without an explicit config parameter', () => {
   });
 
   test('uploads sources via crowdin.yml default discovery (no -c)', async () => {
-    // Phase 2: flip back to crowdin.yml only, mirroring the PHP source's
-    // rename(crowdin.yaml, crowdin.yml) at the top of testUploadSourcesYml.
+    // Phase 2: only crowdin.yml present.
     await writeDiscoveryConfig(ctx, 'crowdin.yml');
     await rm(join(ctx.workspace, 'crowdin.yaml'), { force: true });
 
@@ -114,12 +108,8 @@ describe('cli commands without an explicit config parameter', () => {
   });
 
   test('uploads sources using only CLI flags, no config file at all', async () => {
-    // PHP's testUploadTranslationWithoutConfig (CN-41531 regression) - `-s`/`-t` alone must fully
-    // replace the config file. Per `cli/config.ts`'s `needsConfigFile`, giving both --source and
-    // --translation skips reading any config file entirely, so the crowdin.yml left over from the
-    // previous test (still sitting in the workspace root) is simply ignored. Translation pattern
-    // here has no leading slash, matching the PHP source's literal CLI-flag value (as opposed to
-    // the leading-slash pattern used in the config-file fixture above).
+    // CN-41531 regression: `-s`/`-t` together skip reading any config file, so the crowdin.yml left
+    // over from the previous test is ignored.
     const result = await ctx.runner.run(
       [
         'upload',
@@ -144,7 +134,7 @@ describe('cli commands without an explicit config parameter', () => {
   });
 
   test('downloads translations using only CLI flags, no config file at all', async () => {
-    // PHP's testDownloadTranslationWithoutConfig (same CN-41531 regression, download side).
+    // CN-41531 regression, download side.
     const result = await ctx.runner.run(
       [
         'download',

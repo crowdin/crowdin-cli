@@ -3,16 +3,16 @@ import { join } from 'node:path';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Covers the `update_option` config key (`lib/config.ts:18`, sent at
- * `UploadSourcesCommand.ts:384`). Unlike the other per-file keys it is not stored on the file, so
- * it cannot be read back - it only takes effect while an *existing* file is being replaced, and
+ * Covers the `update_option` config key (`UPDATE_OPTION_MAP` in `lib/config.ts`). Unlike the other
+ * per-file keys it is not stored on the file, so it cannot be read back - it only takes effect while
+ * an *existing* file is being replaced, and
  * only for strings whose text changed. Proving it therefore needs the whole cycle: upload,
  * translate, edit the source, re-upload.
  *
- * The config carries two groups so the result is a contrast rather than a claim. `kept.json`
- * declares `update_as_unapproved` (the API's `keep_translations`) and `plain.json` declares
- * nothing; both are translated and then edited identically, so whatever difference appears at the
- * end is the key's doing.
+ * The config carries three groups so the result is a contrast rather than a claim. `kept.json`
+ * declares `update_as_unapproved` (the API's `keep_translations`), `approved.json` declares
+ * `update_without_changes` and `plain.json` declares nothing; all are translated and then edited
+ * identically, so whatever difference appears at the end is the key's doing.
  */
 const LANGUAGE = 'uk';
 
@@ -90,7 +90,7 @@ describe('update_option', () => {
   });
 
   test('keeps the translation of a changed string only where update_option asks for it', async () => {
-    // Same edit to both files: the string's text changes, which is the only case the option
+    // Same edit to every file: the string's text changes, which is the only case the option
     // governs - an untouched string keeps its translation either way.
     for (const fileName of ['kept.json', 'plain.json', 'approved.json']) {
       await Bun.write(join(ctx.workspace, 'sources', fileName), '{\n  "greeting": "Hello there"\n}\n');

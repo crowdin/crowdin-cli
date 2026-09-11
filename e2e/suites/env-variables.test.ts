@@ -6,12 +6,9 @@ import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * `crowdin.yml` here has no literal `project_id`/`api_token`/`base_path`/`base_url` — only the
- * `*_env` keys (see fixtures/env-variables/config/crowdin.yml). All four credential values come
- * from a workspace-root `.env` file that Bun auto-loads into `process.env` at CLI startup
- * (`cli/config.ts`'s `envKeyLayer`/`envVar`), so it has to be written with real values before any
- * command that needs them runs. `setupSuite`'s `writeConfig` only substitutes `{{projectId}}`/
- * `{{token}}` in `crowdin.yml`, so it can't populate `.env` for us.
+ * `crowdin.yml` here has only the `*_env` keys, no literal credentials. Their values come from a
+ * workspace-root `.env` that Bun auto-loads into `process.env` at CLI startup, so it has to be
+ * written before any command that needs them runs - `setupSuite` only renders `crowdin.yml`.
  */
 async function writeEnvFile(ctx: SuiteContext, apiToken: string): Promise<void> {
   await Bun.write(

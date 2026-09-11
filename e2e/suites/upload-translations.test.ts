@@ -3,17 +3,15 @@ import { createTestProject, deleteTestProject } from '../helpers/project.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Covers the flags `upload translations` owns (`cli/commands/upload/UploadTranslationsCommand.ts`).
- * Several suites drive this command, including into failure, so its warnings are well covered; what
- * had none are the two import flags and two guards.
+ * Covers the flags `upload translations` owns (`cli/commands/upload/UploadTranslationsCommand.ts`):
+ * two import flags and two guards.
  *
  * `--import-eq-suggestions` and `--translate-hidden` change nothing on disk and nothing in the
  * command's own output - the effect is only visible in what the API stored - so each is asserted by
- * reading the translation back. `export-options.test.ts` runs `--auto-approve-imported` but only
- * checks stdout, which is why these live here instead.
+ * reading the translation back.
  *
- * Not attempted: the no-manager-access guard at `:76`, which needs a project the token can read but
- * not manage.
+ * Not attempted: the no-manager-access guard, which needs a project the token can read but not
+ * manage.
  */
 const LANGUAGE = 'uk';
 
@@ -53,7 +51,6 @@ describe('upload translations', () => {
     return match.data.id;
   }
 
-  /** How many translations the API holds for a string - 0 until something imports one. */
   async function translationCount(stringId: number): Promise<number> {
     const response = await ctx.client.stringTranslationsApi.listStringTranslations(ctx.project.id, stringId, LANGUAGE);
 

@@ -6,13 +6,8 @@ import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.t
 
 /**
  * The fixture's `crowdin.yml` carries no credentials at all: they come from a second file passed
- * via `--identity`, written here with the real post-setup values.
- *
- * Per cli/config.ts's assembleConfig, layers apply lowest-priority-first:
- * envFallbackLayer -> mapConfig(raw config file) -> envKeyLayer -> identityLayer -> cliLayer.
- * The identity layer therefore overrides the main config file's (here absent) credential keys, but a
- * CLI flag (--token, --project-id, ...) would still win over the identity file. Every call below
- * passes --identity explicitly, alongside the `-c <main config>` that CliRunner auto-appends.
+ * via `--identity`, written here with the real post-setup values. The identity file outranks the
+ * config file but not CLI flags.
  */
 async function writeIdentityFile(ctx: SuiteContext): Promise<string> {
   const identityPath = join(ctx.workspace, 'identity.yml');

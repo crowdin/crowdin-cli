@@ -134,7 +134,6 @@ describe('full CLI project workflow', () => {
       'translations/uk/gamma.md',
     );
 
-    // The downloaded translation must match the content that was uploaded for that language.
     for (const language of ['it', 'uk']) {
       for (const file of ['alpha.md', 'beta.md', 'gamma.md']) {
         const downloaded = await Bun.file(join(ctx.workspace, 'translations', language, file)).text();
@@ -239,8 +238,6 @@ describe('full CLI project workflow', () => {
     ]);
 
     expect(result.exitCode).toBe(2);
-    // The report is a diagnostic, so it lands on stderr - snapshotting stdout alone captured an
-    // empty string and left the test passing on any exit-2 failure.
     expect(result.stderr).toContain("No source files found for 'sources/does-not-exist-*.md' pattern");
   });
 });

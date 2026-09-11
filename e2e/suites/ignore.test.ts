@@ -5,30 +5,16 @@ import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.t
 
 /**
  * Port of `CliIgnoreTest` (crowdin-backend tests/Cli/Common/CliIgnoreTest.php). Exercises the
- * per-file `ignore:` config key (an array of glob patterns excluded from upload) against a fixed
- * 15-file local tree (`ALL_FILES`) with source pattern `/**\/*.*`, plus the project-wide
- * `ignore_hidden_files` setting (`settings.ignore_hidden_files` in YAML, `ignoreHiddenFiles` in
- * `lib/config.ts`, default `true`) against two hidden dotfiles that are deliberately NOT part of
- * `ALL_FILES`.
+ * per-file `ignore:` config key against a fixed 15-file local tree (`ALL_FILES`) with source pattern
+ * `/**\/*.*`, plus the project-wide `ignore_hidden_files` setting against two hidden dotfiles that
+ * are deliberately NOT part of `ALL_FILES`.
  *
- * `ignore` differs per row and `writeConfig`/`renderConfig` only substitute
- * `{{projectId}}`/`{{token}}` (and throw on any other `{{...}}`), so each test writes a full
- * `crowdin.yml` directly instead of going through that helper (same approach as `file-type.test.ts`).
+ * `ignore` differs per row and `renderConfig` only substitutes credentials, so each test writes a
+ * full `crowdin.yml` directly.
  *
- * Local glob engine: both `source` and `ignore` patterns are matched with Bun's built-in `Glob`
- * (`lib/config/sourceFileLoader.ts`), which supports `?`, `[0-9]`-style bracket classes and `**`.
- * The download-side matcher (`lib/config/projectFileMatch.ts`'s `globToRegex`) translates bracket
- * classes into real regex classes too, so the two engines agree - they used to disagree, because
- * `globToRegex` escaped `[`/`]` as literal characters.
- *
- * Row 1's pattern (`%file_name%-%two_letters_code%.%file_extension%`) relies on per-source-file
- * resolution of the FILE placeholders `%file_name%`/`%file_extension%`/`%original_path%` inside an
- * `ignore` pattern: each candidate source file's own name/extension get substituted before matching,
- * so a file that looks like another file's translation output gets excluded.
- * `SourceFileLoader.expandFilePlaceholders` does exactly that, mirroring the sources flatMap in
- * Java's `PlaceholderUtil.format`, while `expandIgnorePatterns`
- * (`lib/export/languagePlaceholders.ts`) handles the language placeholders. All rows below match
- * Java/PHP's documented behavior.
+ * Row 1's pattern (`%file_name%-%two_letters_code%.%file_extension%`) relies on each candidate
+ * source file's own name/extension being substituted before matching, so a file that looks like
+ * another file's translation output gets excluded.
  */
 
 const ALL_FILES = [
@@ -49,7 +35,6 @@ const ALL_FILES = [
   '/folder/sub/1.xml',
 ];
 
-/** Writes crowdin.yml for a single ignore-pattern data-provider row (fixed source/translation). */
 async function writeConfigWithIgnore(ctx: SuiteContext, ignore: string[]): Promise<void> {
   const lines = [
     `project_id: "${ctx.project.id}"`,
@@ -66,7 +51,6 @@ async function writeConfigWithIgnore(ctx: SuiteContext, ignore: string[]): Promi
   await Bun.write(join(ctx.workspace, 'crowdin.yml'), lines.join('\n'));
 }
 
-/** Writes crowdin.yml for the fixed-source (`/folder/**\/*.*`) `ignore_hidden_files` toggle tests. */
 async function writeConfigWithIgnoreHiddenFiles(ctx: SuiteContext, ignoreHiddenFiles: boolean): Promise<void> {
   const lines = [
     `project_id: "${ctx.project.id}"`,
@@ -84,14 +68,8 @@ async function writeConfigWithIgnoreHiddenFiles(ctx: SuiteContext, ignoreHiddenF
 }
 
 /**
- * Equivalent of the PHP suite's `ProjectFilesHelper::deleteAllFiles()`, extended to also delete
- * root-level directories. PHP's `deleteAllFiles()` deletes root-level *nodes* (which, on the legacy
- * API it uses, include folders - deleting a root folder cascades to its whole subtree), so each row
- * starts from a truly empty project, and `folder`/`folder/sub` get re-created (and re-announced in
- * stdout) on every subsequent upload. The other suites' `deleteAllProjectFiles` helper only deletes
- * files (via `sourceFilesApi.deleteFile`), which is enough when directories never need to disappear
- * between tests; this suite's directory-creation assertions (the last two tests) depend on a clean
- * directory tree each time, so directories are deleted here too.
+ * Deletes directories as well as files, so each row starts from a truly empty project: the last two
+ * tests assert `folder`/`folder/sub` being created, which needs them gone every time.
  */
 async function resetProject(ctx: SuiteContext): Promise<void> {
   const files = await ctx.client.sourceFilesApi.listProjectFiles(ctx.project.id, { recursion: '1' });
@@ -106,7 +84,6 @@ async function resetProject(ctx: SuiteContext): Promise<void> {
   }
 }
 
-/** Equivalent of the PHP suite's `ProjectFilesHelper::getFilePaths(true)`. */
 async function projectFilePaths(ctx: SuiteContext): Promise<string[]> {
   const files = await ctx.client.sourceFilesApi.listProjectFiles(ctx.project.id, { recursion: '1' });
   return files.data.map((file) => file.data.path).sort();
@@ -238,8 +215,6 @@ describe('ignore', () => {
 
     expect(result).toMatchObject({ exitCode: 0 });
 
-    // The PHP original's ignoredFiles list also names a nonexistent `/folder/1.txt` here; since that
-    // path is not in ALL_FILES, filtering it out is a no-op there and it is omitted here for clarity.
     const ignoredFiles = [
       '/folder/1.xml',
       '/folder/123.xml',

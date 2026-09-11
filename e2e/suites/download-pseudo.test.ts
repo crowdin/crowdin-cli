@@ -159,8 +159,6 @@ describe('download pseudo', () => {
 
     expect(result.exitCode).toBe(2);
     expect(result.stderr).toContain('Invalid option: expected one of "asian"|"european"|"arabic"|"cyrillic"');
-    // The offending key is not asserted: config errors report the message only, `issue.path` having
-    // been dropped when the pretty-printer was replaced.
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -171,8 +169,6 @@ describe('download pseudo', () => {
 
     expect(result.exitCode).toBe(2);
     expect(result.stderr).toContain('Invalid input: expected string, received number');
-    // The offending key is not asserted: config errors report the message only, `issue.path` having
-    // been dropped when the pretty-printer was replaced.
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -183,8 +179,6 @@ describe('download pseudo', () => {
 
     expect(result.exitCode).toBe(2);
     expect(result.stderr).toContain('Too big: expected number to be <=100');
-    // The offending key is not asserted: config errors report the message only, `issue.path` having
-    // been dropped when the pretty-printer was replaced.
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -207,7 +201,7 @@ describe('download pseudo', () => {
 
     // `-l fr` narrows a normal download to French. A pseudo build has one language of its own -
     // cyrillic means uk - and is mapped against every project language rather than the resolved
-    // set (DownloadCommand.ts:410), so uk still lands despite naming a different language here.
+    // set, so uk still lands despite naming a different language here.
     const result = await ctx.runner.run(['download', 'translations', '--pseudo', '-l', 'fr']);
 
     expect(result).toMatchObject({ exitCode: 0 });
@@ -246,8 +240,8 @@ describe('download pseudo', () => {
 
     await clearDownloadedTranslations(ctx);
 
-    // A pseudo build is a single all-files request carrying no export options
-    // (DownloadCommand.ts:560), so the same config yields transformed text instead of the source.
+    // A pseudo build is a single all-files request carrying no export options, so the same config
+    // yields transformed text instead of the source.
     const pseudo = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
     expect(pseudo).toMatchObject({ exitCode: 0 });

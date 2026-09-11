@@ -9,25 +9,6 @@ import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.t
  * `upload translations` / `download translations` / `file list` against a real (trimmed) NetBeans
  * PHP-module source tree, both on the default branch and on a brand-new branch, asserting the deep
  * nested directory hierarchy gets created correctly and the exact set of server-side file paths.
- *
- * Ported literally: the fixture's `translation:` is the PHP original's
- * `/%two_letters_code%/%original_path%/Bundle.properties`, and the branch re-upload/re-translate
- * tests assert the intended (PHP-parity) outcome.
- *
- * Both of this suite's historical workarounds are gone because the bugs behind them were fixed:
- *
- * 1. `%original_path%` once resolved to the full matched source path *including* the filename,
- *    which turned the literal PHP pattern into a doubled-filename path
- *    (`uk/php/.../Bundle.properties/Bundle.properties`) that matched nothing on disk. It now
- *    resolves to the source file's parent directory, matching Java `PlaceholderUtil.fileParent`
- *    (`getValueForExportPattern`'s `originalPath` branch returns `parsed.dir`,
- *    `src-next/lib/config/translationPathResolver.ts`). The fixture therefore no longer needs the
- *    `**`-based stand-in pattern it used to carry.
- * 2. Re-uploading sources/translations to an already-existing branch once failed, because the
- *    existing-file lookup ignored the branch-name prefix Crowdin puts in `file.data.path`. Every
- *    such lookup now routes through `stripBranchPrefix` (`src-next/lib/utils/path.ts`) -
- *    `UploadSourcesCommand.ts`, `UploadTranslationsCommand.ts`, `DownloadCommand.ts`,
- *    `FileCommand.ts`, `AutoTranslateCommand.ts`, `StatusCommand.ts` and `obsoleteEntries.ts`.
  */
 
 const EXPECTED_LOCAL_FILES_AFTER_DOWNLOAD = [
@@ -65,13 +46,11 @@ const MASTER_SOURCE_FILE_PATHS = [
 
 const BRANCH_SOURCE_FILE_PATHS = MASTER_SOURCE_FILE_PATHS.map((path) => `/branch1${path}`).sort();
 
-/** Equivalent of the PHP suite's `ProjectFilesHelper::getFilePaths(true)`. */
 async function projectFilePaths(ctx: SuiteContext): Promise<string[]> {
   const files = await ctx.client.sourceFilesApi.listProjectFiles(ctx.project.id, { recursion: '1' });
   return files.data.map((file) => file.data.path).sort();
 }
 
-/** Equivalent of the PHP suite's `Common::files($this->tmp('files'))`: a full recursive file listing. */
 async function listFilesRecursively(root: string): Promise<string[]> {
   const results: string[] = [];
 
@@ -123,8 +102,6 @@ describe('file tree', () => {
     expect(result.stdout).toContain(
       "File 'php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties' would be created",
     );
-    // Dryrun never creates anything server-side, so no "Directory ... created" line should appear
-    // (only "File ... would be created" info lines, checked above).
     expect(result.stdout).not.toContain('Directory ');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -245,8 +222,7 @@ describe('file tree', () => {
   });
 
   test('downloads translations, overwriting the local it/uk trees', async () => {
-    // Mirrors the PHP original's `Common::RecursivelyRemoveDirectory` calls: prove the download
-    // recreates these from the server rather than merely finding them already on disk.
+    // Prove the download recreates these from the server rather than finding them on disk.
     await rm(join(ctx.workspace, 'files', 'it'), { recursive: true, force: true });
     await rm(join(ctx.workspace, 'files', 'uk'), { recursive: true, force: true });
 
@@ -287,10 +263,8 @@ describe('file tree', () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'branch1']);
 
     expect(result).toMatchObject({ exitCode: 0 });
-    // `upload sources -b <branch>` prints no branch-creation message at all (getOrCreateBranch is
-    // silent) - confirmed by reading UploadSourcesCommand.ts, matching this effort's established
-    // BranchCommand/UploadSourcesCommand wording note. Directory/file messages use the LOCAL path,
-    // so they're identical strings to the non-branch upload above (no "branch1/" prefix).
+    // No branch-creation message, and the paths carry no "branch1/" prefix, so these match the
+    // non-branch upload above.
     expect(result.stdout).toContain("Directory 'php'");
     expect(result.stdout).toContain("Directory 'php/hudson.php'");
     expect(result.stdout).toContain("Directory 'php/hudson.php/src/org/netbeans/modules/hudson/php/resources'");
@@ -312,9 +286,8 @@ describe('file tree', () => {
     expect(await projectFilePaths(ctx)).toEqual([...MASTER_SOURCE_FILE_PATHS, ...BRANCH_SOURCE_FILE_PATHS].sort());
   });
 
-  // The second upload to an existing branch is the update path: `UploadSourcesCommand.ts` builds
-  // its existing-file lookup through `stripBranchPrefix`, so the branch-prefixed server paths match
-  // the branch-agnostic project paths resolved from the config and nothing is re-created.
+  // The second upload to an existing branch is the update path: the existing-file lookup strips the
+  // branch prefix, so nothing is re-created.
   test('updates sources on the branch (branch already exists)', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'branch1']);
 
@@ -338,8 +311,6 @@ describe('file tree', () => {
     expect(await projectFilePaths(ctx)).toEqual([...MASTER_SOURCE_FILE_PATHS, ...BRANCH_SOURCE_FILE_PATHS].sort());
   });
 
-  // Translation uploads take the same branch-prefix-stripped lookup as the previous test, in
-  // `UploadTranslationsCommand.ts`.
   test('uploads translations for a single language (uk) on the branch', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '-b', 'branch1', '-l', 'uk']);
 
@@ -410,9 +381,8 @@ describe('file tree', () => {
     const result = await ctx.runner.run(['file', 'list', '-b', 'branch1']);
 
     expect(result).toMatchObject({ exitCode: 0 });
-    // Unlike `upload`'s success messages, `file list`'s paths come straight from the server's raw
-    // (branch-prefixed) `file.data.path` with only a leading-slash strip - no `stripBranchPrefix` -
-    // so these DO carry the "branch1/" prefix, matching the PHP original.
+    // Unlike upload's success messages, `file list` prints the raw server path, so these DO carry the
+    // "branch1/" prefix.
     expect(result.stdout).toContain('php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties');
     expect(result.stdout).toContain('php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties');
     expect(result.stdout).toContain(

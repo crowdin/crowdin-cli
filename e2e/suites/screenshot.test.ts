@@ -262,7 +262,6 @@ describe('screenshot', () => {
     expect((await listScreenshots()).map((screenshot) => screenshot.name)).toEqual(['second.png']);
   });
 
-  // An empty argument satisfies commander's `<file>` and reaches the command's own guard.
   test('rejects an empty screenshot path', async () => {
     const result = await ctx.runner.run(['screenshot', 'upload', '']);
 

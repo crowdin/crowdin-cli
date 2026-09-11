@@ -6,8 +6,6 @@ import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../h
 /**
  * Overwrites the workspace's `rules/sample.srx.xml` — the file the fixture's `crowdin.yml`
  * `custom_segmentation` points to — with one of the static `rules/<variant>.srx.xml` fixtures.
- * Mirrors the PHP suite's `copy(self::file('rules/<variant>.srx.xml'), self::tmp('rules/sample.srx.xml'))`
- * between test methods.
  */
 async function useSrxRules(ctx: SuiteContext, variant: string): Promise<void> {
   const content = await Bun.file(join(ctx.workspace, 'rules', `${variant}.srx.xml`)).text();
@@ -20,7 +18,7 @@ describe('custom segmentation', () => {
   beforeAll(async () => {
     ctx = await setupSuite('custom-segmentation', { targetLanguageIds: ['it', 'uk'] });
 
-    // A distractor, as in the PHP suite: project-level file-format settings that contradict the
+    // A distractor: project-level file-format settings that contradict the
     // CLI's own config. The upload reads only the config, so these must change nothing.
     await ctx.client.projectsGroupsApi.addProjectFileFormatSettings(ctx.project.id, {
       format: 'docx',
@@ -49,7 +47,6 @@ describe('custom segmentation', () => {
     // The "sources" directory is created before the per-file srxStorageId is validated by the API,
     // so it still succeeds even though both file creations below fail.
     expect(result.stdout).toContain("Directory 'sources'");
-    // The API's own validation text, wrapped by the CLI's "Failed to create file" prefix.
     expect(result.stderr).toContain(
       "Failed to create file 'sample.docx'. Key: importOptions. Message: Invalid SRX specified. XML validation module returned: attributes construct error",
     );
@@ -127,11 +124,9 @@ describe('custom segmentation', () => {
 
     expect(docxPaths).toEqual(['/Folder/sample.docx', '/sources/sample.docx']);
 
-    // Confirms the previous test's sampleV2 SRX rules (break="no" on sentence-ending punctuation)
-    // actually took effect on the original file: the two sentences merge into a single segment,
-    // instead of the two segments sample.srx.xml (v1) would have produced. Checked at the OLD path since,
-    // as established above, that file is never touched by this test's upload call — its content still reflects
-    // whatever the previous ('updates sources after the SRX rules change') test left it with.
+    // The previous test's sampleV2 rules (break="no" on sentence-ending punctuation) took effect on the
+    // original file: the two sentences merge into one segment instead of v1's two. Checked at the old
+    // path, which this test's upload never touches.
     const sourceDocx = files.data.find((file) => file.data.path === '/sources/sample.docx');
     expect(sourceDocx).toBeDefined();
 

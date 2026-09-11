@@ -45,7 +45,6 @@ describe('app', () => {
   });
 
   afterAll(async () => {
-    // Leaves a pre-existing installation someone else made alone.
     if (ctx && installedByThisRun && !ctx.env.keep) {
       try {
         await ctx.client.applicationsApi.deleteApplicationInstallation(INSTALLABLE_IDENTIFIER, true);
@@ -196,8 +195,6 @@ describe('app', () => {
     expect(normalize(result.stderr)).toMatchSnapshot();
   });
 
-  // An empty argument satisfies commander's `<identifier>` and reaches the command's own guard,
-  // where a missing one is caught earlier as a usage error.
   test.each([['install'], ['uninstall']])('rejects an empty identifier on %s', async (subcommand) => {
     const result = await ctx.runner.run(['app', subcommand, '']);
 
