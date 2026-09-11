@@ -1,0 +1,234 @@
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { rm } from 'node:fs/promises';
+import { join } from 'node:path';
+import { capturedContent, expectFilesExist } from '../helpers/files.ts';
+import { normalize } from '../helpers/normalize.ts';
+import { createTestProject, deleteTestProject } from '../helpers/project.ts';
+import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
+
+// Local paths the nested source patterns resolve to (see fixtures/download-sources/config/crowdin.yml).
+// `download sources` reconstructs these exact local paths from the `source` pattern regardless of the
+// group's `dest` (folder_1's files are stored server-side under `root/...` but download back here).
+const SOURCE_RELATIVE_PATHS = [
+  'folder_1/android.xml',
+  'folder_1/f1/android.xml',
+  'folder_1/f1/f2/android.xml',
+  'folder_2/android_1.xml',
+  'folder_2/android_2.xml',
+  'folder_2/android_3.xml',
+  'folder_2/android_4a.xml',
+];
+
+async function removeDownloadedSources(ctx: SuiteContext): Promise<void> {
+  await rm(join(ctx.workspace, 'folder_1'), { recursive: true, force: true });
+  await rm(join(ctx.workspace, 'folder_2'), { recursive: true, force: true });
+}
+
+describe('download sources', () => {
+  let ctx: SuiteContext;
+  // Captured so a later test can switch back after the no-sources config is swapped in.
+  let originalConfig: string;
+  let stringsBasedProjectId: number;
+  // Captured before the first download deletes the local copies; the branch upload used the same
+  // fixture files, so every later test compares against these bytes.
+  const sourceContent = new Map<string, string>();
+
+  beforeAll(async () => {
+    ctx = await setupSuite('download-sources', { targetLanguageIds: ['it', 'uk'] });
+    originalConfig = await Bun.file(join(ctx.workspace, 'crowdin.yml')).text();
+    // File management is refused for string-based projects, and this suite's own is file-based.
+    stringsBasedProjectId = (
+      await createTestProject(ctx.client, { suite: 'download-sources-strings', stringsBased: true })
+    ).id;
+  });
+
+  afterAll(async () => {
+    if (ctx && stringsBasedProjectId && !ctx.env.keep) {
+      try {
+        await deleteTestProject(ctx.client, stringsBasedProjectId);
+      } catch (error) {
+        console.error(`Failed to delete project #${stringsBasedProjectId}: ${error}`);
+      }
+    }
+
+    await teardownSuite(ctx);
+  });
+
+  test('uploads all nested source files to the project', async () => {
+    const result = await ctx.runner.run(['upload', 'sources']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+
+    // Captured before the assertions below, so a failure here does not cascade as 'No content was
+    // captured' through the rest of the suite.
+    for (const relativePath of SOURCE_RELATIVE_PATHS) {
+      sourceContent.set(relativePath, await Bun.file(join(ctx.workspace, relativePath)).text());
+    }
+
+    // Success lines print the project path, so folder_1's `dest` prefix shows up and folder_2's
+    // group has none.
+    expect(result.stdout).toContain("Directory 'folder_2'");
+    expect(result.stdout).toContain("Directory 'root'");
+    expect(result.stdout).toContain("Directory 'root/folder_1'");
+    expect(result.stdout).toContain("Directory 'root/folder_1/f1'");
+    expect(result.stdout).toContain("Directory 'root/folder_1/f1/f2'");
+    expect(result.stdout).toContain("File 'folder_2/android_1.xml'");
+    expect(result.stdout).toContain("File 'folder_2/android_2.xml'");
+    expect(result.stdout).toContain("File 'folder_2/android_3.xml'");
+    expect(result.stdout).toContain("File 'folder_2/android_4a.xml'");
+    expect(result.stdout).toContain("File 'root/folder_1/android.xml'");
+    expect(result.stdout).toContain("File 'root/folder_1/f1/android.xml'");
+    expect(result.stdout).toContain("File 'root/folder_1/f1/f2/android.xml'");
+    expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test('uploads the same nested source files to a brand-new branch', async () => {
+    const result = await ctx.runner.run(['upload', 'sources', '-b', 'b1']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stdout).toContain("File 'folder_2/android_1.xml'");
+    expect(result.stdout).toContain("File 'root/folder_1/f1/f2/android.xml'");
+    expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test('downloads sources back to their original local paths', async () => {
+    await removeDownloadedSources(ctx);
+
+    const result = await ctx.runner.run(['download', 'sources']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    // folder_1's `dest` uses `%original_path%`, the source file's parent directory - so no doubled
+    // filename segment.
+    expect(result.stdout).toContain("File 'root/folder_1/android.xml'");
+    expect(result.stdout).toContain("File 'root/folder_1/f1/android.xml'");
+    expect(result.stdout).toContain("File 'root/folder_1/f1/f2/android.xml'");
+    expect(result.stdout).toContain("File 'folder_2/android_1.xml'");
+    // A `[...]` class in the source pattern matches server-side during download exactly as it does
+    // locally during upload.
+    expect(result.stdout).toContain("File 'folder_2/android_2.xml'");
+    expect(result.stdout).toContain("File 'folder_2/android_3.xml'");
+    expect(result.stdout).toContain("File 'folder_2/android_4a.xml'");
+    expect(normalize(result.stdout)).toMatchSnapshot();
+
+    await expectFilesExist(ctx.workspace, ...SOURCE_RELATIVE_PATHS);
+
+    for (const relativePath of SOURCE_RELATIVE_PATHS) {
+      expect(await Bun.file(join(ctx.workspace, relativePath)).text()).toBe(
+        capturedContent(sourceContent, relativePath),
+      );
+    }
+  });
+
+  test('downloads sources again with --output plain', async () => {
+    await removeDownloadedSources(ctx);
+
+    // `--output plain` stands in for Java's `--plain`: bare downloaded paths instead of messages.
+    const result = await ctx.runner.run(['download', 'sources', '--output', 'plain']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(normalize(result.stdout)).toMatchSnapshot();
+
+    // `--output plain` changes the messages, never which files are written.
+    await expectFilesExist(ctx.workspace, ...SOURCE_RELATIVE_PATHS);
+
+    for (const relativePath of SOURCE_RELATIVE_PATHS) {
+      expect(await Bun.file(join(ctx.workspace, relativePath)).text()).toBe(
+        capturedContent(sourceContent, relativePath),
+      );
+    }
+  });
+
+  test('downloads sources from the b1 branch', async () => {
+    await removeDownloadedSources(ctx);
+
+    // Server paths carry the branch name; the download strips it before matching, so a branch
+    // resolves the same 7 files as master.
+    const result = await ctx.runner.run(['download', 'sources', '-b', 'b1']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(normalize(result.stdout)).toMatchSnapshot();
+
+    await expectFilesExist(ctx.workspace, ...SOURCE_RELATIVE_PATHS);
+
+    for (const relativePath of SOURCE_RELATIVE_PATHS) {
+      expect(await Bun.file(join(ctx.workspace, relativePath)).text()).toBe(
+        capturedContent(sourceContent, relativePath),
+      );
+    }
+  });
+
+  test('warns when a source pattern matches nothing', async () => {
+    await switchConfig(ctx, 'no-sources');
+
+    const result = await ctx.runner.run(['download', 'sources']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stderr).toContain(
+      "No sources found for '/folder_not_exists/**/*.xml' pattern. Check the source paths in your configuration file",
+    );
+    expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test('rejects --reviewed on a non-Enterprise (SaaS) account', async () => {
+    // Restores the bytes captured in `beforeAll`, already rendered.
+    await Bun.write(join(ctx.workspace, 'crowdin.yml'), originalConfig);
+
+    const result = await ctx.runner.run(['download', 'sources', '--reviewed']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    // The test account is SaaS, not Enterprise.
+    expect(result.stderr).toContain('Operation is available only for Crowdin Enterprise');
+    expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test('previews the download without writing anything with --dryrun', async () => {
+    await removeDownloadedSources(ctx);
+
+    const result = await ctx.runner.run(['download', 'sources', '--dryrun']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+
+    // The listing carries project paths, not the local ones the files are written to. Asserted as
+    // an exact set: every local path is a substring of its project path, so `toContain` proves nothing.
+    const listed = await ctx.runner.run(['download', 'sources', '--dryrun', '--output', 'plain']);
+
+    expect(listed.stdout.split('\n').filter(Boolean).sort()).toEqual([
+      'folder_2/android_1.xml',
+      'folder_2/android_2.xml',
+      'folder_2/android_3.xml',
+      'folder_2/android_4a.xml',
+      'root/folder_1/android.xml',
+      'root/folder_1/f1/android.xml',
+      'root/folder_1/f1/f2/android.xml',
+    ]);
+
+    for (const relativePath of SOURCE_RELATIVE_PATHS) {
+      expect(await Bun.file(join(ctx.workspace, relativePath)).exists()).toBe(false);
+    }
+
+    expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test('warns about the unpredictable layout when preserve_hierarchy is off', async () => {
+    await switchConfig(ctx, 'flat-hierarchy');
+
+    const result = await ctx.runner.run(['download', 'sources', '--dryrun']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    // The CLI's only multi-line diagnostic, so the one place line handling has to hold.
+    expect(result.stderr).toContain(
+      "Because the 'preserve_hierarchy' parameter is set to 'false':\n" +
+        '\t- CLI might download some unexpected files that match the pattern;\n' +
+        '\t- Source file hierarchy may not be preserved and will be the same as in Crowdin.',
+    );
+  });
+
+  test('refuses to download sources from a string-based project', async () => {
+    await Bun.write(join(ctx.workspace, 'crowdin.yml'), originalConfig);
+
+    const result = await ctx.runner.run(['download', 'sources', '--project-id', String(stringsBasedProjectId)]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('File management is not available for string-based projects');
+  });
+});

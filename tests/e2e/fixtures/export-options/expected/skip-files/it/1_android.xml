@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="1_android.xml/str1">prima stringa</string>
+    <string name="1_android.xml/str2">seconda stringa</string>
+    <string name="1_android.xml/str3">terza stringa</string>
+</resources>

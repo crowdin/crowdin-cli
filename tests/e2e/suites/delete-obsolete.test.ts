@@ -1,0 +1,143 @@
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { normalize } from '../helpers/normalize.ts';
+import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
+
+/** Strips a leading slash so paths compare equal regardless of which form the API returns. */
+function stripLeadingSlash(path: string): string {
+  return path.startsWith('/') ? path.slice(1) : path;
+}
+
+async function projectFilePaths(ctx: SuiteContext): Promise<string[]> {
+  const files = await ctx.client.sourceFilesApi.listProjectFiles(ctx.project.id);
+  return files.data.map((file) => stripLeadingSlash(file.data.path)).sort();
+}
+
+async function projectDirectoryPaths(ctx: SuiteContext): Promise<string[]> {
+  const directories = await ctx.client.sourceFilesApi.listProjectDirectories(ctx.project.id);
+  return directories.data.map((directory) => stripLeadingSlash(directory.data.path)).sort();
+}
+
+describe('delete obsolete', () => {
+  let ctx: SuiteContext;
+
+  // Each run passes `--base-path <revision>` to walk the fixture revisions; the two steps that also
+  // change a `dest` swap the whole config.
+  beforeAll(async () => {
+    ctx = await setupSuite('delete-obsolete', { targetLanguageIds: ['it', 'uk'] });
+  });
+
+  afterAll(async () => {
+    await teardownSuite(ctx);
+  });
+
+  test('uploads all sources', async () => {
+    const result = await ctx.runner.run(['upload', 'sources', '--base-path', 'sources']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stdout).toContain("Directory 'destination'");
+    expect(result.stdout).toContain("Directory 'lang'");
+    expect(result.stdout).toContain("File '1_android.xml'");
+    expect(result.stdout).toContain("File '2_android.xml'");
+    expect(result.stdout).toContain("File '3_android.xml'");
+    expect(result.stdout).toContain("File 'destination/1_simple.csv'");
+    expect(result.stdout).toContain("File 'lang/4_android.xml'");
+    expect(result.stdout).toContain("File 'lang/en-US.json'");
+    expect(normalize(result.stdout)).toMatchSnapshot();
+
+    expect(await projectFilePaths(ctx)).toEqual(
+      [
+        '1_android.xml',
+        '2_android.xml',
+        '3_android.xml',
+        'destination/1_simple.csv',
+        'lang/4_android.xml',
+        'lang/en-US.json',
+      ].sort(),
+    );
+  });
+
+  test('deletes nothing for real with --delete-obsolete --dryrun', async () => {
+    const beforeFiles = await projectFilePaths(ctx);
+
+    const result = await ctx.runner.run([
+      'upload',
+      'sources',
+      '--base-path',
+      'sources_rev2',
+      '--delete-obsolete',
+      '--dryrun',
+    ]);
+
+    // sources_rev2/ has no CSV, so the fixture's '/*.csv' group matches nothing and flags the run -
+    // as Java does.
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("No sources found for '/*.csv' pattern");
+    expect(normalize(result.stdout)).toMatchSnapshot();
+
+    // sources_rev2/ drops 2_android.xml and 1_simple.csv - a real run would delete their remote
+    // counterparts, but --dryrun must leave the project untouched.
+    expect(await projectFilePaths(ctx)).toEqual(beforeFiles);
+  });
+
+  test('deletes obsolete files and directories for real with --delete-obsolete', async () => {
+    const result = await ctx.runner.run(['upload', 'sources', '--base-path', 'sources_rev3', '--delete-obsolete']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(normalize(result.stdout)).toMatchSnapshot();
+
+    // sources_rev3/ only keeps 1_android.xml and 1_simple.csv - everything else that was still
+    // present on the server (because the previous step was a dry run) must be gone for real now,
+    // including the now-empty 'lang' directory.
+    expect(await projectFilePaths(ctx)).toEqual(['1_android.xml', 'destination/1_simple.csv'].sort());
+    expect(await projectDirectoryPaths(ctx)).not.toContain('lang');
+  });
+
+  test('deletes an obsolete file whose remaining sibling now has a dest', async () => {
+    await switchConfig(ctx, 'crowdin-rev4');
+
+    const result = await ctx.runner.run(['upload', 'sources', '--base-path', 'sources_rev4', '--delete-obsolete']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(normalize(result.stdout)).toMatchSnapshot();
+
+    // sources_rev4/ has only 1_android.xml, and the new config remaps every file under
+    // 'destination/' - 1_simple.csv (with no local counterpart anymore) becomes obsolete.
+    const paths = await projectFilePaths(ctx);
+    expect(paths).not.toContain('destination/1_simple.csv');
+  });
+
+  test('nothing to delete when the dest remap makes local and remote paths coincide (dryrun)', async () => {
+    await switchConfig(ctx, 'crowdin-rev5');
+    await ctx.runner.run(['upload', 'sources', '--base-path', 'sources_rev5']);
+    const beforeFiles = await projectFilePaths(ctx);
+
+    const result = await ctx.runner.run([
+      'upload',
+      'sources',
+      '--base-path',
+      'sources_rev5',
+      '--delete-obsolete',
+      '--dryrun',
+    ]);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(normalize(result.stdout)).toMatchSnapshot();
+
+    // sources_rev5/ (1_android.xml, 2_android.xml) already matches the current dest mapping
+    // 1:1, so there is nothing obsolete to report even in a real run - a dry run must be a no-op.
+    expect(await projectFilePaths(ctx)).toEqual(beforeFiles);
+  });
+
+  test('reports the steady state once local and remote paths already coincide', async () => {
+    await ctx.runner.run(['upload', 'sources', '--base-path', 'sources_rev5']);
+    const beforeFiles = await projectFilePaths(ctx);
+
+    const result = await ctx.runner.run(['upload', 'sources', '--base-path', 'sources_rev5', '--delete-obsolete']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(normalize(result.stdout)).toMatchSnapshot();
+
+    // Nothing obsolete remains, so a real --delete-obsolete run changes nothing on the server.
+    expect(await projectFilePaths(ctx)).toEqual(beforeFiles);
+  });
+});

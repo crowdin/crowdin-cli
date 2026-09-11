@@ -1,0 +1,8 @@
+# Port of crowdin-backend/tests/var/Cli/Common/CliStringTest/config/crowdin_without_token.yml:
+# no `api_token` (and no `project_id`) - the suite supplies both via `-T`/`-i` instead.
+base_path: "."
+base_url: "https://api.crowdin.com"
+preserve_hierarchy: false
+files:
+  - source: "/sources/*.xml"
+    translation: "/translations/%two_letters_code%/%original_file_name%"

@@ -1,0 +1,52 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`glossary uploads a TBX glossary, creating it 1`] = `
+"●  Importing glossary
+●  Importing glossary (<pct>)
+◆  Imported in #id 'Created in Crowdin CLI (simple-glossary.tbx)' glossary
+#id Created in Crowdin CLI (simple-glossary.tbx) (terms: 3)"
+`;
+
+exports[`glossary uploads a CSV glossary with an explicit scheme, creating it 1`] = `
+"●  Importing glossary
+●  Importing glossary (<pct>)
+◆  Imported in #id 'Created in Crowdin CLI (simple-glossary.csv)' glossary
+#id Created in Crowdin CLI (simple-glossary.csv) (terms: 5)"
+`;
+
+exports[`glossary uploads an XLSX glossary with an explicit scheme, creating it 1`] = `
+"●  Importing glossary
+●  Importing glossary (<pct>)
+◆  Imported in #id 'Created in Crowdin CLI (simple-glossary.xlsx)' glossary
+#id Created in Crowdin CLI (simple-glossary.xlsx) (terms: 5)"
+`;
+
+exports[`glossary downloads the TBX glossary by id and format 1`] = `
+"●  Building glossary
+●  Building glossary (<pct>)
+◆  'Created in Crowdin CLI (simple-glossary.tbx).tbx' downloaded successfully"
+`;
+
+exports[`glossary downloads the CSV glossary by id and format 1`] = `
+"●  Building glossary
+●  Building glossary (<pct>)
+◆  'Created in Crowdin CLI (simple-glossary.csv).csv' downloaded successfully"
+`;
+
+exports[`glossary downloads the XLSX glossary by id and format 1`] = `
+"●  Building glossary
+●  Building glossary (<pct>)
+◆  'Created in Crowdin CLI (simple-glossary.xlsx).xlsx' downloaded successfully"
+`;
+
+exports[`glossary downloads the TBX glossary without an explicit format 1`] = `
+"●  Building glossary
+●  Building glossary (<pct>)
+◆  'Created in Crowdin CLI (simple-glossary.tbx).tbx' downloaded successfully"
+`;
+
+exports[`glossary downloads the project's default glossary by id 1`] = `
+"●  Building glossary
+●  Building glossary (<pct>)
+◆  'e2e-<run>-glossary's Glossary.tbx' downloaded successfully"
+`;

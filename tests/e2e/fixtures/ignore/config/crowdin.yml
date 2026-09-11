@@ -1,0 +1,13 @@
+# This template exists only because setupSuite() unconditionally reads config/crowdin.yml to render
+# the workspace's initial crowdin.yml. The real suite (ignore.test.ts) overwrites crowdin.yml before
+# every test with the row-specific `ignore` array (or `settings.ignore_hidden_files` value), so the
+# content below is never actually exercised - it's here purely so the file exists and documents the
+# fixture's shape.
+project_id: "{{projectId}}"
+api_token: "{{token}}"
+base_path: "./files"
+base_url: "https://api.crowdin.com"
+preserve_hierarchy: true
+files:
+  - source: "/**/*.*"
+    translation: "/%original_path%/%file_name%-%two_letters_code%.%file_extension%"

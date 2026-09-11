@@ -1,0 +1,15 @@
+project_id: "{{projectId}}"
+api_token: "{{token}}"
+base_path: "."
+base_url: "https://api.crowdin.com"
+preserve_hierarchy: true
+files:
+  - source: "/folder_1/**/*.xml"
+    dest: "/root/%original_path%/%file_name%.xml"
+    translation: "/%locale%/folder_1/**/%file_name%.xml"
+  - source: "/folder_2/android_1.xml"
+    translation: "/%locale%/folder_2/%file_name%.xml"
+  - source: "/folder_2/android_[2-3].xml"
+    translation: "/%locale%/folder_2/%file_name%.xml"
+  - source: "/folder_2/android_4?.xml"
+    translation: "/%locale%/folder_2/%file_name%.xml"
