@@ -24,7 +24,7 @@ export interface ContextChange {
 }
 
 /**
- * The per-string line upload and reset print. `suffix` carries Java's conditional wording ('would
+ * The per-string line upload and reset print. `suffix` carries the conditional wording ('would
  * be uploaded'), so a real run reuses the same view without it. plain prints the id alone, as the
  * string listing does — a text and a context both run to arbitrary length and hold newlines.
  */
@@ -34,7 +34,7 @@ export const contextChangeView = (suffix = ''): View<ContextChange> => ({
   keys: ['id', 'text', 'context'],
 });
 
-/** The file `context download` wrote. Java's message.saved; the path is the whole result. */
+/** The file `context download` wrote; the path is the whole result. */
 export const savedPathView: View<string> = {
   text: (writtenPath) => `'${writtenPath}' saved successfully`,
   plain: (writtenPath) => writtenPath,

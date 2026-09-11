@@ -2,11 +2,10 @@ import { replaceDoubleAsterisk } from '../utils/doubleAsterisk.ts';
 import { stripLeadingSlashes, toPosixPath } from '../utils/path.ts';
 
 /**
- * Translates a single source/translation glob pattern (or path segment) into a regex source string,
- * mirroring Java's PlaceholderUtil.formatSourcePatternForRegex: `**` matches across separators,
- * `*` matches within a segment, `?` matches a single non-separator character, and the file
- * placeholders collapse to wildcards. Language placeholders are left literal so they match the
- * literal placeholder text present on both sides.
+ * Translates a single source/translation glob pattern (or path segment) into a regex source string:
+ * `**` matches across separators, `*` matches within a segment, `?` matches a single non-separator
+ * character, and the file placeholders collapse to wildcards. Language placeholders are left literal
+ * so they match the literal placeholder text present on both sides.
  */
 export function globToRegex(pattern: string): string {
   let result = '';
@@ -30,12 +29,10 @@ export function globToRegex(pattern: string): string {
       continue;
     }
 
-    // Glob character sets ('[12]', '[a-z]', '[!0-9]') become regex classes. Java leaves brackets
-    // untouched (formatSourcePatternForRegex escapes only '.', '(' and ')'), and Bun's Glob — which
-    // scans the local sources — supports sets too, so escaping them here made server-side matching
-    // disagree with the local scan. '!' is translated to '^' to follow glob negation, as Bun does.
-    // An unterminated '[', or one whose ']' sits in another path segment, is a literal bracket in a
-    // file name and falls through to the escape branch below.
+    // Glob character sets ('[12]', '[a-z]', '[!0-9]') become regex classes, so server-side matching
+    // agrees with Bun's Glob, which scans the local sources. '!' is translated to '^' to follow glob
+    // negation, as Bun does. An unterminated '[', or one whose ']' sits in another path segment, is a
+    // literal bracket in a file name and falls through to the escape branch below.
     if (char === '[') {
       const end = pattern.indexOf(']', i + 2);
       const set = end === -1 ? undefined : pattern.slice(i + 1, end);
@@ -59,10 +56,10 @@ export function globToRegex(pattern: string): string {
 
   return (
     result
-      // Java makes a `**/` segment optional (PlaceholderUtil:308), so `/src/**/*.json` matches
-      // `src/app.json` as well as `src/main/app.json` — which is also what Bun's Glob does when
-      // scanning local sources. Applied before the placeholder substitutions, as in Java, so that
-      // `%original_path%/` (which only becomes `.+/` below) stays mandatory.
+      // A `**/` segment is optional, so `/src/**/*.json` matches `src/app.json` as well as
+      // `src/main/app.json`, as Bun's Glob does when scanning local sources. Applied before the
+      // placeholder substitutions so that `%original_path%/` (which only becomes `.+/` below) stays
+      // mandatory.
       .replaceAll('.+/', '(.+/)?')
       .replaceAll('%file_extension%', '[^/]+')
       .replaceAll('%file_name%', '[^/]+')
@@ -72,8 +69,7 @@ export function globToRegex(pattern: string): string {
 }
 
 /**
- * Decides whether a project file path matches a config group's source pattern, mirroring Java's
- * SourcesUtils.filterProjectFiles.
+ * Decides whether a project file path matches a config group's source pattern.
  *
  * - `preserveHierarchy` true: the whole pattern must match the whole path.
  * - `preserveHierarchy` false: only the trailing path segments need to match the pattern segments
@@ -103,8 +99,7 @@ export function matchesSourcePattern(filePath: string, sourcePattern: string, pr
 
 /**
  * Decides whether a project file's export pattern is compatible with a config group's translation
- * pattern, mirroring Java's ObsoleteSourcesUtils.checkExportPattern. When the project file has no
- * export pattern the check passes (nothing to contradict).
+ * pattern. When the project file has no export pattern the check passes (nothing to contradict).
  */
 export function matchesExportPattern(
   fileExportPattern: string | undefined,
@@ -118,9 +113,6 @@ export function matchesExportPattern(
   return matchesSourcePattern(fileExportPattern, translationPattern, preserveHierarchy);
 }
 
-/**
- * Mirrors Java SourcesUtils.containsPattern: whether a pattern contains glob metacharacters.
- */
 export function containsPattern(pattern: string): boolean {
   return (
     pattern.includes('**') ||
@@ -132,16 +124,16 @@ export function containsPattern(pattern: string): boolean {
 }
 
 /**
- * Replicates DownloadSourcesAction's manager-access pre-filter for one project file: decides whether
- * the file's server export pattern is compatible with the config group, so that with manager access
- * only files whose translations belong to the group are downloaded. Returns true to KEEP the file.
+ * The manager-access pre-filter for one project file: decides whether the file's server export
+ * pattern is compatible with the config group, so that with manager access only files whose
+ * translations belong to the group are downloaded. Returns true to KEEP the file.
  *
  * - `preserveHierarchy` false: the group `translation` (with each `/**` made optional) must partially
- *   match the export pattern (Java's `Pattern.asPredicate`).
+ *   match the export pattern (an unanchored regex test).
  * - `preserveHierarchy` true: when `dest` is set the file path must match the `dest` glob; otherwise
  *   the file's export pattern (when present) must be a suffix of the group `translation` after `**` is
- *   expanded from the project file path. A matched file is then additionally gated by Java's
- *   `sourceName == fileName || containsPattern(sourceName) || searchPattern.contains(path)` condition.
+ *   expanded from the project file path. A matched file must then also share the source's file name,
+ *   have a glob in the source's file name, or appear in the search pattern.
  */
 export function matchesManagerSourceFile(
   fileBean: { source: string; translation: string; dest?: string },
@@ -157,7 +149,7 @@ export function matchesManagerSourceFile(
       return true;
     }
 
-    // `/**` -> optional `(/.+)?`; placeholders stay literal. Partial match like Java asPredicate.
+    // `/**` -> optional `(/.+)?`; placeholders stay literal.
     const prepared = fileBean.translation.replace(/[\\/]\*\*/g, '(/.+)?').replace(/\\/g, '\\\\');
     return new RegExp(prepared).test(normalizedExport);
   }
@@ -168,8 +160,6 @@ export function matchesManagerSourceFile(
     const destPattern = stripLeadingSlashes(normalizePath(fileBean.dest));
     matchesFileBean = new RegExp(`^${globToRegex(destPattern)}$`).test(stripLeadingSlashes(normalizePath(filePath)));
   } else {
-    // Expand `**` from the project file path, then require the file's export pattern to be a suffix of
-    // the resulting translation pattern (mirrors Java DownloadSourcesAction's manager-access filter).
     const translationPattern = replaceDoubleAsterisk(fileBean.source, fileBean.translation, filePath);
     matchesFileBean = normalizedExport === undefined || translationPattern.endsWith(normalizedExport);
   }
@@ -193,9 +183,9 @@ function baseName(value: string): string {
 
 /**
  * Substitutes a project file's actual path segments into a source pattern's wildcard segments,
- * aligning from the right, mirroring Java's SourcesUtils.replaceUnaryAsterisk. A pattern segment is
- * replaced by the corresponding file segment only when the pattern segment is not `**` and the file
- * segment matches it. Used to derive `download sources` destinations from the source pattern.
+ * aligning from the right. A pattern segment is replaced by the corresponding file segment only when
+ * the pattern segment is not `**` and the file segment matches it. Used to derive `download sources`
+ * destinations from the source pattern.
  */
 export function replaceUnaryAsterisk(sourcePattern: string, projectFile: string): string {
   const parts = sourcePattern.split(/[\\/]+/);

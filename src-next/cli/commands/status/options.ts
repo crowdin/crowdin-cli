@@ -15,10 +15,8 @@ export const directory: OptionDef = {
   description: 'Path to the directory in Crowdin',
 };
 
-// Java uses distinct descriptionKeys per mode (crowdin.status[.translation|.proofreading].*),
-// so --language and --fail-if-incomplete are worded per subcommand. Grouped so each mode's
-// wording sits together (default and translation share language wording but differ on
-// fail-if-incomplete, and can drift independently since they're separate keys).
+// --language and --fail-if-incomplete are worded per mode, so grouped per subcommand. Default and
+// translation share the language wording but differ on fail-if-incomplete.
 export const status = {
   language: {
     name: 'language',

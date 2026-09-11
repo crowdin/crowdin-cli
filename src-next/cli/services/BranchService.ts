@@ -5,7 +5,7 @@ import CliError from '../errors/CliError.ts';
 import { toCliError } from '../errors/toCliError.ts';
 import { normalizeBranchName } from '../utils/parsing.ts';
 
-// Reports each poll's percentage so the command can render its own progress (Java updates a spinner).
+// Reports each poll's percentage so the command can render its own progress.
 export type ProgressCallback = (progress: number) => void;
 
 export class BranchService {

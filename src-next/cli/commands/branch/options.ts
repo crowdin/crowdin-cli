@@ -3,8 +3,7 @@ import type { OptionDef } from '@/cli/types.ts';
 
 const BRANCH_PRIORITIES: SourceFilesModel.Priority[] = ['low', 'normal', 'high'];
 
-// add/edit both take --title and --priority but with different wording
-// (Java crowdin.branch.<sub>.*), so grouped per subcommand.
+// add/edit both take --title and --priority but with different wording, so grouped per subcommand.
 
 export const add = {
   title: {

@@ -6,8 +6,7 @@ import NotFoundError from './NotFoundError.ts';
 import RateLimitError from './RateLimitError.ts';
 
 // A connection failure arrives as a wrapped CrowdinError (code 500) whose message is the raw
-// error from the HTTP layer. Java matched "Name or service not known"; Bun/axios surface these
-// tokens instead. Two buckets, because they mean different things to the user:
+// error from the HTTP layer. Two buckets, because they mean different things to the user:
 //
 //   ENOTFOUND  - DNS answered "no such host": the URL itself is wrong.
 //   everything else - the name resolved (or the resolver was unreachable) and the socket failed:
@@ -41,14 +40,11 @@ function connectionMessage(message: string): string | undefined {
   return undefined;
 }
 
-// Mirrors Java's CrowdinClientCore.standardErrorHandlers: maps the HTTP status of an
-// API error onto the matching exit code. The Java substring branches (Project/Bundle Not
-// Found, "upgrade subscription", ...) all collapse to the same code as their generic status
-// sibling, so a pure status switch reproduces every exit code.
+// Maps the HTTP status of an API error onto the matching exit code.
 //
-// Hybrid message strategy: 401 and invalid-url get Java's curated text (they're unambiguous —
-// a 401 always means a bad token, an ECONNREFUSED always points at base_url). 403/404/429 stay
-// contextual, because a fixed "project doesn't exist" would mislabel a file/branch/bundle 404.
+// 401 and an unknown host get curated text (they're unambiguous — a 401 always means a bad token,
+// an unknown host always points at base_url). 403/404/429 stay contextual, because a fixed
+// "project doesn't exist" would mislabel a file/branch/bundle 404.
 export function mapCrowdinError(error: CrowdinError, fallbackMessage: string): CliError {
   if (error.code === 401) {
     return new AuthorizationError("Couldn't authorize. Check your 'api_token'");

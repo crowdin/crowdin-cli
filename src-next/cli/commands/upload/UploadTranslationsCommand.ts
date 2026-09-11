@@ -112,8 +112,8 @@ export default class UploadTranslationsCommand {
       serverLanguageMapping,
       output,
       options.output === 'plain',
-      // Java's dry run (ListTranslationsAction -> DryrunTranslations) resolves translation paths
-      // from local sources only; it never looks the source up in the project.
+      // A dry run resolves translation paths from local sources only; it never looks the source up
+      // in the project.
       options.dryrun ? undefined : (projectPath) => fileLookup(toProjectPath(projectPath), projectFilePaths)?.id,
     );
 
@@ -176,7 +176,7 @@ export default class UploadTranslationsCommand {
     // Text already streamed a line per file, so only the machine formats need the summary.
     // Sorted because the uploads run concurrently, and a machine contract should not depend
     // on which finished first. plain is line-oriented and cannot carry the action, so it
-    // lists only what was uploaded — Java prints nothing there for a skipped file.
+    // lists only what was uploaded.
     if (isMachineFormat(options.output)) {
       const sorted = uploadedFiles.sort((one, other) => one.path.localeCompare(other.path));
 
@@ -186,7 +186,7 @@ export default class UploadTranslationsCommand {
       );
     }
 
-    // A dry run only previews; like Java's separate list action it never fails the process.
+    // A dry run only previews, so it never fails the process.
     const failed = reportFailures(results, output);
     if (!options.dryrun && (failed || entriesHaveErrors)) {
       throw new CliError(EXECUTION_FINISHED_WITH_ERRORS);
@@ -194,11 +194,10 @@ export default class UploadTranslationsCommand {
   };
 
   /**
-   * Builds the list of translation uploads from local source files, mirroring Java's
-   * UploadTranslationsAction: sources are resolved to project paths (honoring dest /
-   * preserve_hierarchy / ignore), and each source expands to one entry per target language —
-   * or a single multi-language entry for a multilingual file (a `scheme` or `multilingual: true`)
-   * whose translation pattern has no language placeholder.
+   * Builds the list of translation uploads from local source files: sources are resolved to project
+   * paths (honoring dest / preserve_hierarchy / ignore), and each source expands to one entry per
+   * target language — or a single multi-language entry for a multilingual file (a `scheme` or
+   * `multilingual: true`) whose translation pattern has no language placeholder.
    */
   private buildTranslationEntries(
     config: Config,
@@ -219,8 +218,8 @@ export default class UploadTranslationsCommand {
         fileLanguageMapping: patterns.languages_mapping,
       });
 
-      // Java reports the empty group and moves on to the next one, keeping the message out of
-      // `--plain` so that stream stays parseable. It never flags the run as failed for this.
+      // An empty group is reported and skipped without failing the run; the message stays out of
+      // `--plain` so that stream stays parseable.
       if (localSourcePaths.length === 0) {
         if (!plainView) {
           output.error(
@@ -241,8 +240,8 @@ export default class UploadTranslationsCommand {
           fileId = resolveFileId(projectPath);
 
           if (fileId === undefined) {
-            // Java treats a source missing from the project as an error and exits non-zero, but
-            // keeps the message out of `--plain` so that stream stays parseable.
+            // A source missing from the project fails the run, but the message stays out of
+            // `--plain` so that stream stays parseable.
             if (!plainView) {
               output.error(`Source file '${localSourcePath}' does not exist in the project`);
             }
@@ -289,8 +288,8 @@ export default class UploadTranslationsCommand {
   }
 
   /**
-   * Java's DryrunTranslations passes filesMustExist=false, so a dry run lists every resolved
-   * translation path - including ones with no file on disk yet - de-duplicated.
+   * A dry run lists every resolved translation path, including ones with no file on disk yet,
+   * de-duplicated.
    */
   private dryRunPaths(entries: TranslationUploadEntry[]): string[] {
     return toSortedRelativePaths([...new Set(entries.map((entry) => entry.translationPath))]);
@@ -322,12 +321,10 @@ export default class UploadTranslationsCommand {
       options.output === 'plain',
     );
 
-    // Java DryrunTranslations plain view: bare sorted translation paths, one per line.
     if (options.dryrun && printDryRunPaths(this.dryRunPaths(entries), options, output)) {
       return;
     }
 
-    // What json/toon report at the end. Text streams per-file messages instead, so it stays empty.
     const uploadedFiles: UploadedFile[] = [];
 
     const tasks = entries.map((entry) => async () => {
@@ -365,10 +362,7 @@ export default class UploadTranslationsCommand {
 
     const results = await runConcurrently(tasks);
 
-    // Text already streamed a line per file, so only the machine formats need the summary.
-    // Sorted because the uploads run concurrently, and a machine contract should not depend
-    // on which finished first. plain is line-oriented and cannot carry the action, so it
-    // lists only what was uploaded — Java prints nothing there for a skipped file.
+    // The same machine-format summary as the file-based upload.
     if (isMachineFormat(options.output)) {
       const sorted = uploadedFiles.sort((one, other) => one.path.localeCompare(other.path));
 

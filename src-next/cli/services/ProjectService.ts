@@ -5,7 +5,7 @@ import { withSpinner } from '../utils/withSpinner.ts';
 
 /**
  * What `project add` sends. `identifier` is omitted deliberately — the API derives it from the
- * name, and the CLI never had a value that could satisfy its character rules.
+ * name.
  */
 export type CreateProjectPayload =
   | ProjectsGroupsModel.CreateProjectEnterpriseRequest
@@ -24,9 +24,7 @@ export class ProjectService {
 
   async addProject(data: CreateProjectPayload) {
     try {
-      // The cast covers the omitted `identifier`, which the client types as required: the API
-      // derives it from the name when it is absent, which is what Java's RequestBuilder.addProject
-      // relies on — it never sends one.
+      // The cast covers the omitted `identifier`, which the client types as required.
       return await this.apiClient.projectsGroupsApi.addProject(data as ProjectsGroupsModel.CreateProjectRequest);
     } catch (error) {
       throw toCliError(error, 'Failed to add project');

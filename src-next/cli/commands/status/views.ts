@@ -55,8 +55,7 @@ export const statusPlainView = (rows: ProgressRow[], show: ProgressView, verbose
       }
     }
 
-    // A lone section needs no header — Java prints the bare lines for `status translation`, and with
-    // one metric on screen there is nothing to tell apart.
+    // A lone section needs no header: with one metric on screen there is nothing to tell apart.
     const headed = sections.length > 1;
 
     return sections
@@ -69,7 +68,7 @@ export const statusPlainView = (rows: ProgressRow[], show: ProgressView, verbose
 });
 
 /**
- * The grid text renders: one row per language, keyed by Java's `French(fr)` header so the name and
+ * The grid text renders: one row per language, keyed by a `French(fr)` header so the name and
  * the code stay together without a column of their own. `verbose` adds the word and phrase counts
  * the verbose lines carry; the columns follow `show` either way.
  */

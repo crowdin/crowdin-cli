@@ -18,10 +18,9 @@ export interface ResolveOptions {
   /**
    * The group's `dest`, which moves file-dependent placeholders to the server location.
    *
-   * Only meaningful together with `serverOnly`. Java resolves the archive key
-   * (`translationProject2`) from `prepareDest(dest, file)` but always resolves the *local* path
-   * (`translationFile2`) from the source path, so passing `dest` without `serverOnly` would give a
-   * local path the server's placeholder values.
+   * Only meaningful together with `serverOnly`: the archive key is resolved from
+   * `prepareDest(dest, file)`, but the *local* path always from the source path, so passing `dest`
+   * without `serverOnly` would give a local path the server's placeholder values.
    */
   dest?: string;
   /** When false and `serverOnly` is set, `%original_path%` is dropped from the archive key. */
@@ -31,9 +30,8 @@ export interface ResolveOptions {
 /**
  * Resolves a translation path for one source file against the file group it belongs to.
  *
- * The group is a parameter, not something derived here. Deriving it — by finding the first group
- * whose `source` glob matches — silently used the wrong group's `translation` for a file that
- * several groups match, and ignored each group's `ignore` while doing it.
+ * The group is a parameter, not something derived here: several groups can match a file by their
+ * `source` glob, and each brings its own `translation` and `ignore`.
  */
 export function resolveTranslationPath(
   fileConfig: FileConfig,
@@ -44,14 +42,10 @@ export function resolveTranslationPath(
 ): string {
   const serverOnly = options?.serverOnly ?? false;
 
-  // File-dependent placeholders are normally resolved from the source path. For the server
-  // export path of a `dest`-configured group they are resolved from the dest location instead
-  // (mirrors Java's DownloadAction.doTranslationMapping).
-  // Java's dest branch throws the translation-derived pattern away and rebuilds the archive key from
-  // `dest` alone, resolved against the dest-prepared path — placeholders *and* `**` expansion, via
-  // the same replaceFileDependentPlaceholders the upload side uses. Because the translation-derived
-  // pattern is discarded, the `preserve_hierarchy` stripping below never applies here either
-  // (DownloadAction.doTranslationMapping).
+  // A `dest`-configured group resolves file-dependent placeholders from the dest location rather
+  // than the source path. With no language placeholder in `translation`, the archive key is `dest`
+  // alone — placeholders *and* `**` expansion, via the same replaceFileDependentPlaceholders the
+  // upload side uses — so the `preserve_hierarchy` stripping below never applies to it.
   if (options?.dest && !containsLanguagePlaceholder(fileConfig.translation)) {
     return replaceFileDependentPlaceholders(options.dest, prepareDest(options.dest, sourcePath));
   }
@@ -67,8 +61,7 @@ export function resolveTranslationPath(
     pattern = pattern.replaceAll(originalPath, '');
   }
 
-  // Substitute the `**`-matched subpath into the (translation-derived) pattern before resolving
-  // placeholders, mirroring Java's TranslationsUtils.replaceDoubleAsterisk.
+  // Substitute the `**`-matched subpath into the pattern before resolving placeholders.
   pattern = replaceDoubleAsterisk(fileConfig.source, pattern, sourcePath);
 
   const translationPath = collapseSeparators(

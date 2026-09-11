@@ -9,8 +9,8 @@ export type BundleView = BundlesModel.Bundle & {
 
 export type AddBundlePayload = BundlesModel.CreateBundleRequest;
 
-// Mirrors Java's executeRequestWithPossibleRetries: retry the export start on a transient
-// "another export in progress" / server / network error before giving up.
+// Retry the export start on a transient "another export in progress" / server / network error
+// before giving up.
 const EXPORT_RETRY_ATTEMPTS = 3;
 const EXPORT_RETRY_DELAY_MS = 3000;
 

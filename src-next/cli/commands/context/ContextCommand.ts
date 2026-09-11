@@ -240,7 +240,7 @@ export default class ContextCommand {
     }));
 
     // Nothing to patch — the run is already over, so say so instead of exiting silently. Checked
-    // ahead of the dry run, which was just as silent on an empty file.
+    // ahead of the dry run so an empty file says so there too.
     if (changes.length === 0) {
       output.list(changes, contextChangeView(), {
         empty:
@@ -437,10 +437,8 @@ export default class ContextCommand {
     let strings: SourceStringsModel.String[] = [];
 
     if (!isStringsBased && fileFilters.length > 0) {
-      // A file filter that matches nothing yields no strings. The Java CLI
-      // falls back to all project strings for 'status' and 'reset' in that
-      // case — an intentional divergence: silently widening the scope of a
-      // destructive 'reset' to the whole project is unsafe.
+      // A file filter that matches nothing yields no strings rather than falling back to all of
+      // them: silently widening a destructive 'reset' to the whole project is unsafe.
       // Matched against the branch-relative path: a '--file' glob never carries a branch, the same
       // as everywhere else in the CLI.
       const fileIds = [...filePaths.entries()]
@@ -466,10 +464,10 @@ export default class ContextCommand {
   }
 
   /**
-   * A line that holds no record fails the read, rather than being skipped as the Java CLI skips it:
-   * both callers rewrite the file they read, so a dropped line is an upload that silently sends
-   * less than the file holds, or a download that recomputes the ai_context that line carried and
-   * then overwrites it. Nothing parsed at all means the file is not a context file to begin with —
+   * A line that holds no record fails the read rather than being skipped: both callers rewrite the
+   * file they read, so a dropped line is an upload that silently sends less than the file holds, or
+   * a download that recomputes the ai_context that line carried and then overwrites it. Nothing
+   * parsed at all means the file is not a context file to begin with —
    * a glossary, an XLIFF — which is worth saying instead of pointing at its first line.
    */
   private async readContextRecords(filePath: string): Promise<StringContextRecord[]> {
@@ -549,7 +547,7 @@ export default class ContextCommand {
     const withAi = strings.filter((entry) => getAiContextSection(entry.context) !== '').length;
     const withManual = strings.filter((entry) => getManualContext(entry.context) !== '').length;
     const withoutAi = total - withAi;
-    // No strings at all means no percentage to report; dividing anyway printed 'NaN'.
+    // No strings at all means no percentage to report; dividing anyway would print 'NaN'.
     const percentage = (value: number) => (total === 0 ? '0.00' : ((value / total) * 100).toFixed(2));
 
     return {

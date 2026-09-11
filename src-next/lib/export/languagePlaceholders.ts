@@ -13,7 +13,7 @@ import {
 } from './patterns.ts';
 
 // Maps a language placeholder to the language-mapping key(s) used to look up an override.
-// Order matters: the first key that has an override wins (mirrors Java's PlaceholderUtil).
+// Order matters: the first key that has an override wins.
 const PLACEHOLDER_MAPPING_KEYS: Record<string, string[]> = {
   [languagePattern]: ['language', 'name'],
   [locale]: ['locale'],
@@ -28,7 +28,7 @@ const PLACEHOLDER_MAPPING_KEYS: Record<string, string[]> = {
 
 /**
  * Resolves a language-mapping override for a placeholder, with the per-file config mapping
- * taking precedence over the server mapping (mirrors Java's LanguageMapping.populate).
+ * taking precedence over the server mapping.
  *
  * Config mapping shape: { placeholder: { langId: value } }
  * Server mapping shape: { langId: { placeholder: value } }
@@ -88,8 +88,7 @@ export function languagePlaceholderValue(
     case locale:
       return language.locale;
     case localeWithUnderscore:
-      // Every separator, not just the first: Java's String.replace is global, and locales such as
-      // `po-CR-UA` carry two.
+      // Every separator, not just the first: locales such as `po-CR-UA` carry two.
       return language.locale.replaceAll('-', '_');
     case threeLettersCode:
       return language.threeLettersCode;
@@ -129,8 +128,7 @@ export function containsLanguagePlaceholder(pattern: string): boolean {
 
 /**
  * Expands `ignore` patterns containing language placeholders into one literal pattern per project
- * language (deduped), mirroring Java's PlaceholderUtil.format(sources, ignorePatterns,
- * languageMapping). Patterns without a language placeholder pass through unchanged.
+ * language (deduped). Patterns without a language placeholder pass through unchanged.
  */
 export function expandIgnorePatterns(
   patterns: string[],

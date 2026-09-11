@@ -165,8 +165,7 @@ export default class StatusCommand {
     }
 
     // Thrown after the progress is printed, so a failing --fail-if-incomplete run still shows which
-    // languages are behind. Java skips the check in verbose mode; here --verbose only changes the
-    // rendering, so it has no say in the exit code.
+    // languages are behind. --verbose only changes the rendering, so it has no say in the exit code.
     if (failIfIncomplete) {
       this.throwIfIncomplete(show, filteredProgressData);
     }

@@ -15,8 +15,8 @@ interface DistributionOptions extends GlobalOptions {
   bundleId?: number | string | Array<number | string>;
 }
 
-// Java message.distribution.list: hash, name, export mode. Java's add/edit echoes drop to the name
-// alone in plain view; we keep the listing's shape so the hash — what `release`/`edit` take — stays.
+// Shared by list and the add/edit echoes, so the plain echo keeps the hash that `release`/`edit`
+// take.
 const distributionView: View<DistributionsModel.Distribution> = {
   text: (distribution) =>
     `${colors.yellow(distribution.hash)} ${distribution.name ?? ''} ${colors.blue(distribution.exportMode ?? '')}`,

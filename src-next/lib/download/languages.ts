@@ -11,16 +11,15 @@ export interface ResolvedDownloadLanguages {
   languages: LanguagesModel.Language[];
   /**
    * Ids to pin as `targetLanguageIds` on the build request, or undefined to let the server build
-   * every language. Java only pins them when the set was actually narrowed.
+   * every language. Only pinned when the set was actually narrowed.
    */
   languageIds?: string[];
 }
 
 /**
- * Resolves which languages `download translations` should build and map, mirroring Java's
- * DownloadAction. `projectLanguages` is Java's `getProjectLanguages(true)` — the target languages
- * plus the in-context pseudo language when the project has one — and every id given on the command
- * line or in `export_languages` has to appear in it.
+ * Resolves which languages `download translations` should build and map. `projectLanguages` is the
+ * target languages plus the in-context pseudo language when the project has one, and every id given
+ * on the command line or in `export_languages` has to appear in it.
  */
 export function resolveDownloadLanguages(
   projectLanguages: LanguagesModel.Language[],
@@ -66,7 +65,7 @@ export function resolveDownloadLanguages(
 
   return {
     languages,
-    // Only pinned when export_languages or excludes actually narrowed the set (Java parity).
+    // Only pinned when export_languages or excludes actually narrowed the set.
     ...(configured.length > 0 || excluded.length > 0 ? { languageIds: languages.map((l) => l.id) } : {}),
   };
 }

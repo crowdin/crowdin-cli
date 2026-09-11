@@ -68,9 +68,8 @@ export default class SourceFileLoader {
 
   /**
    * Expands `ignore` patterns containing file placeholders into one literal pattern per scanned
-   * source file, mirroring the sources flatMap in Java's PlaceholderUtil.format: %file_name%,
-   * %file_extension%, %original_file_name% and %original_path% resolve from each source file's
-   * path. Patterns without a file placeholder pass through unchanged.
+   * source file: %file_name%, %file_extension%, %original_file_name% and %original_path% resolve
+   * from each source file's path. Patterns without a file placeholder pass through unchanged.
    */
   private expandFilePlaceholders(patterns: string[], files: string[]): string[] {
     const expanded = new Set<string>();
@@ -97,9 +96,8 @@ export default class SourceFileLoader {
   }
 
   /**
-   * Builds glob matchers for ignore patterns, mirroring Java's FileHelper.filterOutIgnoredFiles:
-   * directory patterns expand to match everything underneath, and `**`-prefixed patterns also
-   * match at the top level.
+   * Builds glob matchers for ignore patterns: directory patterns expand to match everything
+   * underneath, and `**`-prefixed patterns also match at the top level.
    */
   private buildIgnoreMatchers(ignore: string[]): Glob[] {
     if (ignore.length === 0) {

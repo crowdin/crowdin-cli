@@ -111,8 +111,7 @@ export class FileService {
   // Scoped to one branch, and to the root tree when none is given: without a branchId the endpoint
   // returns every branch's files too, whose paths carry the branch name, so they would answer to
   // their prefixed path everywhere below (and 'upload sources --delete-obsolete' would delete them
-  // as obsolete). Java scopes the same way, by equality that treats null as the root
-  // (CrowdinProjectFull.getFiles(branchId)).
+  // as obsolete).
   async loadProjectFiles(branchId?: number) {
     const response = await withSpinner(
       this.output,
@@ -128,14 +127,8 @@ export class FileService {
   }
 
   // A file inside a branch is addressable only once '--branch' names that branch: the branch is
-  // never part of '--file', and without one every path would silently resolve against whichever
-  // branch happened to be listed first.
-  //
-  // This is a deliberate deviation, not parity: Java (StringAddAction) keeps branch files in the
-  // lookup even with no branch given and builds their keys off the directory tree alone
-  // (ProjectFilesUtils.buildFilePaths without branches), so two branches holding the same relative
-  // path collide and the last one into the HashMap wins. Dropping them is the whole point here —
-  // don't "restore parity" by deleting the filter.
+  // never part of '--file', so without the filter two branches holding the same relative path would
+  // collide and one would silently win.
   private async loadFileIdsByPath(branch?: ProjectBranch): Promise<Map<string, number>> {
     const files = await this.fetchProjectFiles(branch?.id);
     const addressable = branch ? files : files.filter((file) => file.branchId === null);
@@ -182,14 +175,12 @@ export class FileService {
     }
   }
 
-  // Server paths carry the branch name, the path given on the command line never does, so '--file'
-  // stays branch-relative and the branch only arrives through '--branch'. Branch-relative keys do
-  // match Java, which builds them off the directory tree alone; what differs is which files reach
-  // the lookup at all (see loadFileIdsByPath).
   private firstPathSegment(projectPath: string): string | undefined {
     return normalizePath(projectPath).split('/')[1];
   }
 
+  // Server paths carry the branch name, the path given on the command line never does, so '--file'
+  // stays branch-relative and the branch only arrives through '--branch'.
   private toLookupPath(projectPath: string, branchName?: string): string {
     return stripBranchPrefix(normalizePath(projectPath), branchName);
   }

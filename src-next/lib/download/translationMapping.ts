@@ -19,20 +19,19 @@ export interface TranslationMappingOptions {
   files?: Config['files'];
   /**
    * Server-side excluded target languages per source path (basePath-relative posix key, no leading
-   * slash). A language listed for a source is skipped for that source, mirroring Java's
-   * DryrunTranslations.containsExcludedLanguage. Only the dry-run listing applies this (Java's real
-   * DownloadAction does not filter excluded languages).
+   * slash). A language listed for a source is skipped for that source. Only the dry-run listing
+   * applies this; the real download does not filter excluded languages.
    */
   excludedTargetLanguagesByPath?: Map<string, string[]>;
 }
 
 /**
- * Builds the archive-to-local path mapping for `download translations`, mirroring Java's
- * DownloadAction.getFiles -> doTranslationMapping. For each config group, over every source file
- * and resolved language, it pairs the server export path (the path inside the downloaded archive)
- * with the desired local destination (which applies per-file `languages_mapping` and
- * `translation_replace`). With `useServerSources`, server-only project files matching a group are
- * added so files present on the server but absent locally are still downloaded.
+ * Builds the archive-to-local path mapping for `download translations`. For each config group, over
+ * every source file and resolved language, it pairs the server export path (the path inside the
+ * downloaded archive) with the desired local destination (which applies per-file
+ * `languages_mapping` and `translation_replace`). With `useServerSources`, server-only project files
+ * matching a group are added so files present on the server but absent locally are still
+ * downloaded.
  */
 export function buildTranslationMapping(
   config: Config,
@@ -55,7 +54,7 @@ export function buildTranslationMapping(
 
     if (options?.useServerSources) {
       const localSet = new Set(localSourcePaths.map((p) => toPosixPath(p)));
-      // Java filters by `dest` (when set) instead of `source` for server files.
+      // Server files sit at their `dest` path, so match by that when set.
       const searchPattern = patterns.dest ?? patterns.source;
       const ignore = patterns.ignore ?? [];
 
@@ -79,7 +78,6 @@ export function buildTranslationMapping(
       );
 
       for (const language of languages) {
-        // Skip languages the server source file excludes (parity with DryrunTranslations).
         if (excludedLanguages?.includes(language.id)) {
           continue;
         }
