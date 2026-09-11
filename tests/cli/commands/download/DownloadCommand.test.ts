@@ -1589,20 +1589,34 @@ describe('DownloadCommand', () => {
       );
     });
 
-    test('propagates API errors via toCliError for source download', async () => {
+    test('downloads the remaining sources when one fails, then reports the failure', async () => {
       const downloadCommand = createDownloadCommand();
+      const log = spyOn(console, 'log').mockImplementation(() => {});
+      const error = spyOn(output, 'error');
 
       spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
         data: { id: 123 },
       } as never);
       spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
-        data: [{ data: { id: 1, path: '/resources/en/strings.json' } }],
+        data: [
+          { data: { id: 1, path: '/resources/en/broken.json' } },
+          { data: { id: 2, path: '/resources/en/messages.json' } },
+        ],
       } as never);
-      spyOn(fileService, 'getSourceFileDownloadUrl').mockRejectedValue(new Error('Network error'));
+      spyOn(fileService, 'getSourceFileDownloadUrl').mockImplementation(async (fileId: number) => {
+        if (fileId === 1) {
+          throw new Error('Network error');
+        }
 
-      expect(downloadCommand.sourcesAction(commandContext)).rejects.toThrow(
-        "Failed to download 'resources/en/strings.json'",
-      );
+        return 'https://example.test/messages.json';
+      });
+      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('source content'));
+
+      expect(downloadCommand.sourcesAction(commandContext)).rejects.toThrow('Current execution finished with errors');
+
+      expect(await Bun.file(join(tempDir, 'resources', 'en', 'messages.json')).text()).toBe('source content');
+      expect(error.mock.calls.flat().join('\n')).toContain("Failed to download 'resources/en/broken.json'");
+      expect(log.mock.calls.flat().join('\n')).toContain('resources/en/messages.json');
     });
 
     test('does not download project files that do not match a config pattern', async () => {
