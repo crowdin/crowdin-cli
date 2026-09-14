@@ -148,8 +148,7 @@ export default class FileCommand {
     await projectService.loadProject();
     const branchId = await branchService.resolveBranchId(options.branch);
     // loadProjectFiles is already scoped to the branch (root tree without one), so without
-    // '--branch' a project whose files all live in branches lists nothing at all — as Java's
-    // FileListAction does.
+    // '--branch' a project whose files all live in branches lists nothing at all.
     const projectFiles = await fileService.loadProjectFiles(branchId);
     // Paths inside a branch come back prefixed with the branch name; the listing shows project paths.
     const files = projectFiles.data.map((file) => ({
@@ -333,7 +332,7 @@ export default class FileCommand {
     }
   };
 
-  // Upload path when `--language` is set: import translations for the file (Java FileUploadTranslationAction).
+  // Upload path when `--language` is set: import translations for the file.
   private uploadTranslation = async (
     command: Command,
     options: UploadFileCommandOptions,
@@ -360,8 +359,8 @@ export default class FileCommand {
     const isStringsBased = project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED;
     const storage = await this.uploadToStorage(storageService, localFile, filePath);
 
-    // Java passes the percent message unconditionally here (unlike upload translations, where it is
-    // verbose-only), and appends the identifier only under --verbose.
+    // The percent message is unconditional here (unlike upload translations, where it is
+    // verbose-only); the identifier is appended only under --verbose.
     const onProgress: ImportProgress = (status) =>
       output.log(
         `Importing translations for file '${filePath}' (${status.progress}%)` +
@@ -403,7 +402,7 @@ export default class FileCommand {
   };
 
   // The non-xliff import: file-based needs the project file the translation belongs to,
-  // strings-based needs the branch (Java FileUploadTranslationAction's two else-branches).
+  // strings-based needs the branch.
   private importFileTranslation = async (
     command: Command,
     options: UploadFileCommandOptions,
@@ -458,8 +457,7 @@ export default class FileCommand {
     );
   };
 
-  // Source upload for strings-based projects: branch is mandatory; upload + poll to completion
-  // (Java FileUploadAction strings-based path).
+  // Source upload for strings-based projects: branch is mandatory; upload + poll to completion.
   private uploadStringsBased = async (
     command: Command,
     filePath: string,
@@ -497,8 +495,8 @@ export default class FileCommand {
   /**
    * The summary the machine formats get for a command whose text output is a stream of per-file
    * messages — the same {path, action} entries `upload sources` and `download` emit, so a script
-   * parses one shape whichever command wrote the file. success() prints in text only, so without
-   * this a real upload or download left json/toon/plain with an empty stdout.
+   * parses one shape whichever command wrote the file. success() prints in text only, so this is
+   * all json/toon/plain get.
    */
   private reportUploaded(output: Output, options: GlobalOptions, file: UploadedFile): void {
     this.reportFiles(output, options, [file], uploadedFileView);
@@ -647,7 +645,7 @@ export default class FileCommand {
     throw new CliError(`File '${filePath}' not found in the Crowdin project`);
   };
 
-  // Download path when `--language` is set: build and save file translations (Java FileDownloadTranslationAction).
+  // Download path when `--language` is set: build and save file translations.
   private downloadTranslation = async (
     command: Command,
     options: UploadFileCommandOptions,
@@ -662,8 +660,6 @@ export default class FileCommand {
 
     if (project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED) {
       output.warning('File management is not available for string-based projects');
-      // An early exit still owes the machine formats a document; an absent stdout would read as an
-      // empty result either way.
       this.reportDownloaded(output, options, []);
       return;
     }

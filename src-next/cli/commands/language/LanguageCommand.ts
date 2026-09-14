@@ -29,7 +29,6 @@ interface LanguageCommandOptions extends GlobalOptions {
 // language: json consumers have no way to reproduce the mapping overrides on their own.
 type ResolvedLanguage = LanguagesModel.Language & { code: string };
 
-// Java message.language.list: resolved code, name.
 const languageView: View<ResolvedLanguage> = {
   text: (language) => `${colors.yellow(language.code)} ${colors.green(language.name ?? '')}`,
   plain: (language) => language.code,

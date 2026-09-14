@@ -1,10 +1,9 @@
 import type { OptionDef } from '@/cli/types.ts';
 
-// Java uses per-subcommand descriptionKeys (crowdin.string.<sub>.<opt>), so the
-// wording differs between list/add/edit for the same flag. Grouped by subcommand
-// so each flag's per-command wording sits together and drift stays visible.
+// The wording differs between list/add/edit for the same flag, so options are grouped by
+// subcommand and each flag's per-command wording sits together.
 
-// add/edit --label share the same wording (Java `params.label`).
+// add/edit --label share the same wording.
 const labelDescription = 'Attach labels to strings (multiple labels can be specified)';
 
 export const list = {

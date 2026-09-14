@@ -127,7 +127,7 @@ export default class UploadSourcesCommand {
     }
 
     // These options have no effect on strings-based projects (the strings upload request ignores
-    // them), so warn instead of silently doing nothing. Mirrors the existing `context` warning.
+    // them), so warn instead of silently doing nothing.
     if (isStringsBasedProject) {
       if (containsExcludedLanguages) {
         output.warning("'excluded-languages' option can not be used for string-based projects");
@@ -144,8 +144,8 @@ export default class UploadSourcesCommand {
 
     this.validateExcludedTargetLanguages(patternFilePaths, project.data.targetLanguages);
 
-    // Dry-run divergence: Java delegates `--dryrun` to a separate list action; here it is handled
-    // inline and reports the concrete would-create/update/delete actions instead of just listing files.
+    // A dry run walks the same path as a real upload and reports the concrete
+    // would-create/update/delete action per file, so it looks the branch up without creating it.
     let branch: SourceFilesModel.Branch | undefined;
 
     if (options.dryrun) {
@@ -205,11 +205,10 @@ export default class UploadSourcesCommand {
       );
     }
 
-    // A machine --output emits the bare sorted in-project paths (Java DryrunSources plain view) and
-    // wins over --tree; otherwise fall through to the per-file "would be created/updated" messages.
-    // Paths are the resolved project paths, not the local ones: like Java, a dry run has to show
-    // where the file lands in Crowdin, which `dest` and a stripped common path (preserve_hierarchy:
-    // false) both move away from the repo layout.
+    // A machine --output emits the bare sorted in-project paths and wins over --tree; otherwise fall
+    // through to the per-file "would be created/updated" messages. Paths are the resolved project
+    // paths, not the local ones: a dry run has to show where the file lands in Crowdin, which `dest`
+    // and a stripped common path (preserve_hierarchy: false) both move away from the repo layout.
     if (
       options.dryrun &&
       printDryRunPaths(
@@ -233,10 +232,8 @@ export default class UploadSourcesCommand {
 
     for (const { patterns, fileOptions, files } of patternFilePaths) {
       if (files.length === 0) {
-        // Java suppresses the message under --plain and returns, so the run exits 0 on a config
-        // whose pattern matches nothing. `upload translations` keeps its exit code there and only
-        // drops the message, which is the behaviour worth carrying: a plain consumer is a script,
-        // and a script that reads success from a broken pattern uploads nothing and says nothing.
+        // plain drops the message but still fails the run: a plain consumer is a script, and a
+        // script that reads success from a broken pattern uploads nothing and says nothing.
         if (!isPlainView) {
           output.error(
             `No sources found for '${patterns.source}' pattern. Check the source paths in your configuration file`,
@@ -470,15 +467,11 @@ export default class UploadSourcesCommand {
       await saveSourceCache(config.basePath, sourceHashes, output);
     }
 
-    // Text already streamed a line per file, so only the machine formats need the summary —
-    // without it they saw an empty stdout for a command that uploaded real files. Sorted because
-    // the uploads run concurrently, and a machine contract should not depend on which finished
-    // first. Emitted before the error throw so a partial run still reports what it managed.
+    // Text already streamed a line per file, so only the machine formats need the summary. Sorted
+    // because the uploads run concurrently, and a machine contract should not depend on which
+    // finished first. Emitted before the error throw so a partial run still reports what it managed.
     //
-    // plain is line-oriented and cannot carry the action, so it lists only what changed — Java
-    // prints nothing there for a duplicate or an up-to-date file. (Java does print the empty-file
-    // skip under --plain, but that branch simply has no plainView case, like its error handler;
-    // an icon'd prose line in a stream of bare paths is the oversight, not the contract.)
+    // plain is line-oriented and cannot carry the action, so it lists only what changed.
     if (isMachineFormat(options.output)) {
       const sorted = uploadedSources.sort((one, other) => one.path.localeCompare(other.path));
 
@@ -548,7 +541,6 @@ export default class UploadSourcesCommand {
       const directoryName = directories[index] as string;
       const directoryPath = `${branch ? `/${branch.name}` : ''}/${directories.slice(0, index + 1).join('/')}`;
 
-      // Check promise cache first (set atomically before any await, safe for concurrent callers)
       if (directoryCreationPromises.has(directoryPath)) {
         directoryId = await directoryCreationPromises.get(directoryPath);
         continue;

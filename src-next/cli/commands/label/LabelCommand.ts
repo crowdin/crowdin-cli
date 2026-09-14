@@ -8,15 +8,14 @@ import type { CommandDef } from '@/cli/types.ts';
 import { colors } from '@/cli/utils/colors.ts';
 import type { View } from '@/cli/utils/output.ts';
 
-// Java message.label.list, shared by list and the add echo (LabelAddAction).
+// Shared by list and the add echo.
 const labelView: View<LabelsModel.Label> = {
   text: (label) => `${colors.yellow(`#${label.id}`)} ${colors.green(label.title)}`,
   plain: (label) => label.title,
   keys: ['id', 'title'],
 };
 
-// Java LabelListAction prints the decorated line when `!plainView || isVerbose`, so a verbose
-// plain listing carries the ids too.
+// A verbose plain listing prints the decorated line, so it carries the ids too.
 const labelVerboseView: View<LabelsModel.Label> = {
   text: labelView.text,
   plain: labelView.text,

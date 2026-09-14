@@ -11,12 +11,11 @@ export interface SpinnerMessages<T> {
 }
 
 /**
- * Runs an operation behind a spinner, mirroring Java's ConsoleSpinner.execute.
+ * Runs an operation behind a spinner.
  *
  * On failure the spinner line carries the *full* `CliError` message — the `fail` prefix plus
  * whatever the API said — and the error is marked `reported`, so `cli.ts` does not print it a
- * second time. Services used to split between this and showing a short fixed line while leaving
- * `reported` unset, which made half of them print the failure twice.
+ * second time.
  */
 export async function withSpinner<T>(
   output: Output,

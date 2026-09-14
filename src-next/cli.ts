@@ -84,21 +84,19 @@ async function main(argv: string[], quietErrors: boolean) {
 // file) and the network version check, and keep the raw args intact for the completion protocol.
 const rawArgs = process.argv.slice(2);
 const isCompletion = rawArgs[0] === 'complete';
-// Expand picocli-style @arg-files before commander sees the arguments.
 const argv = [...process.argv.slice(0, 2), ...(isCompletion ? rawArgs : expandArgFiles(rawArgs))];
 const globalOptions = getOutputFormatFromArgs(argv);
 const isStructured = isStructuredFormat(globalOptions.output);
 
 try {
   await main(argv, isStructured);
-  // Mirror Java Cli.main: after a successful real command, check for a newer release. Help, version,
-  // empty args and parse errors all throw CommanderError and land in catch, so they skip the check.
+  // Help, version, empty args and parse errors all throw CommanderError, so they skip the version check.
   if (!isCompletion) {
     await checkNewVersion(createOutput(globalOptions), version);
   }
 } catch (error) {
   // Commander already wrote its own output (help/version to stdout, usage errors to stderr),
-  // so don't reprint. Mirror Java/picocli: help & version exit 0, usage errors exit 2.
+  // so don't reprint. Help and version exit 0, usage errors exit 2.
   if (error instanceof CommanderError) {
     process.exitCode = error.exitCode === 0 ? 0 : 2;
 
@@ -114,8 +112,7 @@ try {
     const exitCode = getExitCode(error);
 
     if (globalOptions.debug && error instanceof Error && error.stack) {
-      // --debug: print the full stack trace (message included) instead of the one-liner.
-      // ponytail: top-level only; per-file worker-thread stacks stay deferred with upload/download.
+      // ponytail: top-level only; per-file failures in upload/download still print just their message.
       console.error(error.stack);
     } else if (isStructured || !(error instanceof CliError && error.reported)) {
       // `reported` means "already shown to a human" — a spinner line, or a command's own printed

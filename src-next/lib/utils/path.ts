@@ -26,9 +26,7 @@ export function toProjectPath(filePath: string): string {
  * (`/dev/sources/en.json` -> `/sources/en.json`).
  *
  * Local paths resolved from the config never carry the branch, so every comparison
- * between a server path and a config-derived path has to drop it first. Java instead
- * prefixes the local path (BranchUtils.getBranchPrefix); stripping is equivalent here
- * because the file list is already scoped to a single branch by `branchId`.
+ * between a server path and a config-derived path has to drop it first.
  */
 export function stripBranchPrefix(projectPath: string, branchName?: string): string {
   if (!branchName) {

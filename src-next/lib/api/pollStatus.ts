@@ -18,16 +18,15 @@ export async function pollUntilFinished<T extends PollableStatus>(
   poll: (current: T) => Promise<ResponseObject<T>>,
   // A function when the message depends on the failure itself (a build carries `error.message`).
   failureMessage: string | ((current: T) => string),
-  // Called with each polled status so callers can report progress the way Java's
-  // executeAsyncActionWithoutSpinner does. Not called for a failed status, which raises instead.
+  // Called with each polled status so callers can report progress. Not called for a failed status,
+  // which raises instead.
   onProgress?: (status: T) => void,
 ): Promise<ResponseObject<T>> {
   let current = initial;
 
   // Case-insensitive: some endpoints return "finished"/"failed", others capitalize (e.g. bundle export).
   // `canceled` is terminal too (BuildStatus is created|inProgress|canceled|failed|finished), so it
-  // has to end the loop — waiting for a cancelled job to reach "finished" never returns. Java shares
-  // this gap and hangs; ending the wait is a deliberate divergence.
+  // has to end the loop — waiting for a cancelled job to reach "finished" never returns.
   const isFailure = (status: string) => status === 'failed' || status === 'canceled';
 
   while (current.data.status.toLowerCase() !== 'finished') {

@@ -159,7 +159,6 @@ export default class TmCommand {
     const fileStat = await stat(fileArg).catch(() => undefined);
 
     if (fileStat === undefined) {
-      // Same wording as the Java CLI (error.file_not_found)
       throw new CliError(`File '${fileArg}' not found in the Crowdin project`);
     }
 
@@ -167,8 +166,6 @@ export default class TmCommand {
       throw new CliError('The specified file is a directory');
     }
 
-    // The Java CLI checks 'csv' and 'xslx' (a typo of 'xlsx') here; the intent
-    // per the error message is CSV or XLS/XLSX files
     if (scheme === undefined && SCHEME_EXTENSIONS.includes(extension)) {
       throw new CliError('Scheme is required for CSV or XLS/XLSX files');
     }

@@ -37,8 +37,8 @@ export class GlossaryService {
     }
   }
 
-  // Unlike the Java CLI, the term list is capped: glossaries can hold millions
-  // of terms and fetching them all just for the verbose listing hangs the CLI
+  // Capped: glossaries can hold millions of terms, and fetching them all just for the verbose
+  // listing hangs the CLI.
   async listTerms(glossaryId: number, maxTerms = 500): Promise<GlossariesModel.Term[]> {
     try {
       const response = await this.apiClient.glossariesApi.withFetchAll(maxTerms).listTerms(glossaryId);

@@ -13,9 +13,9 @@ interface ProjectFileInfo {
 }
 
 /**
- * Maps every project source file to the list of its server export (translation) paths, mirroring
- * Java's ProjectFilesUtils.buildAllProjectTranslations. Used to classify omitted archive entries
- * into those that belong to a known project source and those without a source.
+ * Maps every project source file to the list of its server export (translation) paths. Used to
+ * classify omitted archive entries into those that belong to a known project source and those
+ * without a source.
  *
  * Keys and values are posix paths relative to the project root (no leading slash).
  */
@@ -69,7 +69,7 @@ export interface OmittedFiles {
 
 /**
  * Splits omitted archive entries into those that correspond to a known project source (grouped by
- * source) and those without a source, mirroring Java's DownloadAction.sortOmittedFiles.
+ * source) and those without a source.
  */
 export function sortOmittedFiles(omittedFiles: string[], allProjectTranslations: Map<string, string[]>): OmittedFiles {
   const withSources = new Map<string, string[]>();

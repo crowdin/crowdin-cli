@@ -66,8 +66,8 @@ export default class ConfigCommand {
     await projectService.loadProject();
     const localFilePaths = new SourceFileLoader(config).getFilePaths();
 
-    // With preserve_hierarchy off, Java's DryrunSources strips the files' common parent directory so
-    // the listing shows paths relative to it; with it on, the full hierarchy is kept.
+    // With preserve_hierarchy off, the files' common parent directory is stripped so the listing
+    // shows paths relative to it; with it on, the full hierarchy is kept.
     const prefix = config.preserveHierarchy ? '' : getCommonPath(localFilePaths);
     const displayedPaths = localFilePaths
       .map((localFilePath) => (localFilePath.startsWith(prefix) ? localFilePath.slice(prefix.length) : localFilePath))
@@ -95,15 +95,13 @@ export default class ConfigCommand {
 
     const project = await projectService.loadProject();
 
-    // Only managers/developers get a ProjectSettings response, so its presence is the access probe
-    // (mirrors Java ListTranslationsAction's isManagerAccess guard).
+    // Only managers/developers get a ProjectSettings response, so its presence is the access probe.
     if (!('translateDuplicates' in project.data)) {
       const message = 'You must have manager or developer role in the project to perform this action';
 
       // A machine format owes the caller a result document, and a warning followed by exit 0 reads
       // as 'no translations' instead of 'you may not ask', so throw to carry the reason in the exit
-      // code (Java only branches on --plain here). plain prints its own record; json/toon get the
-      // handler's.
+      // code. plain prints its own record; json/toon get the handler's.
       if (isMachineFormat(options.output)) {
         if (!isStructuredFormat(options.output)) {
           output.error(message);
@@ -116,8 +114,6 @@ export default class ConfigCommand {
       return;
     }
 
-    // Server-side language mapping and the in-context pseudo-language come from project settings,
-    // matching Java's getLanguageMapping() + getProjectLanguages(withInContextLang=true).
     const settings = project.data;
     const serverLanguageMapping = settings.languageMapping;
     const languages = [...settings.targetLanguages];
@@ -129,9 +125,9 @@ export default class ConfigCommand {
     const sourceFileLoader = new SourceFileLoader(config);
     const translationFilePaths = new Set<string>();
 
-    // Java DryrunTranslations.getFiles flat-maps over the file groups, resolving each group's own
-    // sources against that group's `translation`, then de-duplicates. Iterating the deduped union of
-    // sources instead would collapse a file matched by two groups into whichever group came first.
+    // Each group resolves its own sources against its own `translation`, then the results are
+    // de-duplicated. Iterating the deduped union of sources instead would collapse a file matched by
+    // two groups into whichever group came first.
     for (const patterns of config.files) {
       // biome-ignore format: manual formatting looks better
       const sourceFilePaths = sourceFileLoader.getFilePathsForPattern(
@@ -190,7 +186,7 @@ export default class ConfigCommand {
         output.error(message);
       }
 
-      // A missing config file is NotFound (102) like Java; invalid content is Validation (2).
+      // A missing config file is NotFound (102); invalid content is Validation (2).
       if (error instanceof FileNotFoundError) {
         throw new NotFoundError(message, true);
       }
@@ -199,8 +195,7 @@ export default class ConfigCommand {
     }
   };
 
-  // Lint-only check: every `source` pattern must match at least one file on disk
-  // (mirrors Java PropertiesWithFiles.checkSourceFilesExist, gated to CheckType.LINT).
+  // Lint-only check: every `source` pattern must match at least one file on disk.
   private checkSourceFilesExist(config: Config): void {
     const loader = new SourceFileLoader(config);
 
@@ -213,8 +208,7 @@ export default class ConfigCommand {
     }
   }
 
-  // Lint-only check: every `languages_mapping` source-language key must be a real Crowdin language id
-  // (mirrors Java PropertiesWithFiles.checkProperties, which validates against listSupportedLanguages).
+  // Lint-only check: every `languages_mapping` source-language key must be a real Crowdin language id.
   private async validateLanguagesMapping(config: Config, command: Command): Promise<void> {
     const filesWithMapping = config.files.filter((file) => file.languages_mapping);
     if (filesWithMapping.length === 0) {

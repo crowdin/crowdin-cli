@@ -25,9 +25,9 @@ export function extractText(entry: SourceStringsModel.String): string {
 }
 
 /**
- * Java StringListAction.printSourceString: a headline plus, when verbose, indented file/labels/
- * context lines. The detail lines are the same in text and plain — only the headline differs —
- * and they need the label and file-path lookups, so the view is built per invocation.
+ * A headline plus, when verbose, indented file/labels/context lines. The detail lines are the same
+ * in text and plain — only the headline differs — and they need the label and file-path lookups,
+ * so the view is built per invocation.
  */
 export function createStringView({
   verbose = false,

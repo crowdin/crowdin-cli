@@ -4,7 +4,7 @@ import CliError from '@/cli/errors/CliError.ts';
 const CROWDIN_OAUTH_CLIENT_ID = 'wQEqvhU3vLOa2XicmUyT';
 const CROWDIN_OAUTH_HOST = 'localhost';
 const CROWDIN_OAUTH_PORT = 46221;
-const AUTHORIZATION_TIMEOUT_MS = 2 * 60 * 1000; // 2 minutes
+const AUTHORIZATION_TIMEOUT_MS = 2 * 60 * 1000;
 
 export interface BrowserAuthorization {
   accessToken: string;

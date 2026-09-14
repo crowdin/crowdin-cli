@@ -48,8 +48,7 @@ interface UploadOptions extends GlobalOptions {
 
 const ALLOWED_IMAGE_EXTENSIONS = new Set(['jpeg', 'jpg', 'png', 'gif']);
 
-// Java message.screenshot.list: id, tag count, name. Shared by list and the upload/update echoes;
-// Java's plain echo prints the local file name, but the listing shape keeps the id addressable.
+// Shared by list and the upload/update echoes, so the plain echo keeps the id addressable.
 const screenshotView: View<ScreenshotView> = {
   text: (screenshot) =>
     `${colors.yellow(`#${screenshot.id}`)} ${screenshot.tagsCount} ${colors.green(screenshot.name)}`,

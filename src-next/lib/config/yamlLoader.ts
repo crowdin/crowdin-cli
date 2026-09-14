@@ -1,19 +1,17 @@
-// js-yaml, not `yaml`: Java parses configs with SnakeYAML, which accepts input a spec-strict parser
-// rejects — notably a flow collection whose lines are not indented past its block key (`files: [{`
-// closing with `}` back at column 0), a style real Crowdin configs use. The `yaml` package raises
-// BAD_INDENT for that from the composer, ungated by any parse option (version/strict/schema), and
-// Bun.YAML rejects it too.
+// js-yaml, not `yaml`: real Crowdin configs use a style a spec-strict parser rejects — a flow
+// collection whose lines are not indented past its block key (`files: [{` closing with `}` back at
+// column 0). The `yaml` package raises BAD_INDENT for that from the composer, ungated by any parse
+// option (version/strict/schema), and Bun.YAML rejects it too.
 //
-// Held at js-yaml 4 on purpose: 5.0.0 started enforcing the same indentation rule ("deficient
-// indentation") and would reintroduce the failure. Verify against a config in that style before
-// taking the 5.x bump.
+// Held at js-yaml 4 on purpose: 5.x enforces the same indentation rule ("deficient indentation").
+// Verify against a config in that style before taking the 5.x bump.
 import { load as loadYaml } from 'js-yaml';
 import FileNotFoundError from '../common/errors/FileNotFoundError.ts';
 import InvalidConfigurationError from './errors/InvalidConfigurationError.ts';
 
 // Reads and YAML-parses a config file to a raw record, without validation or env resolution.
 // The full resolution pipeline (mapping, env, all sources, validation) lives in cli/config.ts,
-// so validation happens once, after everything is merged (mirrors Java build()).
+// so validation happens once, after everything is merged.
 export async function loadRawFromFile(filePath: string): Promise<Record<string, unknown>> {
   if (!(await Bun.file(filePath).exists())) {
     throw new FileNotFoundError(`File '${filePath}' does not exist`);
@@ -28,8 +26,7 @@ export function parseYaml(string: string): Record<string, unknown> {
   try {
     config = loadYaml(string);
   } catch (error) {
-    // Java surfaces a broken config file as a validation failure (exit 2); mirror that
-    // instead of leaking the raw YAML parser error.
+    // A validation failure (exit 2) rather than the raw YAML parser error.
     throw new InvalidConfigurationError('Configuration file has invalid YAML syntax.', { cause: error });
   }
 
@@ -43,7 +40,7 @@ export function parseYaml(string: string): Record<string, unknown> {
 // Maps a raw YAML config record's literal keys to ConfigSchema input (snake_case -> camelCase).
 // Env-variable resolution is a separate pipeline layer (see cli/config.ts), not here.
 export function mapConfig(raw: Record<string, unknown>): Record<string, unknown> {
-  // Java nests ignore_hidden_files under a `settings:` map (SettingsBean).
+  // ignore_hidden_files lives under a `settings:` map.
   const settings = (raw.settings ?? {}) as Record<string, unknown>;
 
   return {

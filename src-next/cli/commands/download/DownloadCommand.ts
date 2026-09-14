@@ -136,8 +136,6 @@ export default class DownloadCommand {
 
     assertFilesConfigured(config);
 
-    // Java order (DownloadSourcesAction): reviewed/enterprise guard, then preserve_hierarchy warning,
-    // then fetch the project and reject string-based ones.
     if (options.reviewed && !projectService.isEnterprise()) {
       output.warning('Operation is available only for Crowdin Enterprise');
       // An early exit still owes the machine formats a document; an absent stdout would read as an
@@ -170,7 +168,6 @@ export default class DownloadCommand {
     );
 
     if (options.dryrun) {
-      // Java Dryrun: slash-strip + sort the paths; plain view prints them bare (no icon/message).
       const paths = toSortedRelativePaths(downloads.map((download) => download.relativePath));
 
       if (!printDryRunPaths(paths, options, output)) {
@@ -192,7 +189,7 @@ export default class DownloadCommand {
         await downloadToFile(downloadUrl, archivePath);
 
         // The reviewed archive nests every file under a `<source_language_id>-REV` directory;
-        // strip that prefix so keys line up with the project file paths (mirrors Java).
+        // strip that prefix so keys line up with the project file paths.
         const prefix = `${project.data.sourceLanguageId}-REV`;
         const reviewedFiles = new Map<string, Uint8Array>();
         const zip = new AdmZip(archivePath);
@@ -252,7 +249,6 @@ export default class DownloadCommand {
       return;
     }
 
-    // Java keeps going past a failed file too, but then exits 0.
     const results = await runConcurrently(
       downloads.map((download) => async () => {
         try {
@@ -303,8 +299,6 @@ export default class DownloadCommand {
       return;
     }
 
-    // Java validates/downloads against getProjectLanguages(true) = target languages + the in-context
-    // pseudo language (when the project has one), not just the target languages.
     const inContextPseudoLanguage =
       'inContextPseudoLanguage' in project.data ? project.data.inContextPseudoLanguage : undefined;
     const projectLanguages = inContextPseudoLanguage
@@ -321,11 +315,9 @@ export default class DownloadCommand {
     const branchId = branch?.id;
 
     if (options.dryrun) {
-      // Java lists the resolved translation destination paths (per source x language), not the raw
-      // server source paths (ListTranslationsAction -> DryrunTranslations). Reuse the same mapping
-      // the real download uses; its values are exactly those local destination paths.
-      // Java's ListTranslationsAction always loads the full server file map (independent of --all) so it
-      // can drop target languages excluded server-side per file (DryrunTranslations.containsExcludedLanguage).
+      // Lists the local destination paths (per source × language), not the server source paths:
+      // they are exactly the values of the mapping the real download uses. The server file map is
+      // loaded even without --all, to drop the target languages a file excludes server-side.
       const projectFiles = this.stripBranchFromPaths((await fileService.loadProjectFiles(branchId)).data, branch?.name);
       const serverSourcePaths = options.all
         ? projectFiles.map((file) => stripLeadingSlashes(file.data.path || ''))
@@ -356,7 +348,6 @@ export default class DownloadCommand {
 
     const isOrganization = projectService.isEnterprise();
 
-    // Both skip flags together is invalid (Java params-level check, mirroring the per-file schema rule).
     if (options.skipUntranslatedStrings && options.skipUntranslatedFiles) {
       throw new CliError(
         'You cannot skip strings and files at the same time. Please use one of these parameters instead.',
@@ -386,7 +377,7 @@ export default class DownloadCommand {
 
     const tempDirs: string[] = [];
     const downloadedFiles: DownloadedFile[] = [];
-    // One omitted-entry list per build; reported as the cross-build intersection (Java totalOmittedFiles).
+    // One omitted-entry list per build; reported as the cross-build intersection.
     const perBuildOmitted: string[][] = [];
     let anyFileDownloaded = false;
     let skipUntranslatedFilesUsed = projectSkipUntranslatedFiles;
@@ -409,7 +400,7 @@ export default class DownloadCommand {
 
         await downloadToFile(downloadUrl, archivePath);
 
-        // Pseudo builds always map all target languages (Java ignores export_languages/exclude here).
+        // Pseudo builds map every project language, ignoring export_languages and --exclude-language.
         const mappingLanguages = group.pseudo ? projectLanguages : resolvedLanguages;
         const mapping = buildTranslationMapping(config, mappingLanguages, serverLanguageMapping, {
           useServerSources: options.all,
@@ -427,7 +418,6 @@ export default class DownloadCommand {
           const archiveRelPath = stripLeadingSlashes(toPosixPath(entry.entryName));
           const localPath = mapping.byArchivePath.get(archiveRelPath);
 
-          // Entries with no config mapping are "omitted" and reported below.
           if (!localPath) {
             omittedFiles.push(archiveRelPath);
             downloadedFiles.push({
@@ -458,8 +448,7 @@ export default class DownloadCommand {
 
           output.success(`Archive saved to '${savedArchivePath}'`);
           // The kept archive is a file this run wrote, so it joins the summary the machine formats
-          // render below. success() is text-only, and without this the path — the whole point of
-          // --keep-archive — was missing from json/toon/plain entirely.
+          // render below; success() is text-only.
           downloadedFiles.push({ path: name, action: 'downloaded' });
         }
       }
@@ -517,10 +506,9 @@ export default class DownloadCommand {
 
   /**
    * Builds the list of translation builds to issue. `pseudo` always produces a single all-files
-   * build. Otherwise files are grouped by their effective export-option combo (mirroring Java's
-   * `distinct()` over the four per-file flags) so each combo is built once and only its own file
-   * groups are mapped from that archive. A CLI flag (when set) overrides the per-file config value
-   * on every file, forcing `true` — picocli/commander boolean flags can only force true, never false.
+   * build. Otherwise files are grouped by their effective export-option combo so each combo is
+   * built once and only its own file groups are mapped from that archive. A CLI flag, when set,
+   * forces `true` on every file over the per-file config value; a boolean flag cannot force false.
    *
    * Combo values are tri-state: an unset option is left out of the build request so the project
    * export settings apply, while an explicit `false` is sent and overrides them.
@@ -569,7 +557,7 @@ export default class DownloadCommand {
       exportStringsThatPassedWorkflow: file.export_strings_that_passed_workflow,
     });
 
-    // Group files by distinct combo, preserving first-seen order (mirrors Java distinct()).
+    // Group files by distinct combo, in first-seen order.
     const groups = new Map<string, { combo: ExportCombo; files: Config['files'] }>();
 
     for (const file of config.files) {
@@ -628,9 +616,9 @@ export default class DownloadCommand {
 
   /**
    * Reports omitted archive entries across all builds. With multiple builds (one per export-option
-   * combo), Java reports only files omitted in EVERY build: per-source translation lists are
-   * intersected and the without-source list is intersected (mirrors Java's totalOmittedFiles
-   * retainAll). A source absent from any build's omitted set contributes an empty intersection.
+   * combo), only files omitted in EVERY build are reported: the per-source translation lists and the
+   * without-source list are each intersected. A source absent from any build's omitted set
+   * contributes an empty intersection.
    */
   private reportOmittedFiles(
     perBuildOmitted: string[][],
@@ -710,10 +698,8 @@ export default class DownloadCommand {
   /**
    * Drops the branch name that files inside a branch carry in their project path
    * ('/dev/src/en.json' -> '/src/en.json'). Every config-derived path is branch-relative, so without
-   * this nothing matches once `--branch` is given. Java scopes the file list to the branch and then
-   * builds paths from the directory tree alone (ProjectFilesUtils.buildDirectoryPaths without
-   * branches); stripping once at the load boundary is the same thing, and keeps every consumer below
-   * comparing plain project-relative paths.
+   * this nothing matches once `--branch` is given. Stripping once at the load boundary keeps every
+   * consumer below comparing plain project-relative paths.
    */
   private stripBranchFromPaths<T extends { data: { path?: string } }>(files: T[], branchName?: string): T[] {
     if (!branchName) {
@@ -727,12 +713,10 @@ export default class DownloadCommand {
   }
 
   /**
-   * Resolves which project source files should be downloaded for `download sources`, scoping each
-   * config group to files matching its `dest ?? source` pattern (mirroring Java's
-   * DownloadSourcesAction filtering). With manager access the file's export pattern must also be
-   * compatible with the group `translation`. Files matching the group `ignore` patterns are dropped
-   * (mirrors SourcesUtils.filterProjectFiles' ignore predicate). Each matched file's destination
-   * applies `dest`.
+   * Resolves which project source files `download sources` fetches, scoping each config group to
+   * files matching its `dest ?? source` pattern. With manager access the file's export pattern must
+   * also be compatible with the group `translation`. Files matching the group `ignore` patterns are
+   * dropped. Each matched file's destination applies `dest`.
    */
   private collectSourceDownloads(
     config: Config,
@@ -790,11 +774,11 @@ export default class DownloadCommand {
   }
 
   /**
-   * Computes a source file's local destination, mirroring Java DownloadSourcesAction. With no `dest`
-   * the file keeps its project path. With `dest`: when `dest` has neither `**` nor `%original_path%`
-   * and `source` has `**`, the `dest` pattern is applied directly; otherwise the destination is
-   * derived from the `source` pattern via `replaceUnaryAsterisk` (substituting the real file
-   * segments) — both then resolve file-dependent placeholders.
+   * Computes a source file's local destination. With no `dest` the file keeps its project path.
+   * With `dest`: when `dest` has neither `**` nor `%original_path%` and `source` has `**`, the `dest`
+   * pattern is applied directly; otherwise the destination is derived from the `source` pattern via
+   * `replaceUnaryAsterisk` (substituting the real file segments) — both then resolve file-dependent
+   * placeholders.
    */
   private resolveSourceDestination(patterns: Config['files'][number], relativePath: string): string {
     if (!patterns.dest) {
@@ -809,7 +793,7 @@ export default class DownloadCommand {
   }
 
   // Maps each server source path (basePath-relative posix, no leading slash) to its excluded target
-  // languages, so the dry-run listing can skip those languages per file (Java parity).
+  // languages, so the dry-run listing can skip those languages per file.
   private buildExcludedTargetLanguagesByPath(
     projectFiles: { data: { path?: string; excludedTargetLanguages?: string[] } }[],
   ): Map<string, string[]> {

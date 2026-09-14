@@ -1,7 +1,7 @@
 import type { OptionDef } from '@/cli/types.ts';
 
-// `list` describes --type/--issue-type as filters (Java crowdin.comment.list.*), while `add`
-// describes them as setters. Grouped per subcommand so each flag's wording sits together.
+// `list` describes --type/--issue-type as filters, while `add` describes them as setters. Grouped
+// per subcommand so each flag's wording sits together.
 // --string-id is shared verbatim, so it stays a single const referenced by both.
 const stringId: OptionDef = {
   name: 'string-id',

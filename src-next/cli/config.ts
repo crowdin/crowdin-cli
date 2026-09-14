@@ -11,23 +11,22 @@ import { getIdentityFilePath, IDENTITY_FILE_NAMES } from '@/lib/identityFiles.ts
 import type { ConfigOptions, GlobalOptions } from './options.ts';
 import type { Output } from './utils/output.ts';
 
-// Default config files, matching Java's BaseCli.DEFAULT_CONFIGS. When --config is omitted, the
-// first existing one in the cwd is used; if neither exists, crowdin.yml is returned so the ensuing
-// load surfaces a not-found error naming it.
+// When --config is omitted, the first existing one in the cwd is used; if neither exists,
+// crowdin.yml is returned so the ensuing load surfaces a not-found error naming it.
 const DEFAULT_CONFIG_FILES = ['crowdin.yml', 'crowdin.yaml'] as const;
 
-// The two facts the post-merge checks need: whether the config file was read (a missing one is what
-// Java reports when there are no credentials at all) and whether any file was read (which picks the
-// error title). Kept as the raw facts so neither reading has to be guessed from the other.
+// The two facts the post-merge checks need: whether the config file was read (a missing one is the
+// error reported when there are no credentials at all) and whether any file was read (which picks
+// the error title).
 type LoadedConfig = { config: Config; fromConfigFile: boolean; fromIdentityFile: boolean };
 
 export function createGetConfig(getOutput: (command: Command) => Output) {
   let cachedLoad: LoadedConfig | undefined;
   let cachedConfigPath: string | undefined;
 
-  // Java's BaseProperties: the config file is read when present, but credentials may come entirely
-  // from flags or the environment, so a missing default file is not an error. Only the files tier
-  // (and an explicit --config) insists the file be there.
+  // The config file is read when present, but credentials may come entirely from flags or the
+  // environment, so a missing default file is not an error. Only the files tier (and an explicit
+  // --config) insists the file be there.
   const loadConfig = async (command: Command): Promise<LoadedConfig> => {
     const output = getOutput(command);
     const options = command.optsWithGlobals() as GlobalOptions & ConfigOptions;
@@ -47,16 +46,14 @@ export function createGetConfig(getOutput: (command: Command) => Output) {
     // config file, `*_env` vars, ~/.crowdin.yml token, --identity file, CLI flags — is a layer
     // here; assembleConfig folds and validates them into a ready-to-use Config.
     //
-    // Env resolution is two layers straddling the config file (Java PropertiesBuilder precedence):
-    // `*_env` outranks a literal key, CROWDIN_* underranks it. Bun auto-loads `.env` into
+    // Env resolution is two layers straddling the config file: `*_env` outranks a literal key,
+    // CROWDIN_* underranks it. Bun auto-loads `.env` into
     // process.env, so `.env` and shell vars are both covered natively.
     const config = assembleConfig(
       [envFallbackLayer(), mapConfig(raw), envKeyLayer(raw), identity ?? {}, cliLayer(options, isFilesTier(command))],
       readConfigFile || identity !== undefined,
     );
 
-    // Java resolves base_path relative to the config file's directory, expanding a leading `~`
-    // (BaseProperties.populateWithDefaultValues).
     config.basePath = resolveBasePath(config.basePath, configPath);
 
     cachedLoad = { config, fromConfigFile: readConfigFile, fromIdentityFile: identity !== undefined };
@@ -73,8 +70,8 @@ export function createGetConfig(getOutput: (command: Command) => Output) {
     return loaded.config;
   };
 
-  // Java's ProjectProperties. checkResolvedConfig already reports a missing project_id for every
-  // command that declares --project-id, so this only narrows the type for the services that read it.
+  // checkResolvedConfig already reports a missing project_id for every command that declares
+  // --project-id, so this only narrows the type for the services that read it.
   const getProjectConfig = async (command: Command): Promise<ProjectConfig> => {
     const config = await getConfig(command);
 
@@ -91,9 +88,8 @@ export function createGetConfig(getOutput: (command: Command) => Output) {
   return { getConfig, getProjectConfig, tryGetConfig };
 }
 
-// The checks Java defers until every source is merged and base_path is resolved
-// (BaseProperties/ProjectProperties.checkProperties). Java collects them into one ValidationException
-// rather than failing on the first, so a single run tells you everything that needs fixing.
+// Checks that need every source merged and base_path resolved. They are collected rather than
+// failing on the first, so a single run tells you everything that needs fixing.
 function checkResolvedConfig({ config, fromConfigFile, fromIdentityFile }: LoadedConfig, command: Command): void {
   const errors: string[] = [];
   const basePath = statSync(config.basePath, { throwIfNoEntry: false });
@@ -127,9 +123,9 @@ function checkResolvedConfig({ config, fromConfigFile, fromIdentityFile }: Loade
   throw new InvalidConfigurationError(formatConfigErrors(errors, fromConfigFile || fromIdentityFile));
 }
 
-// Mirrors Java PropertiesBuilders: the file tier reads the config file when it exists or when no
-// --source/--translation pair replaces it (ParamsWithFiles.isEmpty), other tiers only when it exists.
-// An explicit --config always must resolve, so a missing one still surfaces a not-found error.
+// The file tier reads the config file when it exists or when no --source/--translation pair replaces
+// it, other tiers only when it exists. An explicit --config must always resolve, so a missing one
+// still surfaces a not-found error.
 async function needsConfigFile(
   command: Command,
   options: GlobalOptions & ConfigOptions,
@@ -142,10 +138,9 @@ async function needsConfigFile(
   return isFilesTier(command) && !options.source && !options.translation;
 }
 
-// The command's own option set is the tier marker, the way Java's params tier is fixed by the
-// subcommand's ArgGroup: only filesConfigGroup carries --source, and only the project/files groups
-// carry --project-id (see cli/commands/common/options.ts), so this cannot drift from the tiers
-// declared there.
+// The command's own option set is the tier marker: only filesConfigGroup carries --source, and only
+// the project/files groups carry --project-id (see cli/commands/common/options.ts), so this cannot
+// drift from the tiers declared there.
 function isFilesTier(command: Command): boolean {
   return command.options.some((option) => option.attributeName() === 'source');
 }
@@ -188,10 +183,9 @@ async function resolveConfigPath(explicit: string | undefined): Promise<string> 
   return path.join(process.cwd(), DEFAULT_CONFIG_FILES[0]);
 }
 
-// Java separates "file doesn't exist" (NotFoundException, 102) from "you pointed at a folder"
-// (ValidationException, 2) for both --config and --identity (ConfigurationFilesProperties).
-// Bun.file().exists() is false for a directory, so without this an explicitly given directory
-// would exit 102 claiming the path does not exist.
+// "You pointed at a folder" (exit 2) is a different error from "file doesn't exist" (exit 102), for
+// both --config and --identity. Bun.file().exists() is false for a directory, so without this an
+// explicitly given directory would exit 102 claiming the path does not exist.
 function assertNotDirectory(filePath: string): void {
   if (statSync(filePath, { throwIfNoEntry: false })?.isDirectory()) {
     throw new InvalidConfigurationError('The specified file is a directory');
@@ -218,8 +212,7 @@ function assembleConfig(layers: Array<Record<string, unknown>>, fromAnyFile: boo
 
   const parsed = ConfigSchema.safeParse(merged);
 
-  // Java throws ValidationException (exit 2) for an invalid config; surface zod errors as the same,
-  // under the same title and bullet list the post-merge checks use.
+  // Same title and bullet list as the post-merge checks.
   if (!parsed.success) {
     throw new InvalidConfigurationError(
       formatConfigErrors(
@@ -269,9 +262,9 @@ function credentialLayer(raw: Record<string, unknown>): Record<string, unknown> 
   };
 }
 
-// Identity credentials, matching Java's identity-file handling. The file is `--identity` when given,
-// otherwise the first existing default (~/.crowdin.yml, then ~/.crowdin.yaml). It contributes all
-// four credential fields (with `*_env` resolution), overriding the config file but not CLI flags.
+// Identity credentials. The file is `--identity` when given, otherwise the first existing default
+// (~/.crowdin.yml, then ~/.crowdin.yaml). It contributes all four credential fields (with `*_env`
+// resolution), overriding the config file but not CLI flags.
 // A `--identity` file that does not exist is an error; missing default files are simply skipped.
 // Returns undefined when no identity file was read, which (with the config file) decides whether an
 // invalid config is reported as "Configuration file is invalid" or "Configuration is invalid".
@@ -282,8 +275,6 @@ async function identityLayer(
   let identityPath = options.identity;
 
   if (identityPath) {
-    // Java tests `configFile.isDirectory()` here, which is a slip in its own source; check the
-    // identity file the option actually named.
     assertNotDirectory(identityPath);
 
     if (!(await Bun.file(identityPath).exists())) {
@@ -299,7 +290,7 @@ async function identityLayer(
 
   output.debug(`Loading credentials from '${identityPath}' file`);
 
-  // Java tolerates an empty identity file (unlike an empty config file), so parse leniently.
+  // An empty identity file is tolerated (unlike an empty config file), so parse leniently.
   const parsed = loadYaml(await Bun.file(identityPath).text());
 
   return parsed && typeof parsed === 'object' ? credentialLayer(parsed as Record<string, unknown>) : {};
@@ -317,8 +308,8 @@ async function firstExistingDefaultIdentityFile(): Promise<string | undefined> {
   return undefined;
 }
 
-// CLI flag overrides. Mirrors Java's PropertiesWithFilesBuilder: --source/--translation build a
-// single-file override, and --dest folds into that same file (also forcing preserve_hierarchy on).
+// CLI flag overrides. On the files tier --source/--translation build a single-file override, and
+// --dest folds into that same file (also forcing preserve_hierarchy on).
 function cliLayer(options: GlobalOptions & ConfigOptions, filesTier: boolean): Partial<Config> {
   const layer: Partial<Config> = {
     apiToken: options.token,
@@ -328,7 +319,6 @@ function cliLayer(options: GlobalOptions & ConfigOptions, filesTier: boolean): P
     preserveHierarchy: options.preserveHierarchy,
   };
 
-  // Only file-tier commands turn --source/--translation into a single-file override.
   if (!filesTier) {
     return layer;
   }
@@ -346,8 +336,8 @@ function cliLayer(options: GlobalOptions & ConfigOptions, filesTier: boolean): P
       layer.preserveHierarchy = true;
     }
   } else {
-    // Mirrors Java PropertiesWithFilesBuilder: --source/--translation must come as a pair, and --dest
-    // is meaningless without both. Accumulate like Java's messages.addError so both surface at once.
+    // --source/--translation must come as a pair, and --dest is meaningless without both. Both errors
+    // are collected so they surface at once.
     const errors: string[] = [];
 
     if (Boolean(options.source) !== Boolean(options.translation)) {

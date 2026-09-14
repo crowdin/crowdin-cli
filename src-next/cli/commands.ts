@@ -47,8 +47,8 @@ import type { CommandDef } from './types.ts';
 const getOutput = createGetOutput();
 const { getConfig, getProjectConfig, tryGetConfig } = createGetConfig(getOutput);
 // The API client needs credentials only, so it takes plain getConfig — that keeps project_id out of
-// the requirements for glossary/tm, which Java runs on BaseProperties. Everything project-scoped
-// takes getProjectConfig, which is where the project_id requirement lives.
+// the requirements for glossary/tm. Everything project-scoped takes getProjectConfig, which is where
+// the project_id requirement lives.
 const getApiClient = createGetApiClient(getConfig);
 const getCommentService = createGetCommentService(getApiClient, getProjectConfig);
 const getAppService = createGetAppService(getApiClient);

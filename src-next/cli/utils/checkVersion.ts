@@ -5,9 +5,7 @@ import type { Output } from './output.ts';
 
 const VERSION_FILE_URL = 'https://github.com/crowdin/crowdin-cli/releases/latest/download/version.txt';
 const TIMEOUT_MS = 3000;
-// Only hit the network once per day; between checks the banner is served from the cached latest version
-// so it still shows on every command without a request per invocation.
-const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hr
+const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 interface VersionCache {
   lastCheck: number;
@@ -31,9 +29,6 @@ interface CheckOptions {
  * last-seen version is read from a small cache file, so the banner still appears every command without a
  * network request each time. Any failure (offline, timeout, bad response, unreadable cache) is swallowed
  * so it never affects the command; a stale cache is used as a fallback when the network is unreachable.
- *
- * NOTE: differs from the Java CheckNewVersionAction, which fetched on every run and used plain string
- * inequality (`!version.equals(latest)`), showing the banner on any mismatch including downgrades.
  */
 export async function checkNewVersion(output: Output, currentVersion: string, opts: CheckOptions = {}): Promise<void> {
   const cachePath = opts.cachePath ?? defaultCachePath();

@@ -1,5 +1,5 @@
-// Mirrors the Java CLI's custom proxy env vars (BaseCli.HTTP_PROXY_*).
-// Both host and port are required; port must be numeric (Java parity).
+// Proxy from the HTTP_PROXY_HOST/PORT/USER/PASSWORD env vars.
+// Both host and port are required; port must be numeric.
 // Credentials are optional and only applied when both user and password are set.
 export function proxyUrlFromEnv(): string | undefined {
   const host = process.env.HTTP_PROXY_HOST;

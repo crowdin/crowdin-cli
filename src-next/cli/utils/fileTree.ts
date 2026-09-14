@@ -2,7 +2,7 @@ import { toPosixPath } from '@/lib/utils/path.ts';
 import { colors } from './colors.ts';
 import type { Output } from './output.ts';
 
-// Java message.tree.*: the glyphs are cyan, the names they prefix are not. Colored at render time
+// The glyphs are cyan, the names they prefix are not. Colored at render time
 // rather than here, since colors are only switched on once the output format is known.
 const ELEM = '├─ ';
 const LAST_ELEM = '╰─ ';

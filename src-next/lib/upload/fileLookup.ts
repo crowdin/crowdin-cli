@@ -5,11 +5,10 @@ export interface FileLookupResult {
 }
 
 /**
- * Resolves a project file path against the project's existing files, mirroring Java's
- * ProjectFilesUtils.fileLookup: an exact path wins; otherwise a path matching when ignoring the
- * final extension is a soft match; otherwise a path matching when one side keeps an extra extension
- * is used as a fallback soft match. Soft matches are reported with `exact: false` so callers can
- * rename the project file to the local source name.
+ * Resolves a project file path against the project's existing files: an exact path wins; otherwise
+ * a path matching when ignoring the final extension is a soft match; otherwise a path matching when
+ * one side keeps an extra extension is used as a fallback soft match. Soft matches are reported
+ * with `exact: false` so callers can rename the project file to the local source name.
  */
 export function fileLookup(
   filePath: string,

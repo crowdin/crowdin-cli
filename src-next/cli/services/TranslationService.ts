@@ -5,8 +5,8 @@ import WrongLanguageError from '../errors/WrongLanguageError.ts';
 import type { Output } from '../utils/output.ts';
 import { withSpinner } from '../utils/withSpinner.ts';
 
-// Reported once per poll, so each command can word its own progress line (Java words them
-// differently per command: verbose-only for `upload translations`, always for `file upload`).
+// Reported once per poll, so each command can word its own progress line (verbose-only for
+// `upload translations`, always for `file upload`).
 export type ImportProgress = (
   status: Status<
     TranslationsModel.ImportTranslationsStatusAttributes | TranslationsModel.ImportTranslationsStringsStatusAttributes
@@ -64,8 +64,8 @@ export class TranslationService {
   }
 
   // The import is queued server-side, so the request alone proves nothing: wait for the status to
-  // finish before returning, the way Java's executeAsyncAction does. Keeping the wait here means a
-  // caller cannot mistake "queued" for "done" — the bug that shipped when commands had to remember.
+  // finish before returning. Keeping the wait here means a caller cannot mistake "queued" for
+  // "done".
   private async importAndWait(
     request: TranslationsModel.ImportTranslationsRequest | TranslationsModel.ImportTranslationsStringsRequest,
     filePath: string,

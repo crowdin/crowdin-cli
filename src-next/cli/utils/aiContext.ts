@@ -6,7 +6,7 @@ const AI_CONTEXT_MARKER_END = '✨ 🔚';
 const AI_CONTEXT_SECTION_START = `\n\n${AI_CONTEXT_MARKER_START}\n`;
 const AI_CONTEXT_SECTION_END = `\n${AI_CONTEXT_MARKER_END}`;
 
-// Mirrors the jsonl record produced by the Java CLI ('crowdin context download')
+// One line of the JSONL file 'crowdin context download' writes.
 export interface StringContextRecord {
   id: number;
   key: string;
@@ -96,9 +96,8 @@ export async function readContextFile(filePath: string): Promise<ContextFileCont
   return { records, ...(firstInvalidLine !== undefined ? { firstInvalidLine } : {}) };
 }
 
-// A malformed or incomplete line yields no record. Unlike the Java CLI, which drops such lines
-// silently, the callers refuse the file: both of them rewrite what they read, so a dropped line is
-// context about to be lost.
+// A malformed or incomplete line yields no record, and the callers refuse the file: both of them
+// rewrite what they read, so a dropped line is context about to be lost.
 function parseContextRecord(line: string): StringContextRecord | null {
   try {
     const parsed: unknown = JSON.parse(line);
@@ -133,7 +132,7 @@ function parseContextRecord(line: string): StringContextRecord | null {
   }
 }
 
-// Plural texts are flattened to 'form: value | form: value', same as the Java CLI
+// Plural texts are flattened to 'form: value | form: value'.
 export function getStringText(text: string | SourceStringsModel.PluralText | undefined): string {
   if (typeof text === 'string') {
     return text;

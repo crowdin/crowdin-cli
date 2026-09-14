@@ -1,7 +1,6 @@
 import type { Output } from '@/cli/utils/output.ts';
 
-// Java's error.execution_contains_errors: every file is attempted, then the run fails with this if
-// any of them failed.
+// Every file is attempted, then the run fails with this if any of them failed.
 export const EXECUTION_FINISHED_WITH_ERRORS = 'Current execution finished with errors';
 
 export function reportFailures(results: PromiseSettledResult<unknown>[], output: Output): boolean {

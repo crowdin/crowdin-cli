@@ -48,8 +48,7 @@ interface BundleOptions extends GlobalOptions {
   dryrun?: boolean;
 }
 
-// Java message.bundle.list: id, format, export pattern, name. Shared by list and the add/clone
-// echoes; Java's plain echo prints the id alone, but keeping the listing shape retains the name.
+// Shared by list and the add/clone echoes, so the plain echo keeps the name next to the id.
 const bundleView: View<BundleView> = {
   text: (bundle) =>
     `${colors.yellow(`#${bundle.id}`)} ${colors.green(bundle.format ?? '')} ${colors.red(
@@ -60,7 +59,7 @@ const bundleView: View<BundleView> = {
 };
 
 // The kept archive is a file the command wrote, so it belongs in the result: plain prints the bare
-// path (what Java's --plain branch meant to print), json/toon serialize it, text keeps the sentence.
+// path, json/toon serialize it, text keeps the sentence.
 const archiveView: View<string> = {
   text: (archivePath) => `Archive saved to '${archivePath}'`,
   plain: (archivePath) => archivePath,
@@ -263,7 +262,6 @@ export default class BundleCommand {
       throw new NotFoundError("Couldn't find bundle by the specified ID");
     }
 
-    // Trigger the export and wait for the server to finish (the service owns the poll).
     output.spinner('bundle-build', 'start', 'Building bundle');
 
     let exportId: string;
@@ -291,9 +289,9 @@ export default class BundleCommand {
     const entries = zip.getEntries().filter((entry) => !entry.isDirectory);
 
     // Unlike `download`, which only ever uses archive entry names as lookup keys, this writes them
-    // to disk. AdmZip's getData()/Bun.write pair does no containment checking of its own — Java gets
-    // that from zip4j — so an entry named `../…` would land outside basePath. Checked before the
-    // dry-run branch too, so a dry run reports the same bad archive instead of looking clean.
+    // to disk. AdmZip's getData()/Bun.write pair does no containment checking of its own, so an entry
+    // named `../…` would land outside basePath. Checked before the dry-run branch too, so a dry run
+    // reports the same bad archive instead of looking clean.
     const extractions = entries.map((entry) => {
       const relativePath = stripLeadingSlashes(toPosixPath(entry.entryName));
       const targetPath = path.join(config.basePath, relativePath);
@@ -313,9 +311,8 @@ export default class BundleCommand {
       }
     }
 
-    // Java prints one path per extracted file (message.file_path), for a dry run as much as for a
-    // real one. Both used to go through log()/success(), so json/toon/plain — where the path list
-    // is the whole result — printed nothing at all.
+    // One path per extracted file, for a dry run as much as for a real one. In json/toon/plain the
+    // path list is the whole result.
     const extractedPaths = extractions.map(({ relativePath }) => relativePath);
 
     if (isMachineFormat(options.output)) {
@@ -327,9 +324,8 @@ export default class BundleCommand {
     }
 
     if (options.keepArchive) {
-      // log() is text-only, so the plain branch this replaces printed nothing at all, and json/toon
-      // lost the path with it. item() renders the view in every format — and those formats report
-      // POSIX paths on every OS, so path.join's separators are normalized.
+      // item(), not log(), so every format gets the path — and the machine formats report POSIX
+      // paths on every OS, so path.join's separators are normalized.
       output.item(toPosixPath(archivePath), archiveView);
     } else {
       try {

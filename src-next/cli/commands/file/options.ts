@@ -1,7 +1,7 @@
 import type { OptionDef } from '@/cli/types.ts';
 
-// upload/download both take --dest but with different wording (Java crowdin.file.<sub>.dest),
-// so grouped per subcommand to keep each flag's wording together.
+// upload/download both take --dest but with different wording, so grouped per subcommand to keep
+// each flag's wording together.
 
 export const upload = {
   label: {

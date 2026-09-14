@@ -117,8 +117,7 @@ export default class CommentCommand {
     let type = options.type as StringCommentsModel.Type | undefined;
 
     // Both filters only exist on issues, and the API rejects either one on its own with "Any of
-    // [type] must be set". Java infers the type for --status (CommentListAction); --issue-type
-    // needs it for the same reason.
+    // [type] must be set", so the type is inferred.
     if ((status || options.issueType) && !type) {
       type = 'issue';
     }
@@ -141,8 +140,8 @@ export default class CommentCommand {
     const comment = await commentService.resolve(id);
 
     output.success(`A string issue #${comment.id} has been successfully resolved`);
-    // Text keeps Java's sentence; the machine formats get the resolved comment itself, as the add
-    // echo above already does.
+    // Text keeps the sentence; the machine formats get the resolved comment itself, as the add echo
+    // does.
     output.item(comment, commentView, { mark: false });
   };
 }

@@ -48,21 +48,20 @@ export type OutputOptions = {
   withGuide?: boolean;
 };
 
-/**
- * How one entity renders per `--output` format: a line in text and plain, a narrowed record in
- * json/toon.
- */
 /** A row-list grid: column definitions plus the rows themselves, duplicates and all. */
 export type TableGrid = {
   columns: { name: string; title: string; alignment?: 'left' | 'right' }[];
   rows: Record<string, string | number>[];
 };
 
+/**
+ * How one entity renders per `--output` format: a line in text and plain, a narrowed record in
+ * json/toon.
+ */
 export type View<T> = {
-  /** The default line, mirroring the Java message templates (`message.branch.list` and friends). */
   text: (item: T) => string;
   /**
-   * Java's plain line, when it differs from `text` (e.g. branch prints the name alone); left off,
+   * The plain line, when it differs from `text` (e.g. branch prints the name alone); left off,
    * plain prints `text`. What belongs on it — and why its wording is frozen once shipped — is the
    * render-command-output skill (.agents/skills/render-command-output/SKILL.md).
    */
@@ -94,7 +93,6 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
   enableColors(options.colors && format === 'text');
 
   updateSettings({
-    // Guide lines off by default; interactive commands (init) opt back in
     withGuide,
   });
 
@@ -107,16 +105,12 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
   /**
    * Diagnostics go to stderr in every format, so stdout only ever carries the result document —
    * a command that warns about three files and then fails still leaves parseable output behind.
-   *
-   * They used to print to stdout, and warnings were dropped outside text entirely, so `--output`
-   * consumers silently lost every 'project doesn't contain the file' notice.
    */
   function diagnostic(level: 'error' | 'warning', message: string, code?: number): void {
-    // One record per diagnostic, not one document per run: they are emitted as they happen, so
-    // buffering to exit would lose every warning a killed upload had already produced. json
-    // separates records by newline, toon by blank line; both escape newlines inside a message,
-    // so neither separator can appear within a record. TOON's list form would give one document
-    // but declares its record count up front ('[2]{level,message}:'), unknowable mid-run.
+    // One record per diagnostic, emitted as it happens, so a killed run keeps the warnings it
+    // already produced. json separates records by newline, toon by blank line; both escape newlines
+    // inside a message, so neither separator can appear within a record. TOON's list form is out:
+    // it declares its record count up front ('[2]{level,message}:'), unknowable mid-run.
     if (isStructured) {
       const record = { level, message, ...(code !== undefined ? { code } : {}) };
 
@@ -126,9 +120,7 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
       return;
     }
 
-    // plain drops the symbol for the same reason its views do: the line is the contract. This
-    // one departs from Java, whose top-level handler prints ERROR.withIcon() to stderr without
-    // ever seeing the plainView flag, so '--plain' there still carries the icon.
+    // plain drops the symbol for the same reason its views do: the line is the contract.
     if (format === 'plain') {
       console.error(message);
       return;
@@ -167,9 +159,8 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
           columns,
           shouldDisableColors: !options.colors,
           // The library paints every cell white, which reads as grey next to the rest of the output.
-          // An unmapped colour renders as plain text, so dropping 'white' leaves cells in the
-          // terminal's own foreground with only the header bold — what Bun.inspect.table does in
-          // table() above.
+          // An unmapped colour renders as plain text, leaving cells in the terminal's own foreground
+          // with only the header bold, as table() does.
           colorMap: { white: undefined },
         });
 
@@ -189,8 +180,7 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
      */
     table(data: object | unknown[]): void {
       if (format === 'text') {
-        // console.table bolds its header row on a TTY with no way to opt out, so --no-colors
-        // leaked styling through it. Bun.inspect.table renders the same grid and takes the flag.
+        // Not console.table: it bolds the header row on a TTY and ignores --no-colors.
         // trimEnd because the rendered grid ends in a newline and console.log adds its own.
         console.log(Bun.inspect.table(data, { colors: options.colors }).trimEnd());
         return;
@@ -296,8 +286,8 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
       message: string,
     ): void {
       if (format !== 'text' || !options.progress) {
-        // Reporting here produced a record with no `code` and, since `withSpinner` marks the error
-        // `reported`, suppressed the handler's record that would have carried one.
+        // Structured formats leave the error to the top-level handler, whose record carries the
+        // exit code.
         if (operation === 'error') {
           if (!isStructured) {
             this.error(message);
@@ -376,7 +366,7 @@ export function getOutputFormatFromArgs(argv: string[]): GlobalOptions {
     verbose: false,
     output: outputFormat,
     // Scanned from argv (not parsed opts) because the top-level error handler runs outside any
-    // command action, where parsing may have thrown. Mirrors Java's originalArgs().contains("--debug").
+    // command action, where parsing may have thrown.
     debug: argv.includes('--debug'),
   };
 }

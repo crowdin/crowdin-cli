@@ -7,9 +7,9 @@ const termLine = (term: GlossariesModel.Term): string =>
   `\t${colors.yellow(`#${term.id}`)} ${colors.green(term.text)}: ${toSingleLine(term.description ?? '')}`;
 
 /**
- * Java GlossaryListAction: one line per glossary and, when verbose, its terms indented underneath.
- * Terms come from a per-glossary request the command makes up front, so they are passed in.
- * Plain prints the name alone and never lists terms, as Java keeps that block inside !plainView.
+ * One line per glossary and, when verbose, its terms indented underneath. Terms come from a
+ * per-glossary request the command makes up front, so they are passed in. Plain prints the name
+ * alone and never lists terms.
  */
 export function createGlossaryView({
   verbose = false,
