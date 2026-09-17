@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { translationCount } from '../helpers/lookup.ts';
 import { createTestProject, deleteTestProject } from '../helpers/project.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -51,12 +52,6 @@ describe('upload translations', () => {
     return match.data.id;
   }
 
-  async function translationCount(stringId: number): Promise<number> {
-    const response = await ctx.client.stringTranslationsApi.listStringTranslations(ctx.project.id, stringId, LANGUAGE);
-
-    return response.data.length;
-  }
-
   test('uploads the sources the rest of the suite translates', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -77,25 +72,25 @@ describe('upload translations', () => {
     expect(result).toMatchObject({ exitCode: 0 });
 
     // `shared` carries the same text in source and translation; `secret` is hidden.
-    expect(await translationCount(sharedStringId)).toBe(0);
-    expect(await translationCount(secretStringId)).toBe(0);
+    expect(await translationCount(ctx, sharedStringId, LANGUAGE)).toBe(0);
+    expect(await translationCount(ctx, secretStringId, LANGUAGE)).toBe(0);
   });
 
   test('imports a translation equal to the source with --import-eq-suggestions', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '--import-eq-suggestions']);
 
     expect(result).toMatchObject({ exitCode: 0 });
-    expect(await translationCount(sharedStringId)).toBeGreaterThan(0);
+    expect(await translationCount(ctx, sharedStringId, LANGUAGE)).toBeGreaterThan(0);
     // Still untouched: this flag decides about identical text, not about hidden strings, so the
     // next test cannot pass on the back of this run.
-    expect(await translationCount(secretStringId)).toBe(0);
+    expect(await translationCount(ctx, secretStringId, LANGUAGE)).toBe(0);
   });
 
   test('imports a translation for a hidden string with --translate-hidden', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '--translate-hidden']);
 
     expect(result).toMatchObject({ exitCode: 0 });
-    expect(await translationCount(secretStringId)).toBeGreaterThan(0);
+    expect(await translationCount(ctx, secretStringId, LANGUAGE)).toBeGreaterThan(0);
   });
 
   test('rejects a language the project does not target', async () => {

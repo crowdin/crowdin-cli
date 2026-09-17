@@ -2,19 +2,9 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
 import { decode } from '@toon-format/toon';
 import AdmZip from 'adm-zip';
+import { findGlossaryId } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
-
-async function findGlossaryId(ctx: SuiteContext, name: string): Promise<number> {
-  const response = await ctx.client.glossariesApi.withFetchAll().listGlossaries();
-  const match = response.data.find((entry) => entry.data.name === name);
-
-  if (!match) {
-    throw new Error(`Glossary '${name}' not found via the API`);
-  }
-
-  return match.data.id;
-}
 
 /** Crowdin.com auto-creates a glossary named after every project. */
 function defaultGlossaryName(ctx: SuiteContext): string {

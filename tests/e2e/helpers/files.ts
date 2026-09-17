@@ -2,6 +2,11 @@ import { expect } from 'bun:test';
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 
+/** Every file under `root`, as sorted `/`-separated paths relative to it. */
+export async function listFilesRecursively(root: string): Promise<string[]> {
+  return (await Array.fromAsync(new Bun.Glob('**').scan({ cwd: root, dot: true }))).sort();
+}
+
 /**
  * Assert that every given path (relative to `workspace`) exists. Reports all
  * missing paths at once instead of failing on the first.
