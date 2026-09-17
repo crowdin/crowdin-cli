@@ -39,7 +39,7 @@ async function deleteObsolete(options: {
 }
 
 describe('deleteObsoleteProjectEntries', () => {
-  // Java builds its directory candidates from the files it just deleted, so a directory nobody's
+  // Directory candidates come from the files just deleted, so a directory nobody's
   // config references (created in the Crowdin UI, say) is never touched.
   test('leaves an unrelated empty directory alone', async () => {
     const result = await deleteObsolete({
@@ -80,7 +80,7 @@ describe('deleteObsoleteProjectEntries', () => {
     expect(result.deletedFiles).toEqual([]);
   });
 
-  // Matching runs on the config-pattern matcher (Java's formatSourcePatternForRegex machinery),
+  // Matching runs on the config-pattern matcher,
   // which expands file placeholders. The CLI-filter matcher this used to call does not, so a
   // placeholder `source` matched nothing and its obsolete files were never cleaned up.
   test('treats a file as managed when the source pattern carries a file placeholder', async () => {

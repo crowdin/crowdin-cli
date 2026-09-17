@@ -2,9 +2,8 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
-// Ports crowdin-backend/tests/Cli/Common/CliInvalidCredentialsTest.php: one config broken in one
-// place per test. PHP's `testUploadSourcesNotExistsOrganization` is dropped rather than adapted -
-// it skips itself outside Enterprise mode, and this harness only ever talks to plain crowdin.com.
+// One config broken in one place per test. A non-existent organization is not covered - it only
+// applies to Enterprise, and this harness only ever talks to plain crowdin.com.
 describe('invalid credentials', () => {
   let ctx: SuiteContext;
 
@@ -17,8 +16,8 @@ describe('invalid credentials', () => {
   });
 
   test('rejects a non-numeric project_id', async () => {
-    // PHP's fixture uses a leading-space project_id (' 999999'), which `z.coerce.number()` trims and
-    // accepts, so the value here is genuinely non-numeric instead.
+    // A leading-space project_id (' 999999') would be trimmed and accepted by `z.coerce.number()`, so
+    // the value here is genuinely non-numeric.
     await switchConfig(ctx, 'invalid-project-id');
 
     const result = await ctx.runner.run(['upload', 'sources']);
@@ -52,7 +51,6 @@ describe('invalid credentials', () => {
   });
 
   test('rejects a base_path that does not exist', async () => {
-    // Divergence from Java, which appends a trailing slash to the path in this message.
     await switchConfig(ctx, 'nonexistent-base-path');
 
     const result = await ctx.runner.run(['upload', 'sources']);
@@ -66,7 +64,7 @@ describe('invalid credentials', () => {
   });
 
   test('rejects an invalid base_url', async () => {
-    // The wording is the config schema's own, unrelated to Java's "Unexpected 'base_url'".
+    // The wording is the config schema's own.
     await switchConfig(ctx, 'invalid-base-url');
 
     const result = await ctx.runner.run(['upload', 'sources']);

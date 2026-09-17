@@ -77,7 +77,7 @@ describe('aiContext', () => {
       expect(getStringText('hello')).toBe('hello');
     });
 
-    test('flattens plural text the same way as the Java CLI', () => {
+    test('flattens plural text into one line', () => {
       expect(getStringText({ one: 'apple', other: 'apples' })).toBe('one: apple | other: apples');
     });
 

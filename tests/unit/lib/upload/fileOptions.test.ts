@@ -144,7 +144,7 @@ describe('%original_path%', () => {
   });
 });
 
-// Java PlaceholderUtil.replaceFileDependentPlaceholders:234-249 expands `**` in dest/context from
+// `**` in dest/context expands from
 // the source file's parent path. Distinct from replaceDoubleAsterisk, which serves `translation`.
 describe('** in dest and context', () => {
   test('expands to the full parent path when the prefix is unrelated to it', () => {
@@ -175,7 +175,7 @@ describe('** in dest and context', () => {
     expect(prepareDest('/out/%original_file_name%', 'src/nested/app.json')).toBe('out/app.json');
   });
 
-  // Java's String.replace(CharSequence, CharSequence) substitutes every occurrence. Replacing only
+  // Every occurrence is substituted. Replacing only
   // the first left a literal `**` in the project path — the very bug this expansion exists to avoid.
   test('substitutes every wildcard in the pattern, not just the first', () => {
     expect(prepareDest('/out/**/mid/**/%original_file_name%', 'src/nested/deep/app.json')).toBe(
@@ -183,7 +183,7 @@ describe('** in dest and context', () => {
     );
   });
 
-  // The tail after `**` appears mid-path, so Java re-extends it to cover the whole remainder.
+  // The tail after `**` appears mid-path, so it is re-extended to cover the whole remainder.
   test('extends the tail when it appears midway through the file path', () => {
     expect(prepareDest('/out/**/nested/%original_file_name%', 'src/nested/deep/nested/app.json')).toBe(
       'out/src/nested/deep/nested/app.json',

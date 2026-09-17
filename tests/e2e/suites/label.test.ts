@@ -149,7 +149,7 @@ describe('label', () => {
   });
 
   test('carries the ids into a verbose plain listing', async () => {
-    // `labelVerboseView` points `plain` at the text renderer, as Java's LabelListAction does.
+    // `labelVerboseView` points `plain` at the text renderer.
     const result = await ctx.runner.run(['label', 'list', '--output', 'plain', '--verbose']);
 
     expect(result).toMatchObject({ exitCode: 0 });

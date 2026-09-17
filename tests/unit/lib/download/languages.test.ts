@@ -10,7 +10,7 @@ describe('resolveDownloadLanguages', () => {
     const result = resolveDownloadLanguages(projectLanguages, {});
 
     expect(ids(result)).toEqual(['de', 'fr', 'uk']);
-    // Java leaves targetLanguageIds off the build request when the set was never narrowed.
+    // targetLanguageIds stays off the build request when the set was never narrowed.
     expect(result.languageIds).toBeUndefined();
   });
 

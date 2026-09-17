@@ -5,7 +5,7 @@ import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Ported from `crowdin-backend/tests/Cli/Common/CliLanguageMappingTest.php`. Each of the 8 file
+ * Each of the 8 file
  * groups below exercises one language placeholder with a per-file `languages_mapping` override for
  * `uk`/`zh-CN`. A local `languages_mapping` wins over the project's server-side mapping, which wins
  * over the language's default code.

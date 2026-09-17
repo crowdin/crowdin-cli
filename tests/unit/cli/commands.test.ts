@@ -4,7 +4,7 @@ import type { CommandDef, OptionDef, OptionGroupDef, SubcommandDef } from '@/cli
 
 const CONFIG_GROUP = 'Config options:';
 
-// Option-name sets per Java picocli param tier (BaseParams -> ProjectParams -> ParamsWithFiles).
+// Option-name sets per param tier (base -> project -> with files).
 const BASE_TIER = ['token', 'base-url', 'base-path'];
 const PROJECT_TIER = [...BASE_TIER, 'project-id'];
 // `preserve-hierarchy` is the hidden positive half of the `--no-preserve-hierarchy` pair.

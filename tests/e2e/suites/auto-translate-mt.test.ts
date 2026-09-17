@@ -4,8 +4,7 @@ import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Ports crowdin-backend/tests/Cli/Common/CliPreTranslateTest.php onto `auto-translate` flags. This
- * suite owns the MT paths; validation and selection flags live in `auto-translate.test.ts`.
+ * Covers the machine-translation paths of `auto-translate`; validation and selection flags live in `auto-translate.test.ts`.
  *
  * `preTranslate` polls to completion, so a zero exit means the server finished the job. But with
  * `--no-progress` every poll iteration prints its own line and the count varies per run, so the

@@ -7,8 +7,6 @@ import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Ported from `crowdin-backend/tests/Cli/Common/CliTranslationsNotMatchTest.php`.
- *
  * The mismatch is manufactured: `sources/java.properties` is created straight through the API, so it
  * carries no `exportPattern`, while the `sources/*.xml` files are uploaded through the CLI and get
  * one. The config's `source:` pattern is then narrowed to a single file before each download, so the
@@ -16,7 +14,7 @@ import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../h
  * this suite exists to exercise.
  *
  * Two behaviors worth knowing while reading the assertions:
- * - Branch upload prints no branch-creation message and uses unprefixed local paths, unlike PHP.
+ * - Branch upload prints no branch-creation message and uses unprefixed local paths.
  * - For a file with no `exportPattern`, the archive path depends on how many languages the build
  *   targets: an all-language build needs the `<languageId>/<name>` fallback to disambiguate, a
  *   single-language build does not, so the entry is the bare filename.

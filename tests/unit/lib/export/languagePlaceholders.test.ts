@@ -36,7 +36,7 @@ describe('%android_code% placeholder', () => {
 
 describe('%locale_with_underscore% placeholder', () => {
   test('replaces every separator, not just the first', () => {
-    // Java's String.replace is global, and three-part locales reach this path.
+    // Three-part locales reach this path.
     const serbian = { id: 'sr', name: 'Serbian', locale: 'sr-Cyrl-RS' } as LanguagesModel.Language;
 
     expect(resolveLanguagePlaceholders('/l/%locale_with_underscore%/app.json', serbian)).toBe('/l/sr_Cyrl_RS/app.json');

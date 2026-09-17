@@ -6,16 +6,15 @@ import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Ported from `crowdin-backend/tests/Cli/Common/CliTranslationReplaceTest.php`. Exercises upload
+ * Exercises upload
  * sources / upload translations / download translations over a nested Android-resources tree, on the
  * default branch and on a new one - the real subject being a second `upload sources` to a file that
  * already exists, and how translations behave around it.
  *
- * PHP's `testUploadTranslationsBranch` calls the upload with no `-b test-branch`, unlike every other
- * branch method in that file. It is ported literally, so the branch's own sources never receive
+ * The branch phase uploads translations with no `-b test-branch`, so the branch's own sources never receive
  * translations and the branch download asserts existence only, not content.
  *
- * Unlike PHP's fixture, the translation content differs between it and uk, so a content assertion
+ * The translation content differs between it and uk, so a content assertion
  * can tell the languages apart.
  */
 
@@ -220,8 +219,8 @@ describe('translation replace', () => {
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
-  // No `-b`, as in PHP (see the file header): this replaces the translations on the MASTER files.
-  test('re-uploads translations to the already-translated master files (no -b, matching the literal PHP call)', async () => {
+  // No `-b` (see the file header): this replaces the translations on the MASTER files.
+  test('re-uploads translations to the already-translated master files (no -b)', async () => {
     const result = await ctx.runner.run(['upload', 'translations']);
 
     expect(result).toMatchObject({ exitCode: 0 });

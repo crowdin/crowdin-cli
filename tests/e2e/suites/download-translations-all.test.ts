@@ -217,7 +217,7 @@ describe('download translations --all', () => {
     expect(await Bun.file(join(ctx.workspace, 'files', zipName as string)).exists()).toBe(true);
   });
 
-  // `--output plain` stands in for the Java `--plain` flag: the closing summary lists the kept zip and
+  // With `--output plain`, the closing summary lists the kept zip and
   // the extracted paths.
   test('keeps the downloaded archive with plain output', async () => {
     await removeKeptArchive(ctx);

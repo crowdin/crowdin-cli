@@ -127,7 +127,7 @@ exports[`translation replace previews uploading translations as a dry run on the
 ●  Project info fetched"
 `;
 
-exports[`translation replace re-uploads translations to the already-translated master files (no -b, matching the literal PHP call) 1`] = `
+exports[`translation replace re-uploads translations to the already-translated master files (no -b) 1`] = `
 "●  Fetching project files
 ●  Fetching project info
 ●  Importing translations for file 'it/src/main/resources/android.xml'

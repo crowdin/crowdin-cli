@@ -19,7 +19,6 @@ describe('string views', () => {
     });
 
     test('drops the identifier when the string has none', () => {
-      // Java falls back to message.source_string_list_text_short.
       expect(createStringView().text(createString({ identifier: undefined }))).toBe('#11 Hello');
     });
 

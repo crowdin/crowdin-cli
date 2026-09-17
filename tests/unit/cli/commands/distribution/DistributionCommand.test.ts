@@ -130,8 +130,8 @@ describe('DistributionCommand', () => {
     expect(console.log).toHaveBeenCalledWith('hash-1 CDN one');
   });
 
-  // Java's add/edit echoes print the name alone in plain; we keep the listing's shape so the hash
-  // that `edit`/`release` take stays in the output.
+  // The add/edit echoes keep the listing's shape in plain so the hash that `edit`/`release` take
+  // stays in the output.
   test('echoes hash and name in plain format after add', async () => {
     output = createOutput({ ...globalOptions, output: 'plain' });
     const distributionCommand = createDistributionCommand();

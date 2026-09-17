@@ -574,7 +574,6 @@ describe('BranchCommand', () => {
       );
     });
 
-    // Java BranchMergeAction prints the target branch id alone in plain view.
     test('prints the target branch id in plain format', async () => {
       const branchCommand = createBranchCommand();
       output = createOutput({ ...globalOptions, output: 'plain' });

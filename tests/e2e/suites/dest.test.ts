@@ -4,7 +4,7 @@ import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Port of crowdin-backend's `tests/Cli/Common/CliDestTest.php`: `dest:` pattern shapes across
+ * Covers `dest:` pattern shapes across
  * several file groups, upload/download of their translations, the same pair against a branch, a
  * configless single-file upload with `--dest`, and a config-validation negative case.
  */
@@ -199,8 +199,8 @@ describe('dest', () => {
   });
 
   test('reports a configuration error for dest without preserve_hierarchy', async () => {
-    // PHP expects this error for a glob `source` combined with a literal `dest`; src-next has no
-    // source-arity check, only the `preserve_hierarchy` one exercised here.
+    // There is no check for a glob `source` combined with a literal `dest`, only the
+    // `preserve_hierarchy` one exercised here.
     await switchConfig(ctx, 'crowdin-invalid');
 
     const result = await ctx.runner.run(['upload', 'sources', '--no-preserve-hierarchy']);

@@ -103,7 +103,7 @@ describe('project', () => {
 
     expect(result).toMatchObject({ exitCode: 0 });
     // `projectView` defines no `plain`, so `renderLine` falls back to `text` and the id keeps its
-    // `#` - matching Java's ProjectListAction, which has no plain branch either.
+    // `#`.
     expect(result.stdout).toContain(`#${ctx.project.id} ${ctx.project.name}`);
   });
 

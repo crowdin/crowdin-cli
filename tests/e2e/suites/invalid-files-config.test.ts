@@ -3,10 +3,7 @@ import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Port of crowdin-backend/tests/Cli/Common/CliInvalidFilesConfigTest.php.
- *
- * PHP re-renders `crowdin.yml` before every test; here one fixture with a valid fallback `files:`
- * entry is enough, because a CLI `--source`/`--translation` pair replaces `config.files` outright.
+ * One fixture with a valid fallback `files:` entry serves every test, because a CLI `--source`/`--translation` pair replaces `config.files` outright.
  */
 describe('invalid files config', () => {
   let ctx: SuiteContext;

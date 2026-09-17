@@ -130,7 +130,7 @@ describe('LabelCommand', () => {
     expect(console.log).toHaveBeenCalledWith('one');
   });
 
-  // Java LabelListAction prints the decorated line when `!plainView || isVerbose`.
+  // The decorated line is printed unless the output is plain and not verbose.
   test('keeps the id in plain format when verbose', async () => {
     output = createOutput({ ...globalOptions, output: 'plain' });
     const labelCommand = createLabelCommand();

@@ -53,7 +53,6 @@ describe('BundleService', () => {
       expect(bundleService.exportBundle(5)).rejects.toThrow(new CliError('Failed to build the bundle'));
     });
 
-    // Java retries the export start on a transient "another export in progress" error.
     test('retries the start on a transient in-progress error', async () => {
       const start = spyOn(apiClient.bundlesApi, 'exportBundle')
         .mockRejectedValueOnce(

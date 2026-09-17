@@ -216,8 +216,7 @@ describe('FileCommand', () => {
   });
 
   // loadProjectFiles is scoped to the branch (see FileService), so without '--branch' the listing
-  // only ever sees the root tree — a project whose files all sit in a branch lists nothing, as
-  // Java's FileListAction does.
+  // only ever sees the root tree — a project whose files all sit in a branch lists nothing.
   test('lists the root tree when no branch is given', async () => {
     const textOutput = createOutput({ ...globalOptions, output: 'text' });
     const fileCommand = createFileCommandWith(textOutput);
@@ -644,7 +643,7 @@ describe('FileCommand', () => {
   });
 
   // The service polls to completion; the command's job is the init line plus a progress line per
-  // poll. Java prints these percent lines regardless of --verbose, appending the identifier only
+  // poll. These percent lines print regardless of --verbose, appending the identifier only
   // under --verbose (unlike `upload translations`, which gates the whole line behind --verbose).
   test('prints the init line and a progress line per poll when uploading a translation', async () => {
     const fileCommand = createFileCommand();

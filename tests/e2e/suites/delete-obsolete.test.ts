@@ -68,8 +68,7 @@ describe('delete obsolete', () => {
       '--dryrun',
     ]);
 
-    // sources_rev2/ has no CSV, so the fixture's '/*.csv' group matches nothing and flags the run -
-    // as Java does.
+    // sources_rev2/ has no CSV, so the fixture's '/*.csv' group matches nothing and flags the run.
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("No sources found for '/*.csv' pattern");
     expect(normalize(result.stdout)).toMatchSnapshot();

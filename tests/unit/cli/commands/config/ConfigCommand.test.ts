@@ -305,7 +305,7 @@ describe('ConfigCommand translations', () => {
     );
   });
 
-  // Java DryrunTranslations resolves each group's own sources against that group's `translation`.
+  // Each group's own sources resolve against that group's `translation`.
   test('lists a path per group when two groups match the same file', async () => {
     const { list } = await run(managerProject, {}, [
       { source: '/**/*.json', translation: '/l/%two_letters_code%/%original_file_name%' },

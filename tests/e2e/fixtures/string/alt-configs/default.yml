@@ -1,6 +1,6 @@
 # Identical to config/crowdin.yml - used to restore the full (token + project id + two file
 # entries) configuration after the `without-token.yml` test switches to a config that lacks
-# `api_token`/`project_id`, mirroring the PHP original's `self::prepareConfig()` reset call.
+# `api_token`/`project_id`.
 project_id: "{{projectId}}"
 api_token: "{{token}}"
 base_path: "."

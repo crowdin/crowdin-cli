@@ -20,7 +20,7 @@ describe('project views', () => {
     expect(projectVerboseView.text(project)).toBe('#1 Docs string-based open 2025-01-01T10:00:00.000Z');
   });
 
-  test('defaults to file-based and private, as Java does for enterprise responses', () => {
+  test('defaults to file-based and private for enterprise responses', () => {
     expect(projectVerboseView.text(createProject())).toBe('#1 Docs file-based private ');
   });
 
@@ -36,12 +36,12 @@ describe('project views', () => {
     );
   });
 
-  test('has no plain override, since Java ProjectListAction has no plain branch', () => {
+  test('has no plain override', () => {
     expect(projectView.plain).toBeUndefined();
     expect(projectVerboseView.plain).toBeUndefined();
   });
 
-  // ProjectAddAction does have one, so the add echo carries the id a script needs.
+  // The add view does have one, so the add echo carries the id a script needs.
   test('prints the id alone in the add view, sharing the listing text line', () => {
     const project = createProject();
 

@@ -24,7 +24,7 @@ describe('files section optional + guard', () => {
     expect(ConfigSchema.parse(credsOnly).files).toEqual([]);
   });
 
-  test('assertFilesConfigured throws Java-parity message when files empty', () => {
+  test('assertFilesConfigured throws when files empty', () => {
     expect(() => assertFilesConfigured(ConfigSchema.parse(credsOnly))).toThrow(
       "Required section 'files' is missing (or empty) in the configuration file",
     );
@@ -35,9 +35,9 @@ describe('files section optional + guard', () => {
   });
 });
 
-// Java FileBean.populateWithDefaultValues normalizes the file section at config load, so every
+// The file section is normalized at config load, so every
 // consumer reads settled values instead of re-deriving them.
-describe('ConfigSchema files[] path normalization (Java FileBean parity)', () => {
+describe('ConfigSchema files[] path normalization', () => {
   const parseFile = (overrides: Record<string, unknown>, configOverrides: Record<string, unknown> = {}) =>
     ConfigSchema.parse({ ...baseConfig(overrides), ...configOverrides }).files[0];
 
@@ -157,7 +157,7 @@ describe('ConfigSchema files[] parity fields', () => {
     expect(config.files[0]?.scheme).toEqual({ identifier: 0, source_phrase: 1 });
   });
 
-  test('maps documented Java update_option values to the API enum', () => {
+  test('maps documented update_option values to the API enum', () => {
     expect(ConfigSchema.parse(baseConfig({ update_option: 'update_as_unapproved' })).files[0]?.update_option).toBe(
       'keep_translations',
     );
@@ -178,7 +178,7 @@ describe('ConfigSchema files[] parity fields', () => {
     expect(() => ConfigSchema.parse(baseConfig({ escape_special_characters: 2 }))).toThrow();
   });
 
-  test('defaults preserveHierarchy to false to match the Java CLI', () => {
+  test('defaults preserveHierarchy to false', () => {
     const config = ConfigSchema.parse(baseConfig());
 
     expect(config.preserveHierarchy).toBe(false);
@@ -229,7 +229,7 @@ describe('ConfigSchema files[] parity fields', () => {
     expect(config.files[0]?.dest).toBe('/foo/strings.json');
   });
 
-  // Java validates both of these at config load (FileBean.checkProperties), so they are validation
+  // Both are validated at config load, so they are validation
   // errors rather than runtime failures raised later from path resolution.
   test('rejects ** in translation when source has none', () => {
     expect(() =>
@@ -265,7 +265,7 @@ describe('ConfigSchema files[] parity fields', () => {
   });
 
   test('parses multilingual_spreadsheet without relaxing the placeholder requirement', () => {
-    // multilingual_spreadsheet is accepted for Java parity but does not mark the file as multilingual.
+    // multilingual_spreadsheet is accepted but does not mark the file as multilingual.
     expect(() =>
       ConfigSchema.parse(baseConfig({ translation: '/locale/strings.xml', multilingual_spreadsheet: true })),
     ).toThrow('should contain at least one language placeholder');
@@ -275,7 +275,7 @@ describe('ConfigSchema files[] parity fields', () => {
   });
 });
 
-describe('ConfigSchema boolean coercion (Java setBooleanPropertyIfExists parity)', () => {
+describe('ConfigSchema boolean coercion', () => {
   test('coerces 0/1 (and string forms) to booleans', () => {
     const config = ConfigSchema.parse({
       ...baseConfig({ content_segmentation: 1, import_translations: 0 }),
@@ -294,7 +294,7 @@ describe('ConfigSchema boolean coercion (Java setBooleanPropertyIfExists parity)
   });
 });
 
-describe('ConfigSchema base_url (Java isUrlValid / normalization parity)', () => {
+describe('ConfigSchema base_url validation and normalization', () => {
   const withBaseUrl = (baseUrl: string) => ({ ...baseConfig(), baseUrl });
   const parseBaseUrl = (baseUrl: string) => ConfigSchema.parse(withBaseUrl(baseUrl)).baseUrl;
 
@@ -327,15 +327,15 @@ describe('ConfigSchema base_url (Java isUrlValid / normalization parity)', () =>
   test.each([
     'https://evil.example.com',
     'https://evilcrowdin.com', // no dot before crowdin.com
-    'http://api.crowdin.com', // http rejected (Java requires https)
+    'http://api.crowdin.com', // http rejected (https required)
     'https://acme.crowdin.com/api/v3', // unknown suffix not normalized away
   ])('rejects %s', (url) => {
     expect(() => parseBaseUrl(url)).toThrow();
   });
 });
 
-// a present-but-short --token must not be rejected as an invalid config file. Java never
-// length-checks the token (only rejects empty), letting the API return 401 for a bad one.
+// a present-but-short --token must not be rejected as an invalid config file. The token is never
+// length-checked (only empty is rejected), letting the API return 401 for a bad one.
 describe('ConfigSchema apiToken', () => {
   const parse = (apiToken: unknown) => ConfigSchema.safeParse({ projectId: 123, apiToken });
 
@@ -347,7 +347,7 @@ describe('ConfigSchema apiToken', () => {
     expect(ConfigSchema.safeParse({ projectId: 123 }).success).toBe(true);
   });
 
-  test('rejects an empty token, matching Java missed_api_token', () => {
+  test('rejects an empty token', () => {
     const result = parse('');
     expect(result.success).toBe(false);
     expect(result.error?.issues[0]?.message).toBe("Required option 'api_token' is missing");

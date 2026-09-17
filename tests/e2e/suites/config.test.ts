@@ -80,7 +80,7 @@ describe('config', () => {
   });
 
   test('keeps an @arg-file that does not exist as a literal argument', async () => {
-    // picocli does not error on an unreadable @-file; it passes the token through, so the failure
+    // An unreadable @-file is not an error; the token passes through as-is, so the failure
     // comes from commander not recognising it rather than from the expansion.
     const result = await ctx.runner.run(['@no-such-args.txt']);
 

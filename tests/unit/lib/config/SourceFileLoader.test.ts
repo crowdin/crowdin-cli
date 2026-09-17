@@ -39,7 +39,7 @@ describe('SourceFileLoader', () => {
   });
 
   // Exercised through the public API: file placeholders in `ignore` are expanded per scanned
-  // source file (Java PlaceholderUtil.format), so a pattern can match files it names indirectly.
+  // source file, so a pattern can match files it names indirectly.
   describe('file placeholders in ignore patterns', () => {
     test('passes through patterns without file placeholders', async () => {
       await Bun.write(`${tempDir}/a/app.json`, '{}');
@@ -118,7 +118,7 @@ describe('SourceFileLoader', () => {
   });
 
   test('excludes files matching an ignore pattern with file placeholders', async () => {
-    // Java parity: file placeholders resolve per scanned source file (the pre-filter list), so
+    // File placeholders resolve per scanned source file (the pre-filter list), so
     // every file under backup/ names itself into the expanded ignore set and is excluded.
     await Bun.write(`${tempDir}/strings.xml`, '<x/>');
     await Bun.write(`${tempDir}/backup/strings.xml`, '<x/>');

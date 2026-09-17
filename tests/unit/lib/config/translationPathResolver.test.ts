@@ -335,7 +335,7 @@ describe('translation path resolver', () => {
     expect(actual).toBe('/translated/es/readme.md');
   });
 
-  // The dest branch of Java's doTranslationMapping only fires when `translation` has no language
+  // The dest-derived mapping only applies when `translation` has no language
   // placeholder, which the schema allows only for multilingual/scheme files.
   test('expands ** in the dest-derived archive key so it matches the path upload creates', async () => {
     const basePath = await mkdtemp();

@@ -283,7 +283,7 @@ describe('StringCommand', () => {
       expect(fileService.listProjectFilePaths).not.toHaveBeenCalled();
     });
 
-    // Java keeps the verbose detail lines outside its plainView branch, unlike glossary's terms.
+    // Unlike glossary's terms, the verbose detail lines are not dropped in plain.
     test('still renders the verbose detail lines in plain format', async () => {
       const plainOutput = createOutput({ ...globalOptions, output: 'plain' });
       const cmd = createStringCommandWith(plainOutput);
@@ -492,7 +492,6 @@ describe('StringCommand', () => {
       expect(fileService.listProjectFilePaths).not.toHaveBeenCalled();
     });
 
-    // Java StringEditAction passes isVerbose to printSourceString, so the echo carries the details.
     test('echoes the verbose detail lines with --verbose', async () => {
       const textOutput = createOutput({ ...globalOptions, output: 'text' });
       const cmd = createStringCommandWith(textOutput);
