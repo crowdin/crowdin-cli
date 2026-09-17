@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcrowdin_cli_website||=[]).push([[1903],{1912(o){o.exports=JSON.parse('{"blogBasePath":"/crowdin-cli/blog","blogTitle":"Blog","authorsListPath":"/crowdin-cli/blog/authors"}')}}]);
