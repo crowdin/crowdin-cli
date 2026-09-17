@@ -1,7 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { normalize } from '../helpers/normalize.ts';
-import { createTestProject, deleteTestProject } from '../helpers/project.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { createExtraProject, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Covers `auto-translate`'s validation order and the flags that select what gets translated
@@ -21,20 +20,10 @@ describe('auto-translate', () => {
   beforeAll(async () => {
     ctx = await setupSuite('auto-translate');
     // The string-based guards need a project of that kind; this suite's own is file-based.
-    stringsBasedProjectId = (
-      await createTestProject(ctx.client, { suite: 'auto-translate-strings', stringsBased: true })
-    ).id;
+    stringsBasedProjectId = await createExtraProject(ctx, { suite: 'auto-translate-strings', stringsBased: true });
   });
 
   afterAll(async () => {
-    if (ctx && stringsBasedProjectId && !ctx.env.keep) {
-      try {
-        await deleteTestProject(ctx.client, stringsBasedProjectId);
-      } catch (error) {
-        console.error(`Failed to delete project #${stringsBasedProjectId}: ${error}`);
-      }
-    }
-
     await teardownSuite(ctx);
   });
 

@@ -2,8 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { decode } from '@toon-format/toon';
 import { findBranch, findCommentId, findFileId, findStringId } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { createTestProject, deleteTestProject } from '../helpers/project.ts';
-import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
+import { createExtraProject, type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Covers `StringCommand.ts`
@@ -25,19 +24,10 @@ describe('string', () => {
     ctx = await setupSuite('string');
     // The string-based guards need a project of the other kind to fire against; this suite's own is
     // file-based.
-    stringsBasedProjectId = (await createTestProject(ctx.client, { suite: 'string-strings-based', stringsBased: true }))
-      .id;
+    stringsBasedProjectId = await createExtraProject(ctx, { suite: 'string-strings-based', stringsBased: true });
   });
 
   afterAll(async () => {
-    if (ctx && stringsBasedProjectId && !ctx.env.keep) {
-      try {
-        await deleteTestProject(ctx.client, stringsBasedProjectId);
-      } catch (error) {
-        console.error(`Failed to delete project #${stringsBasedProjectId}: ${error}`);
-      }
-    }
-
     await teardownSuite(ctx);
   });
 

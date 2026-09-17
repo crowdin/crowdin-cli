@@ -3,8 +3,7 @@ import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { capturedContent, expectFilesExist } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { createTestProject, deleteTestProject } from '../helpers/project.ts';
-import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
+import { createExtraProject, type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 // Local paths the nested source patterns resolve to (see fixtures/download-sources/config/crowdin.yml).
 // `download sources` reconstructs these exact local paths from the `source` pattern regardless of the
@@ -37,20 +36,10 @@ describe('download sources', () => {
     ctx = await setupSuite('download-sources', { targetLanguageIds: ['it', 'uk'] });
     originalConfig = await Bun.file(join(ctx.workspace, 'crowdin.yml')).text();
     // File management is refused for string-based projects, and this suite's own is file-based.
-    stringsBasedProjectId = (
-      await createTestProject(ctx.client, { suite: 'download-sources-strings', stringsBased: true })
-    ).id;
+    stringsBasedProjectId = await createExtraProject(ctx, { suite: 'download-sources-strings', stringsBased: true });
   });
 
   afterAll(async () => {
-    if (ctx && stringsBasedProjectId && !ctx.env.keep) {
-      try {
-        await deleteTestProject(ctx.client, stringsBasedProjectId);
-      } catch (error) {
-        console.error(`Failed to delete project #${stringsBasedProjectId}: ${error}`);
-      }
-    }
-
     await teardownSuite(ctx);
   });
 

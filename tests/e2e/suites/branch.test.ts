@@ -2,8 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { decode } from '@toon-format/toon';
 import { findBranch } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { createTestProject, deleteTestProject } from '../helpers/project.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { createExtraProject, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Covers the `branch` command itself (`cli/commands/branch/BranchCommand.ts`). `branches.test.ts`
@@ -33,18 +32,10 @@ describe('branch', () => {
     ctx = await setupSuite('branch', { stringsBased: true });
     // The strings-based guard needs a project of the other kind to fire against; the suite's own
     // project cannot be it.
-    fileBasedProjectId = (await createTestProject(ctx.client, { suite: 'branch-file-based' })).id;
+    fileBasedProjectId = await createExtraProject(ctx, { suite: 'branch-file-based' });
   });
 
   afterAll(async () => {
-    if (ctx && fileBasedProjectId && !ctx.env.keep) {
-      try {
-        await deleteTestProject(ctx.client, fileBasedProjectId);
-      } catch (error) {
-        console.error(`Failed to delete project #${fileBasedProjectId}: ${error}`);
-      }
-    }
-
     await teardownSuite(ctx);
   });
 

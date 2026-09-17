@@ -5,6 +5,7 @@ import { renderConfig, writeConfig } from './config.ts';
 import type { E2eEnv } from './env.ts';
 import { resolveEnv } from './env.ts';
 import {
+  type CreateProjectOptions,
   createApiClient,
   createTestProject,
   deleteTestProject,
@@ -23,6 +24,8 @@ export interface SuiteContext {
   workspace: string;
   project: TestProject;
   runner: CliRunner;
+  /** Projects created with {@link createExtraProject}, deleted by `teardownSuite` along with `project`. */
+  extraProjects: TestProject[];
 }
 
 export interface SetupSuiteOptions {
@@ -75,7 +78,7 @@ export async function setupSuite(suite: string, opts: SetupSuiteOptions = {}): P
     const configPath = await writeConfig(workspace, template, { projectId: project.id, token });
 
     const runner = new CliRunner({ workspace, configPath });
-    return { env, client, workspace, project, runner };
+    return { env, client, workspace, project, runner, extraProjects: [] };
   } catch (error) {
     await teardownSuite({ env, client, workspace, project });
     throw error;
@@ -108,13 +111,25 @@ export async function switchConfig(ctx: SuiteContext, name: string, vars: Record
 }
 
 /**
+ * Create a second project for a suite that needs one of another kind (e.g. strings-based), and
+ * register it so `teardownSuite` deletes it too. Returns its id.
+ */
+export async function createExtraProject(ctx: SuiteContext, opts: CreateProjectOptions): Promise<number> {
+  const project = await createTestProject(ctx.client, opts);
+  ctx.extraProjects.push(project);
+  return project.id;
+}
+
+/**
  * Tear down a suite: delete the project and remove the workspace (which holds
  * everything the suite produced, including downloaded files). Honors
  * `CROWDIN_E2E_KEEP=1`. Cleanup failures are logged, never thrown, so one failed
  * deletion can't mask a real test result. Call from `afterAll`.
  */
 export async function teardownSuite(
-  ctx: Pick<SuiteContext, 'env' | 'client' | 'project' | 'workspace'> | undefined,
+  ctx:
+    | (Pick<SuiteContext, 'env' | 'client' | 'project' | 'workspace'> & Partial<Pick<SuiteContext, 'extraProjects'>>)
+    | undefined,
 ): Promise<void> {
   if (!ctx) {
     return;
@@ -127,11 +142,13 @@ export async function teardownSuite(
 
   // A `withoutProject` suite never created one, so there is nothing to delete - and the synthetic
   // id must never be sent to deleteProject, which would address someone else's project.
-  if (ctx.project.id !== SYNTHETIC_PROJECT_ID) {
+  const projects = [ctx.project, ...(ctx.extraProjects ?? [])].filter(({ id }) => id !== SYNTHETIC_PROJECT_ID);
+
+  for (const project of projects) {
     try {
-      await deleteTestProject(ctx.client, ctx.project.id);
+      await deleteTestProject(ctx.client, project.id);
     } catch (error) {
-      console.error(`Failed to delete project #${ctx.project.id}: ${error instanceof Error ? error.message : error}`);
+      console.error(`Failed to delete project #${project.id}: ${error instanceof Error ? error.message : error}`);
     }
   }
 
