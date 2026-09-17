@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
 import { expectFilesExist } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Covers `file upload` / `download` / `delete` (`cli/commands/file/FileCommand.ts`).
@@ -27,11 +27,7 @@ describe('file', () => {
   });
 
   async function listedPaths(args: string[] = []): Promise<string[]> {
-    const result = await ctx.runner.run(['file', 'list', '--output', 'json', ...args]);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    return (JSON.parse(result.stdout) as { path: string }[]).map((file) => file.path).sort();
+    return (await runJson<{ path: string }[]>(ctx, ['file', 'list', ...args])).map((file) => file.path).sort();
   }
 
   test('prints help when invoked without a subcommand', async () => {
@@ -122,10 +118,9 @@ describe('file', () => {
 
   // plain lists only what changed, so a skipped upload prints nothing at all (`reportFiles`).
   test('reports a skipped upload in json but not in plain', async () => {
-    const json = await ctx.runner.run(['file', 'upload', SOURCE_FILE, '--no-auto-update', '--output', 'json']);
-
-    expect(json).toMatchObject({ exitCode: 0 });
-    expect(JSON.parse(json.stdout)).toEqual([{ path: SOURCE_FILE, action: 'skipped', reason: 'auto-update disabled' }]);
+    expect(await runJson(ctx, ['file', 'upload', SOURCE_FILE, '--no-auto-update'])).toEqual([
+      { path: SOURCE_FILE, action: 'skipped', reason: 'auto-update disabled' },
+    ]);
 
     const plain = await ctx.runner.run(['file', 'upload', SOURCE_FILE, '--no-auto-update', '--output', 'plain']);
 

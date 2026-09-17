@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
 import { decode } from '@toon-format/toon';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
+import { runJson, type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Covers `config sources` / `config translations` / `config lint`
@@ -96,12 +96,11 @@ describe('config', () => {
   });
 
   test('serializes the source paths as a json list of strings', async () => {
-    const result = await ctx.runner.run(['config', 'sources', '--output', 'json']);
+    const paths = await runJson(ctx, ['config', 'sources']);
 
-    expect(result).toMatchObject({ exitCode: 0 });
     // pathView declares no keys and its items are the paths themselves, so the document is a list of
     // bare strings rather than of objects.
-    expect(JSON.parse(result.stdout)).toEqual(SOURCE_PATHS);
+    expect(paths).toEqual(SOURCE_PATHS);
   });
 
   test('carries the same source list in the toon output', async () => {
@@ -130,11 +129,7 @@ describe('config', () => {
   });
 
   test('lists the translation files the config resolves to', async () => {
-    const result = await ctx.runner.run(['config', 'translations', '--output', 'json']);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    expect(JSON.parse(result.stdout)).toEqual([
+    expect(await runJson(ctx, ['config', 'translations'])).toEqual([
       'translations/it/app.xml',
       'translations/it/deep.xml',
       'translations/it/lib.xml',
@@ -195,10 +190,7 @@ describe('config', () => {
     expect(text).toMatchObject({ exitCode: 0 });
     expect(text.stdout).toContain('No source files found');
 
-    const json = await ctx.runner.run(['config', 'sources', '--output', 'json']);
-
-    expect(json).toMatchObject({ exitCode: 0 });
-    expect(JSON.parse(json.stdout)).toEqual([]);
+    expect(await runJson(ctx, ['config', 'sources'])).toEqual([]);
   });
 
   test('reports a lint failure as one structured record carrying the exit code', async () => {

@@ -1,6 +1,7 @@
+import { expect } from 'bun:test';
 import { join } from 'node:path';
 import type { Client } from '@crowdin/crowdin-api-client';
-import { CliRunner } from './cli.ts';
+import { CliRunner, type CliRunOptions } from './cli.ts';
 import { renderConfig, writeConfig } from './config.ts';
 import type { E2eEnv } from './env.ts';
 import { resolveEnv } from './env.ts';
@@ -108,6 +109,19 @@ export async function renderFixture(
  */
 export async function switchConfig(ctx: SuiteContext, name: string, vars: Record<string, unknown> = {}): Promise<void> {
   await renderFixture(ctx, `alt-configs/${name}.yml`, 'crowdin.yml', vars);
+}
+
+/** Run the CLI with `--output json`, assert it exits 0, and return the parsed stdout. */
+export async function runJson<T = unknown>(
+  ctx: SuiteContext,
+  args: string[],
+  runOpts?: CliRunOptions,
+): Promise<NoInfer<T>> {
+  const result = await ctx.runner.run([...args, '--output', 'json'], runOpts);
+
+  expect(result).toMatchObject({ exitCode: 0 });
+
+  return JSON.parse(result.stdout) as T;
 }
 
 /**

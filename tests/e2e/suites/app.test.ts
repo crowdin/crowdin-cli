@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
+import { runJson, type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Covers `app list` / `app install` / `app uninstall` (`cli/commands/app/AppCommand.ts`).
@@ -33,11 +33,7 @@ describe('app', () => {
   let listedApps: ListedApp[];
 
   async function listInstalled(): Promise<ListedApp[]> {
-    const result = await ctx.runner.run(['app', 'list', '--output', 'json']);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    return JSON.parse(result.stdout) as ListedApp[];
+    return runJson<ListedApp[]>(ctx, ['app', 'list']);
   }
 
   beforeAll(async () => {
@@ -74,11 +70,7 @@ describe('app', () => {
   });
 
   test('lists the installed applications as structured data', async () => {
-    const result = await ctx.runner.run(['app', 'list', '--output', 'json']);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    listedApps = JSON.parse(result.stdout) as ListedApp[];
+    listedApps = await runJson<ListedApp[]>(ctx, ['app', 'list']);
 
     expect(Array.isArray(listedApps)).toBe(true);
 

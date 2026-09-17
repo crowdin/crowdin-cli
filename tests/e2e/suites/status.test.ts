@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { decode } from '@toon-format/toon';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Covers `status` / `status translation` / `status proofreading`
@@ -35,11 +35,7 @@ describe('status', () => {
   let ctx: SuiteContext;
 
   async function statusJson(args: string[]): Promise<ProgressEntry[]> {
-    const result = await ctx.runner.run([...args, '--output', 'json']);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    return JSON.parse(result.stdout) as ProgressEntry[];
+    return runJson<ProgressEntry[]>(ctx, args);
   }
 
   beforeAll(async () => {

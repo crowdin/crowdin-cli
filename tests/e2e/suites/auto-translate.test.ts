@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { normalize } from '../helpers/normalize.ts';
-import { createExtraProject, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { createExtraProject, runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Covers `auto-translate`'s validation order and the flags that select what gets translated
@@ -320,19 +320,13 @@ describe('auto-translate', () => {
   });
 
   test('reports the job in the json output', async () => {
-    const result = await ctx.runner.run([
+    const job = await runJson<{ identifier: string; status: string }>(ctx, [
       'auto-translate',
       '--method',
       'tm',
       '--file',
       SOURCE_FILE,
-      '--output',
-      'json',
     ]);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    const job = JSON.parse(result.stdout) as { identifier: string; status: string };
 
     expect(job.identifier).toBeTruthy();
     expect(job.status).toBe('finished');

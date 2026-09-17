@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
 import { findFileId, translationCount } from '../helpers/lookup.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Covers the `update_option` config key (`UPDATE_OPTION_MAP` in `lib/config.ts`). Unlike the other
@@ -83,14 +83,11 @@ describe('update_option', () => {
       await Bun.write(join(ctx.workspace, 'sources', fileName), '{\n  "greeting": "Hello there"\n}\n');
     }
 
-    const result = await ctx.runner.run(['upload', 'sources', '--output', 'json']);
-
-    expect(result).toMatchObject({ exitCode: 0 });
+    const uploaded = await runJson<{ path: string; action: string }[]>(ctx, ['upload', 'sources']);
 
     // Assert the update actually happened before reading translations off it. A run where the API
     // did not replace the files would otherwise fail further down as a translation-count mismatch,
     // which says nothing about why.
-    const uploaded = JSON.parse(result.stdout) as { path: string; action: string }[];
 
     expect(uploaded.map((file) => file.action)).toEqual(['updated', 'updated', 'updated']);
 

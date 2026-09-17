@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Covers `task list` / `task add` (`cli/commands/task/TaskCommand.ts`).
@@ -33,11 +33,7 @@ describe('task', () => {
   let ctx: SuiteContext;
 
   async function listTitles(args: string[] = []): Promise<string[]> {
-    const result = await ctx.runner.run(['task', 'list', ...args, '--output', 'json']);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    return (JSON.parse(result.stdout) as ListedTask[]).map((task) => task.title).sort();
+    return (await runJson<ListedTask[]>(ctx, ['task', 'list', ...args])).map((task) => task.title).sort();
   }
 
   beforeAll(async () => {
@@ -286,11 +282,7 @@ describe('task', () => {
   });
 
   test('serializes id, target language and title in a structured format', async () => {
-    const result = await ctx.runner.run(['task', 'list', '--output', 'json']);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    const tasks = (JSON.parse(result.stdout) as ListedTask[]).sort((left, right) =>
+    const tasks = (await runJson<ListedTask[]>(ctx, ['task', 'list'])).sort((left, right) =>
       left.title < right.title ? -1 : 1,
     );
 
