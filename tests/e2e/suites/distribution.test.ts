@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Covers `distribution list` / `add` / `edit` / `release`
@@ -30,11 +30,7 @@ describe('distribution', () => {
   let hash: string;
 
   async function listDistributions(): Promise<ListedDistribution[]> {
-    const result = await ctx.runner.run(['distribution', 'list', '--output', 'json']);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    return JSON.parse(result.stdout) as ListedDistribution[];
+    return runJson<ListedDistribution[]>(ctx, ['distribution', 'list']);
   }
 
   async function addBundle(name: string): Promise<string> {

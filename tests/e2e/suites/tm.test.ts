@@ -4,7 +4,7 @@ import { decode } from '@toon-format/toon';
 import AdmZip from 'adm-zip';
 import { findTmId } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
+import { runJson, type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /** Crowdin.com auto-creates a TM named after every project. */
 function defaultTmName(ctx: SuiteContext): string {
@@ -281,11 +281,7 @@ describe('tm', () => {
   });
 
   test('serializes id, name and segment count in the json listing', async () => {
-    const result = await ctx.runner.run(['tm', 'list', '--output', 'json']);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    const listed = JSON.parse(result.stdout) as { id: number; name: string; segmentsCount: number }[];
+    const listed = await runJson<{ id: number; name: string; segmentsCount: number }[]>(ctx, ['tm', 'list']);
     const suiteTms = listed.filter((tm) => SUITE_TM_NAMES.includes(tm.name));
 
     expect(suiteTms.map((tm) => tm.name).sort()).toEqual([...SUITE_TM_NAMES].sort());
@@ -450,10 +446,7 @@ describe('tm', () => {
     expect(plain).toMatchObject({ exitCode: 0 });
     expect(plain.stdout.trim()).toBe(file);
 
-    const json = await ctx.runner.run(['tm', 'download', String(tmxId), '--to', file, '--output', 'json']);
-
-    expect(json).toMatchObject({ exitCode: 0 });
-    expect(JSON.parse(json.stdout)).toBe(file);
+    expect(await runJson(ctx, ['tm', 'download', String(tmxId), '--to', file])).toBe(file);
   });
 
   // Last of the TM-mutating tests: it imports into the TMX memory the download tests read, so it has
@@ -461,19 +454,13 @@ describe('tm', () => {
   test('uploads into an existing translation memory with --id', async () => {
     // A separate fixture on purpose: re-importing `simple-tm.tmx` would dedupe to the same 4 and
     // leave the segment count unable to move.
-    const result = await ctx.runner.run([
+    const imported = await runJson<{ id: number; name: string; segmentsCount: number }>(ctx, [
       'tm',
       'upload',
       'sources/extra-tm.tmx',
       '--id',
       String(tmxId),
-      '--output',
-      'json',
     ]);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    const imported = JSON.parse(result.stdout) as { id: number; name: string; segmentsCount: number };
 
     expect(imported.id).toBe(tmxId);
     expect(imported.name).toBe('Created in Crowdin CLI (simple-tm.tmx)');
@@ -488,7 +475,7 @@ describe('tm', () => {
 
   test('accepts a comma-joined --scheme', async () => {
     // `--id` keeps this from minting a second TM under an already-taken name.
-    const result = await ctx.runner.run([
+    const imported = await runJson<{ id: number }>(ctx, [
       'tm',
       'upload',
       'sources/simple-tm.csv',
@@ -497,12 +484,9 @@ describe('tm', () => {
       '--scheme',
       'ar=1,de=2,en=3,uk=4,zh-CN=5',
       '--first-line-contains-header',
-      '--output',
-      'json',
     ]);
 
-    expect(result).toMatchObject({ exitCode: 0 });
-    expect((JSON.parse(result.stdout) as { id: number }).id).toBe(csvId);
+    expect(imported.id).toBe(csvId);
   });
 
   test('rejects a non-numeric --id on upload', async () => {

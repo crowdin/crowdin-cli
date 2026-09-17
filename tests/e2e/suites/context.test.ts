@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
 import { findStringId } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Covers `context download` / `upload` / `reset` / `status`
@@ -65,11 +65,7 @@ describe('context', () => {
   }
 
   async function readStats(args: string[] = []): Promise<ContextStats> {
-    const result = await ctx.runner.run(['context', 'status', '--output', 'json', ...args]);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    return JSON.parse(result.stdout) as ContextStats;
+    return runJson<ContextStats>(ctx, ['context', 'status', ...args]);
   }
 
   /** The status title carries the project id, which is new on every run. */
@@ -392,12 +388,7 @@ describe('context', () => {
       })),
     );
 
-    const skipped = await ctx.runner.run(['context', 'upload', '--dryrun', '--output', 'json']);
-    const kept = await ctx.runner.run(['context', 'upload', '--dryrun', '--overwrite', '--output', 'json']);
-
-    expect(skipped).toMatchObject({ exitCode: 0 });
-    expect(kept).toMatchObject({ exitCode: 0 });
-    expect(JSON.parse(skipped.stdout)).toHaveLength(records.length - 1);
-    expect(JSON.parse(kept.stdout)).toHaveLength(records.length);
+    expect(await runJson(ctx, ['context', 'upload', '--dryrun'])).toHaveLength(records.length - 1);
+    expect(await runJson(ctx, ['context', 'upload', '--dryrun', '--overwrite'])).toHaveLength(records.length);
   });
 });

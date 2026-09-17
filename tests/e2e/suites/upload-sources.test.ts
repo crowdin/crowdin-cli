@@ -1,6 +1,13 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
-import { createExtraProject, type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
+import {
+  createExtraProject,
+  runJson,
+  type SuiteContext,
+  setupSuite,
+  switchConfig,
+  teardownSuite,
+} from '../helpers/suite.ts';
 
 /**
  * Covers the flags `upload sources` owns (`cli/commands/upload/UploadSourcesCommand.ts`): `--cache`
@@ -36,11 +43,7 @@ describe('upload sources', () => {
   });
 
   async function uploadJson(args: string[] = []): Promise<UploadedFile[]> {
-    const result = await ctx.runner.run(['upload', 'sources', ...args, '--output', 'json']);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    return JSON.parse(result.stdout) as UploadedFile[];
+    return runJson<UploadedFile[]>(ctx, ['upload', 'sources', ...args]);
   }
 
   function cachePath(): string {

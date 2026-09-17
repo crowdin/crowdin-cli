@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Covers `screenshot list` / `screenshot upload` / `screenshot delete`
@@ -31,11 +31,7 @@ describe('screenshot', () => {
   let screenshotId: number;
 
   async function listScreenshots(args: string[] = []): Promise<ListedScreenshot[]> {
-    const result = await ctx.runner.run(['screenshot', 'list', ...args, '--output', 'json']);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    return JSON.parse(result.stdout) as ListedScreenshot[];
+    return runJson<ListedScreenshot[]>(ctx, ['screenshot', 'list', ...args]);
   }
 
   beforeAll(async () => {

@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { findCommentId, findStringId } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Covers `comment add` / `list` / `resolve` (`cli/commands/comment/CommentCommand.ts`).
@@ -277,11 +277,7 @@ describe('comment', () => {
   });
 
   test('lists comments as structured data', async () => {
-    const result = await ctx.runner.run(['comment', 'list', '--output', 'json']);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    const comments = JSON.parse(result.stdout) as { id: number; text: string }[];
+    const comments = await runJson<{ id: number; text: string }[]>(ctx, ['comment', 'list']);
 
     expect(comments.map((comment) => comment.text).sort()).toEqual([
       'Plain comment on welcome',

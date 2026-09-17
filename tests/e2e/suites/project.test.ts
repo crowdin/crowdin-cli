@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Covers `project list` / `project add` (`cli/commands/project/ProjectCommand.ts`).
@@ -35,11 +35,7 @@ describe('project', () => {
   }
 
   async function listedProjects(args: string[] = []): Promise<Array<{ id: number; name: string }>> {
-    const result = await ctx.runner.run(['project', 'list', ...args, '--output', 'json']);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    return JSON.parse(result.stdout) as Array<{ id: number; name: string }>;
+    return runJson<Array<{ id: number; name: string }>>(ctx, ['project', 'list', ...args]);
   }
 
   beforeAll(async () => {

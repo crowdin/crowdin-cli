@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { decode } from '@toon-format/toon';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
+import { runJson, type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Covers `language list` (`cli/commands/language/LanguageCommand.ts`): the `--code` matrix and the
@@ -30,11 +30,9 @@ describe('language', () => {
   });
 
   async function listedCodes(args: string[] = []): Promise<string[]> {
-    const result = await ctx.runner.run(['language', 'list', '--output', 'json', ...args]);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    return (JSON.parse(result.stdout) as { code: string }[]).map((language) => language.code).sort();
+    return (await runJson<{ code: string }[]>(ctx, ['language', 'list', ...args]))
+      .map((language) => language.code)
+      .sort();
   }
 
   async function apiCodes(languageId: string): Promise<Record<string, string>> {
@@ -84,11 +82,7 @@ describe('language', () => {
   });
 
   test('carries the code and the name in the json output', async () => {
-    const result = await ctx.runner.run(['language', 'list', '--output', 'json']);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    const languages = JSON.parse(result.stdout) as { code: string; name: string }[];
+    const languages = await runJson<{ code: string; name: string }[]>(ctx, ['language', 'list']);
 
     expect(languages.map(({ code, name }) => ({ code, name })).sort((a, b) => a.code.localeCompare(b.code))).toEqual([
       { code: 'it', name: 'Italian' },
@@ -97,11 +91,10 @@ describe('language', () => {
   });
 
   test('carries the same list in the toon output as in the json one', async () => {
-    const json = await ctx.runner.run(['language', 'list', '--output', 'json']);
     const toon = await ctx.runner.run(['language', 'list', '--output', 'toon']);
 
     expect(toon).toMatchObject({ exitCode: 0 });
-    expect(decode(toon.stdout)).toEqual(JSON.parse(json.stdout));
+    expect(await runJson(ctx, ['language', 'list'])).toEqual(decode(toon.stdout));
   });
 
   test('renders every supported --code format', async () => {

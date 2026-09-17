@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { decode } from '@toon-format/toon';
 import { findBranch } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { createExtraProject, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { createExtraProject, runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Covers the `branch` command itself (`cli/commands/branch/BranchCommand.ts`). `branches.test.ts`
@@ -191,11 +191,7 @@ describe('branch', () => {
   });
 
   test('lists branches as structured data', async () => {
-    const result = await ctx.runner.run(['branch', 'list', '--output', 'json']);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    const branches = JSON.parse(result.stdout) as { id: number; name: string }[];
+    const branches = await runJson<{ id: number; name: string }[]>(ctx, ['branch', 'list']);
 
     expect(branches.map((branch) => branch.name).sort()).toEqual(
       [DEFAULT_BRANCH, FEATURE_BRANCH, MAIN_BRANCH, NORMALIZED_BRANCH].sort(),

@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { decode } from '@toon-format/toon';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Covers `label list` / `label add` / `label delete` (`cli/commands/label/LabelCommand.ts`).
@@ -22,11 +22,7 @@ describe('label', () => {
   let ctx: SuiteContext;
 
   async function listTitles(): Promise<string[]> {
-    const result = await ctx.runner.run(['label', 'list', '--output', 'json']);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    return (JSON.parse(result.stdout) as ListedLabel[]).map((label) => label.title).sort();
+    return (await runJson<ListedLabel[]>(ctx, ['label', 'list'])).map((label) => label.title).sort();
   }
 
   beforeAll(async () => {
@@ -165,11 +161,7 @@ describe('label', () => {
   });
 
   test('serializes id and title in a structured format', async () => {
-    const result = await ctx.runner.run(['label', 'list', '--output', 'json']);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    const labels = (JSON.parse(result.stdout) as ListedLabel[]).sort((left, right) =>
+    const labels = (await runJson<ListedLabel[]>(ctx, ['label', 'list'])).sort((left, right) =>
       left.title < right.title ? -1 : 1,
     );
 

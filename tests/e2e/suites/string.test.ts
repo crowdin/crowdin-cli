@@ -2,7 +2,14 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { decode } from '@toon-format/toon';
 import { findBranch, findCommentId, findFileId, findStringId } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { createExtraProject, type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
+import {
+  createExtraProject,
+  runJson,
+  type SuiteContext,
+  setupSuite,
+  switchConfig,
+  teardownSuite,
+} from '../helpers/suite.ts';
 
 /**
  * Covers `StringCommand.ts`
@@ -564,7 +571,10 @@ describe('string', () => {
   });
 
   test('stores a plural text built from the plural-form options', async () => {
-    const result = await ctx.runner.run([
+    // The id comes from the command's own echo: findStringId matches on `data.text`, which for a
+    // plural string is an object rather than the string it was created from. A file-based add
+    // prints a list (one entry per resolved `--file`), not a single item.
+    const [echoed] = await runJson<{ id: number }[]>(ctx, [
       'string',
       'add',
       'other form',
@@ -574,16 +584,7 @@ describe('string', () => {
       'android.xml',
       '--one',
       'one form',
-      '--output',
-      'json',
     ]);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    // The id comes from the command's own echo: findStringId matches on `data.text`, which for a
-    // plural string is an object rather than the string it was created from. A file-based add
-    // prints a list (one entry per resolved `--file`), not a single item.
-    const [echoed] = JSON.parse(result.stdout) as { id: number }[];
     const added = await ctx.client.sourceStringsApi.getString(ctx.project.id, echoed?.id as number);
 
     // `other` comes from the positional argument, `one` from the flag. Only the forms the source
@@ -593,25 +594,21 @@ describe('string', () => {
   });
 
   test('narrows the json listing to the view keys, and widens it with --verbose', async () => {
-    const plain = await ctx.runner.run(['string', 'list', '--output', 'json']);
-    const verbose = await ctx.runner.run(['string', 'list', '--output', 'json', '-v']);
+    const plain = await runJson<object[]>(ctx, ['string', 'list']);
+    const verbose = await runJson<object[]>(ctx, ['string', 'list', '-v']);
 
-    expect(plain).toMatchObject({ exitCode: 0 });
-    expect(verbose).toMatchObject({ exitCode: 0 });
-
-    const plainKeys = (JSON.parse(plain.stdout) as object[]).map((entry) => Object.keys(entry).join());
-    const verboseKeys = (JSON.parse(verbose.stdout) as object[]).map((entry) => Object.keys(entry).join());
+    const plainKeys = plain.map((entry) => Object.keys(entry).join());
+    const verboseKeys = verbose.map((entry) => Object.keys(entry).join());
 
     expect(new Set(plainKeys)).toEqual(new Set(['id,identifier,text']));
     expect(new Set(verboseKeys)).toEqual(new Set(['id,identifier,text,fileId,labelIds,context']));
   });
 
   test('carries the same listing in the toon output', async () => {
-    const json = await ctx.runner.run(['string', 'list', '--output', 'json']);
     const toon = await ctx.runner.run(['string', 'list', '--output', 'toon']);
 
     expect(toon).toMatchObject({ exitCode: 0 });
-    expect(decode(toon.stdout)).toEqual(JSON.parse(json.stdout));
+    expect(await runJson(ctx, ['string', 'list'])).toEqual(decode(toon.stdout));
   });
 
   test('lists bare string ids with --output plain', async () => {
@@ -621,8 +618,7 @@ describe('string', () => {
 
     const lines = result.stdout.split('\n').filter((line) => line.length > 0);
 
-    const json = await ctx.runner.run(['string', 'list', '--output', 'json']);
-    const ids = (JSON.parse(json.stdout) as { id: number }[]).map((entry) => String(entry.id));
+    const ids = (await runJson<{ id: number }[]>(ctx, ['string', 'list'])).map((entry) => String(entry.id));
 
     expect(lines.every((line) => /^\d+$/.test(line))).toBe(true);
     expect(lines.sort()).toEqual(ids.sort());

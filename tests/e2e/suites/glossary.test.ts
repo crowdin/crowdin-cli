@@ -4,7 +4,7 @@ import { decode } from '@toon-format/toon';
 import AdmZip from 'adm-zip';
 import { findGlossaryId } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
+import { runJson, type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /** Crowdin.com auto-creates a glossary named after every project. */
 function defaultGlossaryName(ctx: SuiteContext): string {
@@ -314,11 +314,7 @@ describe('glossary', () => {
   });
 
   test('serializes id, name and term count in the json listing', async () => {
-    const result = await ctx.runner.run(['glossary', 'list', '--output', 'json']);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    const listed = JSON.parse(result.stdout) as { id: number; name: string; terms: number }[];
+    const listed = await runJson<{ id: number; name: string; terms: number }[]>(ctx, ['glossary', 'list']);
     const suite = listed.filter((glossary) => SUITE_GLOSSARY_NAMES.includes(glossary.name));
 
     expect(suite.map((glossary) => glossary.name).sort()).toEqual([...SUITE_GLOSSARY_NAMES].sort());
@@ -474,18 +470,7 @@ describe('glossary', () => {
     expect(plain).toMatchObject({ exitCode: 0 });
     expect(plain.stdout.trim()).toBe(file);
 
-    const json = await ctx.runner.run([
-      'glossary',
-      'download',
-      String(tbxGlossaryId),
-      '--to',
-      file,
-      '--output',
-      'json',
-    ]);
-
-    expect(json).toMatchObject({ exitCode: 0 });
-    expect(JSON.parse(json.stdout)).toBe(file);
+    expect(await runJson(ctx, ['glossary', 'download', String(tbxGlossaryId), '--to', file])).toBe(file);
   });
 
   // Last of the glossary-mutating tests: it imports into the TBX glossary the download tests read,
@@ -495,19 +480,13 @@ describe('glossary', () => {
 
     // A separate fixture on purpose: re-importing `simple-glossary.tbx` would dedupe to the same
     // terms and leave the count unable to move.
-    const result = await ctx.runner.run([
+    const imported = await runJson<{ id: number; name: string; terms: number }>(ctx, [
       'glossary',
       'upload',
       'sources/extra-glossary.tbx',
       '--id',
       String(tbxGlossaryId),
-      '--output',
-      'json',
     ]);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    const imported = JSON.parse(result.stdout) as { id: number; name: string; terms: number };
 
     expect(imported.id).toBe(tbxGlossaryId);
     expect(imported.name).toBe('Created in Crowdin CLI (simple-glossary.tbx)');

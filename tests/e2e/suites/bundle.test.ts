@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * `bundle browse` is not covered, for the reason `project browse` is not: `browseAction` calls
@@ -32,11 +32,7 @@ describe('bundle', () => {
   }
 
   async function listedBundles(): Promise<{ id: number; name: string; format: string }[]> {
-    const result = await ctx.runner.run(['bundle', 'list', '--output', 'json']);
-
-    expect(result).toMatchObject({ exitCode: 0 });
-
-    return JSON.parse(result.stdout) as { id: number; name: string; format: string }[];
+    return runJson<{ id: number; name: string; format: string }[]>(ctx, ['bundle', 'list']);
   }
 
   test('prints help when invoked without a subcommand', async () => {
