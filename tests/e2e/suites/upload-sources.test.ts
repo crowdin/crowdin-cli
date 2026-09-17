@@ -1,7 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
-import { createTestProject, deleteTestProject } from '../helpers/project.ts';
-import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
+import { createExtraProject, type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Covers the flags `upload sources` owns (`cli/commands/upload/UploadSourcesCommand.ts`): `--cache`
@@ -29,20 +28,10 @@ describe('upload sources', () => {
   beforeAll(async () => {
     ctx = await setupSuite('upload-sources', { targetLanguageIds: ['uk'] });
     // The string-based guards need a project of that kind; this suite's own is file-based.
-    stringsBasedProjectId = (
-      await createTestProject(ctx.client, { suite: 'upload-sources-strings', stringsBased: true })
-    ).id;
+    stringsBasedProjectId = await createExtraProject(ctx, { suite: 'upload-sources-strings', stringsBased: true });
   });
 
   afterAll(async () => {
-    if (ctx && stringsBasedProjectId && !ctx.env.keep) {
-      try {
-        await deleteTestProject(ctx.client, stringsBasedProjectId);
-      } catch (error) {
-        console.error(`Failed to delete project #${stringsBasedProjectId}: ${error}`);
-      }
-    }
-
     await teardownSuite(ctx);
   });
 

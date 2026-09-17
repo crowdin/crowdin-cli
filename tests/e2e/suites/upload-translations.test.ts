@@ -1,7 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { translationCount } from '../helpers/lookup.ts';
-import { createTestProject, deleteTestProject } from '../helpers/project.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { createExtraProject, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Covers the flags `upload translations` owns (`cli/commands/upload/UploadTranslationsCommand.ts`):
@@ -24,20 +23,10 @@ describe('upload translations', () => {
 
   beforeAll(async () => {
     ctx = await setupSuite('upload-translations', { targetLanguageIds: [LANGUAGE] });
-    stringsBasedProjectId = (
-      await createTestProject(ctx.client, { suite: 'upload-translations-strings', stringsBased: true })
-    ).id;
+    stringsBasedProjectId = await createExtraProject(ctx, { suite: 'upload-translations-strings', stringsBased: true });
   });
 
   afterAll(async () => {
-    if (ctx && stringsBasedProjectId && !ctx.env.keep) {
-      try {
-        await deleteTestProject(ctx.client, stringsBasedProjectId);
-      } catch (error) {
-        console.error(`Failed to delete project #${stringsBasedProjectId}: ${error}`);
-      }
-    }
-
     await teardownSuite(ctx);
   });
 
