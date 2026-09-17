@@ -1,9 +1,4 @@
-# setupSuite renders and writes this to <workspace>/crowdin.yml as part of its standard lifecycle,
-# but every test in this suite passes `noConfig: true` and writes its own crowdin.yml/crowdin.yaml
-# directly into the workspace root (see without-config-param.test.ts) to control exactly which of
-# the two default-discovered filenames exists at any given moment - so this rendered file is deleted
-# in beforeAll and never actually read by the CLI. It still has to exist and render cleanly because
-# setupSuite unconditionally reads+renders `config/crowdin.yml` for every suite.
+# Moved between crowdin.yml and crowdin.yaml by the suite to test default config discovery.
 project_id: "{{projectId}}"
 api_token: "{{token}}"
 base_path: "."

@@ -1,4 +1,4 @@
-# Every test switches to an alt-config before running, so this one only has to render.
+# `{{ignore}}` is the test's pattern list, rendered as a YAML flow sequence.
 project_id: "{{projectId}}"
 api_token: "{{token}}"
 base_path: "./files"
@@ -7,3 +7,4 @@ preserve_hierarchy: true
 files:
   - source: "/**/*.*"
     translation: "/%original_path%/%file_name%-%two_letters_code%.%file_extension%"
+    ignore: {{ignore}}

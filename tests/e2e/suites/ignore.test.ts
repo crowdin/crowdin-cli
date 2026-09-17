@@ -1,16 +1,12 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { join } from 'node:path';
 import { projectFilePaths } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Exercises the per-file `ignore:` config key against a fixed 15-file local tree (`ALL_FILES`) with
  * source pattern `/**\/*.*`, plus the project-wide `ignore_hidden_files` setting against two hidden dotfiles that
  * are deliberately NOT part of `ALL_FILES`.
- *
- * `ignore` differs per row and `renderConfig` only substitutes credentials, so each test writes a
- * full `crowdin.yml` directly.
  *
  * Row 1's pattern (`%file_name%-%two_letters_code%.%file_extension%`) relies on each candidate
  * source file's own name/extension being substituted before matching, so a file that looks like
@@ -34,38 +30,6 @@ const ALL_FILES = [
   '/folder/sub/1.txt',
   '/folder/sub/1.xml',
 ];
-
-async function writeConfigWithIgnore(ctx: SuiteContext, ignore: string[]): Promise<void> {
-  const lines = [
-    `project_id: "${ctx.project.id}"`,
-    `api_token: "${ctx.env.token}"`,
-    `base_path: "./files"`,
-    `base_url: "https://api.crowdin.com"`,
-    `preserve_hierarchy: true`,
-    `files:`,
-    `  - source: "/**/*.*"`,
-    `    translation: "/%original_path%/%file_name%-%two_letters_code%.%file_extension%"`,
-    `    ignore:`,
-    ...ignore.map((pattern) => `      - "${pattern}"`),
-  ];
-  await Bun.write(join(ctx.workspace, 'crowdin.yml'), lines.join('\n'));
-}
-
-async function writeConfigWithIgnoreHiddenFiles(ctx: SuiteContext, ignoreHiddenFiles: boolean): Promise<void> {
-  const lines = [
-    `project_id: "${ctx.project.id}"`,
-    `api_token: "${ctx.env.token}"`,
-    `base_path: "./files"`,
-    `base_url: "https://api.crowdin.com"`,
-    `preserve_hierarchy: true`,
-    `settings:`,
-    `  ignore_hidden_files: ${ignoreHiddenFiles}`,
-    `files:`,
-    `  - source: "/folder/**/*.*"`,
-    `    translation: "/translations/%locale%/%original_file_name%"`,
-  ];
-  await Bun.write(join(ctx.workspace, 'crowdin.yml'), lines.join('\n'));
-}
 
 /**
  * Deletes directories as well as files, so each row starts from a truly empty project: the last two
@@ -97,7 +61,7 @@ describe('ignore', () => {
 
   test('ignores files matching the translation-placeholder pattern (%file_name%-%two_letters_code%.%file_extension%)', async () => {
     await resetProject(ctx);
-    await writeConfigWithIgnore(ctx, ['/**/%file_name%-%two_letters_code%.%file_extension%']);
+    await switchConfig(ctx, 'ignore', { ignore: ['/**/%file_name%-%two_letters_code%.%file_extension%'] });
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -110,7 +74,7 @@ describe('ignore', () => {
 
   test('ignores files matching a single-char wildcard (?.xml)', async () => {
     await resetProject(ctx);
-    await writeConfigWithIgnore(ctx, ['/**/?.xml']);
+    await switchConfig(ctx, 'ignore', { ignore: ['/**/?.xml'] });
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -123,7 +87,7 @@ describe('ignore', () => {
 
   test('ignores files matching a single-digit bracket class ([0-9].xml)', async () => {
     await resetProject(ctx);
-    await writeConfigWithIgnore(ctx, ['/**/[0-9].xml']);
+    await switchConfig(ctx, 'ignore', { ignore: ['/**/[0-9].xml'] });
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -136,7 +100,7 @@ describe('ignore', () => {
 
   test('ignores files matching a three-digit bracket class ([0-9][0-9][0-9].xml)', async () => {
     await resetProject(ctx);
-    await writeConfigWithIgnore(ctx, ['/**/[0-9][0-9][0-9].xml']);
+    await switchConfig(ctx, 'ignore', { ignore: ['/**/[0-9][0-9][0-9].xml'] });
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -149,7 +113,7 @@ describe('ignore', () => {
 
   test('ignores files matching a digit-star-underscore bracket class ([0-9]*_*.xml)', async () => {
     await resetProject(ctx);
-    await writeConfigWithIgnore(ctx, ['/**/[0-9]*_*.xml']);
+    await switchConfig(ctx, 'ignore', { ignore: ['/**/[0-9]*_*.xml'] });
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -162,7 +126,7 @@ describe('ignore', () => {
 
   test('combines two ignore patterns (?.xml and [0-9]*_*.xml)', async () => {
     await resetProject(ctx);
-    await writeConfigWithIgnore(ctx, ['/**/?.xml', '/**/[0-9]*_*.xml']);
+    await switchConfig(ctx, 'ignore', { ignore: ['/**/?.xml', '/**/[0-9]*_*.xml'] });
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -183,7 +147,7 @@ describe('ignore', () => {
 
   test('ignores a recursive glob scoped to a subfolder (/folder/**/*.xml)', async () => {
     await resetProject(ctx);
-    await writeConfigWithIgnore(ctx, ['/folder/**/*.xml']);
+    await switchConfig(ctx, 'ignore', { ignore: ['/folder/**/*.xml'] });
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -204,7 +168,7 @@ describe('ignore', () => {
 
   test('ignores a recursive glob scoped to a subfolder, all extensions (/folder/**/*.*)', async () => {
     await resetProject(ctx);
-    await writeConfigWithIgnore(ctx, ['/folder/**/*.*']);
+    await switchConfig(ctx, 'ignore', { ignore: ['/folder/**/*.*'] });
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -226,7 +190,7 @@ describe('ignore', () => {
 
   test('ignores a bare folder name, excluding everything under it (/folder)', async () => {
     await resetProject(ctx);
-    await writeConfigWithIgnore(ctx, ['/folder']);
+    await switchConfig(ctx, 'ignore', { ignore: ['/folder'] });
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -248,7 +212,7 @@ describe('ignore', () => {
 
   test('uploads hidden dotfiles when ignore_hidden_files is false', async () => {
     await resetProject(ctx);
-    await writeConfigWithIgnoreHiddenFiles(ctx, false);
+    await switchConfig(ctx, 'ignore-hidden-files', { ignoreHiddenFiles: false });
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -271,7 +235,7 @@ describe('ignore', () => {
 
   test('skips hidden dotfiles when ignore_hidden_files is true', async () => {
     await resetProject(ctx);
-    await writeConfigWithIgnoreHiddenFiles(ctx, true);
+    await switchConfig(ctx, 'ignore-hidden-files', { ignoreHiddenFiles: true });
 
     const result = await ctx.runner.run(['upload', 'sources']);
 

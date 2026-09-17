@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import type { Client } from '@crowdin/crowdin-api-client';
 import { CliRunner } from './cli.ts';
-import { writeConfig } from './config.ts';
+import { renderConfig, writeConfig } from './config.ts';
 import type { E2eEnv } from './env.ts';
 import { resolveEnv } from './env.ts';
 import {
@@ -83,13 +83,28 @@ export async function setupSuite(suite: string, opts: SetupSuiteOptions = {}): P
 }
 
 /**
- * Swap the suite's `crowdin.yml` for `<workspace>/alt-configs/<name>.yml`, rendered with the same
- * project id and token. The runner keeps pointing at the same config path, so every later
- * `ctx.runner.run(...)` picks the new config up.
+ * Render the workspace file `from` with the suite's project id and token, plus any extra `vars`,
+ * and write it to `to` (in place by default). Returns the written path.
  */
-export async function switchConfig(ctx: SuiteContext, name: string): Promise<void> {
-  const template = await Bun.file(join(ctx.workspace, 'alt-configs', `${name}.yml`)).text();
-  await writeConfig(ctx.workspace, template, { projectId: ctx.project.id, token: ctx.env.token as string });
+export async function renderFixture(
+  ctx: SuiteContext,
+  from: string,
+  to = from,
+  vars: Record<string, unknown> = {},
+): Promise<string> {
+  const template = await Bun.file(join(ctx.workspace, from)).text();
+  const path = join(ctx.workspace, to);
+  await Bun.write(path, renderConfig(template, { ...vars, projectId: ctx.project.id, token: ctx.env.token as string }));
+  return path;
+}
+
+/**
+ * Swap the suite's `crowdin.yml` for `<workspace>/alt-configs/<name>.yml`, rendered with the same
+ * project id and token plus any extra `vars`. The runner keeps pointing at the same config path, so
+ * every later `ctx.runner.run(...)` picks the new config up.
+ */
+export async function switchConfig(ctx: SuiteContext, name: string, vars: Record<string, unknown> = {}): Promise<void> {
+  await renderFixture(ctx, `alt-configs/${name}.yml`, 'crowdin.yml', vars);
 }
 
 /**

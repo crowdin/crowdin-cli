@@ -14,6 +14,12 @@ describe('renderConfig', () => {
     expect(renderConfig('{{token}} {{token}}', { projectId: 1, token: 't' })).toBe('t t');
   });
 
+  test('JSON-encodes non-string values, so an array renders as a flow sequence', () => {
+    expect(renderConfig('ignore: {{ignore}}', { projectId: 1, token: 't', ignore: ['/a/*.xml', '/b'] })).toBe(
+      'ignore: ["/a/*.xml","/b"]',
+    );
+  });
+
   test('throws on an unknown placeholder (typo, or a static value left as a template)', () => {
     expect(() => renderConfig('base_path: "{{basePath}}"', { projectId: 1, token: 't' })).toThrow(/basePath/);
   });

@@ -3,23 +3,21 @@ import { join } from 'node:path';
 export interface ConfigValues {
   projectId: number | string;
   token: string;
+  [placeholder: string]: unknown;
 }
 
 /**
- * Render a `crowdin.yml` template by replacing `{{projectId}}` and `{{token}}`.
+ * Render a `crowdin.yml` template by replacing each `{{name}}` with `values[name]`. Strings go in
+ * as-is; anything else is JSON-encoded, so an array lands as a YAML flow sequence.
  */
 export function renderConfig(template: string, values: ConfigValues): string {
-  const resolved: Record<string, string> = {
-    projectId: String(values.projectId),
-    token: values.token,
-  };
-
   return template.replace(/\{\{(\w+)}}/g, (_match, key: string) => {
-    if (!(key in resolved)) {
+    if (!(key in values)) {
       throw new Error(`No value provided for placeholder {{${key}}} in crowdin.yml template`);
     }
 
-    return resolved[key] as string;
+    const value = values[key];
+    return typeof value === 'string' ? value : JSON.stringify(value);
   });
 }
 
