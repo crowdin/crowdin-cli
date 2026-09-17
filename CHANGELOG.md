@@ -1,5 +1,19 @@
 # Changelog
 
+# [5.1.0](https://github.com/crowdin/crowdin-cli/compare/5.0.2...5.1.0) (2026-09-17)
+
+
+### Bug Fixes
+
+* **download:** keep downloading sources past a failed file ([#1116](https://github.com/crowdin/crowdin-cli/issues/1116)) ([b2687fb](https://github.com/crowdin/crowdin-cli/commit/b2687fbd1a40875d4fb761ae5086a17280d17f1d))
+* **output:** always carry the exit code in a json/toon error record ([#1115](https://github.com/crowdin/crowdin-cli/issues/1115)) ([175b5cd](https://github.com/crowdin/crowdin-cli/commit/175b5cd5d2b2fbcdb335da552e195c9fe1056d02))
+* **scheme:** reject an empty column in --scheme ([#1114](https://github.com/crowdin/crowdin-cli/issues/1114)) ([cc489bb](https://github.com/crowdin/crowdin-cli/commit/cc489bbdf34234cea6dd13ae36a8c0ccec696a74))
+
+
+### Features
+
+* add login command ([#1094](https://github.com/crowdin/crowdin-cli/issues/1094)) ([e6e2419](https://github.com/crowdin/crowdin-cli/commit/e6e24196b229f534d468a5b3f682e12ba2ad2435))
+
 ## [5.0.2](https://github.com/crowdin/crowdin-cli/compare/5.0.1...5.0.2) (2026-09-04)
 
 
