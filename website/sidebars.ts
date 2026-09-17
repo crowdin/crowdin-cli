@@ -14,6 +14,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'commands/crowdin',
         'commands/crowdin-init',
+        'commands/crowdin-login',
         'commands/crowdin-auto-translate',
         {
           type: 'category',
