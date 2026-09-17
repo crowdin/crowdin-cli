@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { copyFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { expectFilesExist } from '../helpers/files.ts';
+import { expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
@@ -83,13 +83,7 @@ describe('simple csv', () => {
     // rejects it on import and the export returns the source text instead. Rows 1-8 (max_length=20)
     // import fine. Note the CLI reports nothing about the rejected translation - the upload is
     // reported as successful, which is worth a look on the product side.
-    await expectFilesExist(ctx.workspace, 'sources/files/uk/1_simple.csv', 'sources/files/uk/2_simple.csv');
-    expect(await Bun.file(join(ctx.workspace, 'sources/files/uk/1_simple.csv')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/uk/1_simple.csv')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'sources/files/uk/2_simple.csv')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/uk/2_simple.csv')).text(),
-    );
+    await expectFilesMatch(ctx.workspace, 'sources/files', 'expected', 'uk/1_simple.csv', 'uk/2_simple.csv');
   });
 
   test('downloads translations for every target language', async () => {
@@ -98,24 +92,14 @@ describe('simple csv', () => {
     expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await expectFilesExist(
+    await expectFilesMatch(
       ctx.workspace,
-      'sources/files/it/1_simple.csv',
-      'sources/files/it/2_simple.csv',
-      'sources/files/uk/1_simple.csv',
-      'sources/files/uk/2_simple.csv',
-    );
-    expect(await Bun.file(join(ctx.workspace, 'sources/files/it/1_simple.csv')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/it/1_simple.csv')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'sources/files/it/2_simple.csv')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/it/2_simple.csv')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'sources/files/uk/1_simple.csv')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/uk/1_simple.csv')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'sources/files/uk/2_simple.csv')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/uk/2_simple.csv')).text(),
+      'sources/files',
+      'expected',
+      'it/1_simple.csv',
+      'it/2_simple.csv',
+      'uk/1_simple.csv',
+      'uk/2_simple.csv',
     );
   });
 
@@ -160,12 +144,7 @@ describe('simple csv', () => {
     expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    expect(await Bun.file(join(ctx.workspace, 'sources/files/uk/1_simple.csv')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/uk/1_simple.csv')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'sources/files/uk/2_simple.csv')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/uk/2_simple.csv')).text(),
-    );
+    await expectFilesMatch(ctx.workspace, 'sources/files', 'expected', 'uk/1_simple.csv', 'uk/2_simple.csv');
   });
 
   test('downloads translations for every target language on the branch', async () => {
@@ -174,17 +153,14 @@ describe('simple csv', () => {
     expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    expect(await Bun.file(join(ctx.workspace, 'sources/files/it/1_simple.csv')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/it/1_simple.csv')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'sources/files/it/2_simple.csv')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/it/2_simple.csv')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'sources/files/uk/1_simple.csv')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/uk/1_simple.csv')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'sources/files/uk/2_simple.csv')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/uk/2_simple.csv')).text(),
+    await expectFilesMatch(
+      ctx.workspace,
+      'sources/files',
+      'expected',
+      'it/1_simple.csv',
+      'it/2_simple.csv',
+      'uk/1_simple.csv',
+      'uk/2_simple.csv',
     );
   });
 

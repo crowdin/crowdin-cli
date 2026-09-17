@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { decode } from '@toon-format/toon';
-import { expectFilesExist } from '../helpers/files.ts';
+import { expectFilesExist, expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
@@ -147,13 +147,7 @@ describe('translations not match', () => {
     expect(result.stdout).not.toContain('translations/it/3_android.xml');
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await expectFilesExist(ctx.workspace, 'translations/it/1_android.xml', 'translations/uk/1_android.xml');
-    expect(await Bun.file(join(ctx.workspace, 'translations/it/1_android.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/it/1_android.xml')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'translations/uk/1_android.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/uk/1_android.xml')).text(),
-    );
+    await expectFilesMatch(ctx.workspace, 'translations', 'expected', 'it/1_android.xml', 'uk/1_android.xml');
   });
 
   test('downloads translations again with --verbose, listing the omitted translation paths', async () => {
@@ -187,10 +181,7 @@ describe('translations not match', () => {
     expect(result.stdout).toContain('java.properties (1)');
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await expectFilesExist(ctx.workspace, 'translations/uk/1_android.xml');
-    expect(await Bun.file(join(ctx.workspace, 'translations/uk/1_android.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/uk/1_android.xml')).text(),
-    );
+    await expectFilesMatch(ctx.workspace, 'translations', 'expected', 'uk/1_android.xml');
   });
 
   test('downloads translations for a single specified language (uk) with --verbose', async () => {
@@ -239,13 +230,7 @@ describe('translations not match', () => {
     expect(result.stdout).not.toContain('java.properties');
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await expectFilesExist(ctx.workspace, 'translations/it/1_android.xml', 'translations/uk/1_android.xml');
-    expect(await Bun.file(join(ctx.workspace, 'translations/it/1_android.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/it/1_android.xml')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'translations/uk/1_android.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/uk/1_android.xml')).text(),
-    );
+    await expectFilesMatch(ctx.workspace, 'translations', 'expected', 'it/1_android.xml', 'uk/1_android.xml');
   });
 
   test('downloads translations for the branch with --verbose', async () => {

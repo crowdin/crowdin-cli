@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { copyFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { expectFilesExist } from '../helpers/files.ts';
+import { expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
@@ -108,25 +108,14 @@ describe('branches', () => {
     expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await expectFilesExist(
+    await expectFilesMatch(
       ctx.workspace,
-      'translations/it/1_android.xml',
-      'translations/it/2_android.xml',
-      'translations/uk/1_android.xml',
-      'translations/uk/2_android.xml',
-    );
-
-    expect(await Bun.file(join(ctx.workspace, 'translations/it/1_android.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/it/1_android.xml')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'translations/it/2_android.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/it/2_android.xml')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'translations/uk/1_android.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/uk/1_android.xml')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'translations/uk/2_android.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/uk/2_android.xml')).text(),
+      'translations',
+      'expected',
+      'it/1_android.xml',
+      'it/2_android.xml',
+      'uk/1_android.xml',
+      'uk/2_android.xml',
     );
   });
 });

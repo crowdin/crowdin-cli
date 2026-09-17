@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
+import { expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
@@ -12,12 +13,6 @@ import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../h
  */
 async function clearDownloadedTranslations(ctx: SuiteContext): Promise<void> {
   await rm(join(ctx.workspace, 'translations'), { recursive: true, force: true });
-}
-
-async function assertDownloadedMatches(ctx: SuiteContext, language: string, expectedFolder: string): Promise<void> {
-  const downloaded = await Bun.file(join(ctx.workspace, 'translations', language, 'android.xml')).text();
-  const expected = await Bun.file(join(ctx.workspace, 'expected', expectedFolder, 'android.xml')).text();
-  expect(downloaded).toBe(expected);
 }
 
 describe('download pseudo', () => {
@@ -58,7 +53,7 @@ describe('download pseudo', () => {
     expect(result.stdout).toContain("File 'translations/uk/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await assertDownloadedMatches(ctx, 'uk', 'all_params');
+    await expectFilesMatch(ctx.workspace, 'translations/uk', 'expected/all_params', 'android.xml');
   });
 
   test('downloads pseudo translations with asian character transformation', async () => {
@@ -71,7 +66,7 @@ describe('download pseudo', () => {
     expect(result.stdout).toContain("File 'translations/zh/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await assertDownloadedMatches(ctx, 'zh', 'asian');
+    await expectFilesMatch(ctx.workspace, 'translations/zh', 'expected/asian', 'android.xml');
   });
 
   test('downloads pseudo translations with european character transformation', async () => {
@@ -84,7 +79,7 @@ describe('download pseudo', () => {
     expect(result.stdout).toContain("File 'translations/fr/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await assertDownloadedMatches(ctx, 'fr', 'european');
+    await expectFilesMatch(ctx.workspace, 'translations/fr', 'expected/european', 'android.xml');
   });
 
   test('downloads pseudo translations with arabic character transformation', async () => {
@@ -97,7 +92,7 @@ describe('download pseudo', () => {
     expect(result.stdout).toContain("File 'translations/ar/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await assertDownloadedMatches(ctx, 'ar', 'arabic');
+    await expectFilesMatch(ctx.workspace, 'translations/ar', 'expected/arabic', 'android.xml');
   });
 
   test('downloads pseudo translations with length correction only', async () => {
@@ -110,7 +105,7 @@ describe('download pseudo', () => {
     expect(result.stdout).toContain("File 'translations/en/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await assertDownloadedMatches(ctx, 'en', 'length_correction');
+    await expectFilesMatch(ctx.workspace, 'translations/en', 'expected/length_correction', 'android.xml');
   });
 
   test('downloads pseudo translations with prefix only', async () => {
@@ -123,7 +118,7 @@ describe('download pseudo', () => {
     expect(result.stdout).toContain("File 'translations/en/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await assertDownloadedMatches(ctx, 'en', 'prefix');
+    await expectFilesMatch(ctx.workspace, 'translations/en', 'expected/prefix', 'android.xml');
   });
 
   test('downloads pseudo translations with suffix only', async () => {
@@ -136,7 +131,7 @@ describe('download pseudo', () => {
     expect(result.stdout).toContain("File 'translations/en/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await assertDownloadedMatches(ctx, 'en', 'suffix');
+    await expectFilesMatch(ctx.workspace, 'translations/en', 'expected/suffix', 'android.xml');
   });
 
   test('downloads pseudo translations using default settings when pseudo_localization is absent', async () => {
@@ -149,7 +144,7 @@ describe('download pseudo', () => {
     expect(result.stdout).toContain("File 'translations/en/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await assertDownloadedMatches(ctx, 'en', 'default');
+    await expectFilesMatch(ctx.workspace, 'translations/en', 'expected/default', 'android.xml');
   });
 
   test('rejects an unknown character_transformation value', async () => {

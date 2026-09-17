@@ -3,6 +3,7 @@ import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { type Client, CrowdinValidationError, type LanguagesModel } from '@crowdin/crowdin-api-client';
 import { resolveEnv } from '../helpers/env.ts';
+import { expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { createApiClient } from '../helpers/project.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
@@ -86,12 +87,14 @@ describe('custom language', () => {
     expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    for (const language of ['dtk', 'uk']) {
-      for (const file of ['1_android.xml', '2_android.xml']) {
-        const downloaded = await Bun.file(join(ctx.workspace, 'translations', language, file)).text();
-        const expected = await Bun.file(join(ctx.workspace, 'expected', language, file)).text();
-        expect(downloaded).toBe(expected);
-      }
-    }
+    await expectFilesMatch(
+      ctx.workspace,
+      'translations',
+      'expected',
+      'dtk/1_android.xml',
+      'dtk/2_android.xml',
+      'uk/1_android.xml',
+      'uk/2_android.xml',
+    );
   });
 });

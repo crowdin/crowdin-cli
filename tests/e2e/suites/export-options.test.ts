@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { copyFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
+import { expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
@@ -10,14 +11,6 @@ import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../h
  */
 async function clearDownloadedTranslations(ctx: SuiteContext): Promise<void> {
   await rm(join(ctx.workspace, 'translations'), { recursive: true, force: true });
-}
-
-async function expectDownloadedFilesMatch(ctx: SuiteContext, expectedFolder: string, files: string[]): Promise<void> {
-  for (const file of files) {
-    const actual = await Bun.file(join(ctx.workspace, 'translations', file)).text();
-    const expected = await Bun.file(join(ctx.workspace, 'expected', expectedFolder, file)).text();
-    expect(actual).toBe(expected);
-  }
 }
 
 describe('export options', () => {
@@ -145,12 +138,15 @@ describe('export options', () => {
     expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await expectDownloadedFilesMatch(ctx, 'skip-strings', [
+    await expectFilesMatch(
+      ctx.workspace,
+      'translations',
+      'expected/skip-strings',
       'it/1_android.xml',
       'it/2_android.xml',
       'uk/1_android.xml',
       'uk/2_android.xml',
-    ]);
+    );
   });
 
   test('downloads translations skipping untranslated files via the CLI flag', async () => {
@@ -161,7 +157,13 @@ describe('export options', () => {
     expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await expectDownloadedFilesMatch(ctx, 'skip-files', ['it/1_android.xml', 'uk/1_android.xml']);
+    await expectFilesMatch(
+      ctx.workspace,
+      'translations',
+      'expected/skip-files',
+      'it/1_android.xml',
+      'uk/1_android.xml',
+    );
   });
 
   test('downloads translations exporting only approved translations via the CLI flag', async () => {
@@ -172,12 +174,15 @@ describe('export options', () => {
     expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await expectDownloadedFilesMatch(ctx, 'approved', [
+    await expectFilesMatch(
+      ctx.workspace,
+      'translations',
+      'expected/approved',
       'it/1_android.xml',
       'it/2_android.xml',
       'uk/1_android.xml',
       'uk/2_android.xml',
-    ]);
+    );
   });
 
   test('downloads translations skipping untranslated strings and exporting only approved via CLI flags', async () => {
@@ -193,12 +198,15 @@ describe('export options', () => {
     expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await expectDownloadedFilesMatch(ctx, 'skip-strings-approved', [
+    await expectFilesMatch(
+      ctx.workspace,
+      'translations',
+      'expected/skip-strings-approved',
       'it/1_android.xml',
       'it/2_android.xml',
       'uk/1_android.xml',
       'uk/2_android.xml',
-    ]);
+    );
   });
 
   test('downloads translations skipping untranslated files and exporting only approved via CLI flags', async () => {
@@ -216,7 +224,7 @@ describe('export options', () => {
 
     // uk/1_android.xml is 100% translated and approved, so skipping untranslated *files* and skipping
     // untranslated *strings* converge on the same output for it.
-    await expectDownloadedFilesMatch(ctx, 'skip-strings-approved', ['uk/1_android.xml']);
+    await expectFilesMatch(ctx.workspace, 'translations', 'expected/skip-strings-approved', 'uk/1_android.xml');
   });
 
   test('rejects skipping untranslated strings and files at the same time', async () => {
@@ -244,12 +252,15 @@ describe('export options', () => {
     expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await expectDownloadedFilesMatch(ctx, 'skip-strings', [
+    await expectFilesMatch(
+      ctx.workspace,
+      'translations',
+      'expected/skip-strings',
       'it/1_android.xml',
       'it/2_android.xml',
       'uk/1_android.xml',
       'uk/2_android.xml',
-    ]);
+    );
   });
 
   test('downloads translations with skip_untranslated_files set in config', async () => {
@@ -261,7 +272,13 @@ describe('export options', () => {
     expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await expectDownloadedFilesMatch(ctx, 'skip-files', ['it/1_android.xml', 'uk/1_android.xml']);
+    await expectFilesMatch(
+      ctx.workspace,
+      'translations',
+      'expected/skip-files',
+      'it/1_android.xml',
+      'uk/1_android.xml',
+    );
   });
 
   test('downloads translations with export_only_approved set in config', async () => {
@@ -273,12 +290,15 @@ describe('export options', () => {
     expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await expectDownloadedFilesMatch(ctx, 'approved', [
+    await expectFilesMatch(
+      ctx.workspace,
+      'translations',
+      'expected/approved',
       'it/1_android.xml',
       'it/2_android.xml',
       'uk/1_android.xml',
       'uk/2_android.xml',
-    ]);
+    );
   });
 
   test('downloads translations with skip_untranslated_strings and export_only_approved set in config', async () => {
@@ -290,12 +310,15 @@ describe('export options', () => {
     expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await expectDownloadedFilesMatch(ctx, 'skip-strings-approved', [
+    await expectFilesMatch(
+      ctx.workspace,
+      'translations',
+      'expected/skip-strings-approved',
       'it/1_android.xml',
       'it/2_android.xml',
       'uk/1_android.xml',
       'uk/2_android.xml',
-    ]);
+    );
   });
 
   test('downloads translations with skip_untranslated_files and export_only_approved set in config', async () => {
@@ -307,7 +330,7 @@ describe('export options', () => {
     expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await expectDownloadedFilesMatch(ctx, 'skip-strings-approved', ['uk/1_android.xml']);
+    await expectFilesMatch(ctx.workspace, 'translations', 'expected/skip-strings-approved', 'uk/1_android.xml');
   });
 
   test('warns and ignores export_strings_that_passed_workflow outside Enterprise', async () => {
@@ -335,7 +358,13 @@ describe('export options', () => {
     expect(result.stdout).toContain("File 'translations/uk/1_android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await expectDownloadedFilesMatch(ctx, 'skip-strings-approved', ['it/1_android.xml', 'uk/1_android.xml']);
+    await expectFilesMatch(
+      ctx.workspace,
+      'translations',
+      'expected/skip-strings-approved',
+      'it/1_android.xml',
+      'uk/1_android.xml',
+    );
 
     // 2_android.xml has skip_untranslated_files set in its group and is not fully translated in
     // either language, so it is omitted from both language builds entirely.
