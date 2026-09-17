@@ -9,6 +9,7 @@ import { description, name, version } from './cli/meta.ts';
 import getGlobalOptions from './cli/options.ts';
 import { expandArgFiles } from './cli/utils/argFiles.ts';
 import { checkNewVersion } from './cli/utils/checkVersion.ts';
+import { enableColors } from './cli/utils/colors.ts';
 import { isStructuredFormat } from './cli/utils/formatter.ts';
 import { createOutput, getOutputFormatFromArgs } from './cli/utils/output.ts';
 
@@ -88,6 +89,9 @@ const argv = [...process.argv.slice(0, 2), ...(isCompletion ? rawArgs : expandAr
 const globalOptions = getOutputFormatFromArgs(argv);
 const isStructured = isStructuredFormat(globalOptions.output);
 
+// Help and usage errors print before any action creates an Output, so apply --no-colors up front.
+enableColors(globalOptions.colors && globalOptions.output === 'text');
+
 try {
   await main(argv, isStructured);
   // Help, version, empty args and parse errors all throw CommanderError, so they skip the version check.
@@ -113,7 +117,7 @@ try {
 
     if (globalOptions.debug && error instanceof Error && error.stack) {
       // ponytail: top-level only; per-file failures in upload/download still print just their message.
-      console.error(error.stack);
+      process.stderr.write(`${error.stack}\n`);
     } else if (isStructured || !(error instanceof CliError && error.reported)) {
       // `reported` means "already shown to a human" — a spinner line, or a command's own printed
       // message. json/toon have no such affordance, so the record is always written here, the only

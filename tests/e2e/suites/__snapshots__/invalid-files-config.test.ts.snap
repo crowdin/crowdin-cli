@@ -1,0 +1,26 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`invalid files config uploads sources with a source pattern that matches no local file 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched"
+`;
+
+exports[`invalid files config uploads sources with a source pattern whose folder does not exist 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched"
+`;
+
+exports[`invalid files config uploads sources with a translation pattern missing a language placeholder 1`] = `""`;
+
+exports[`invalid files config uploads sources with a translation pattern containing a relative path 1`] = `""`;
+
+exports[`invalid files config uploads translations when the source file does not exist in the project 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched"
+`;

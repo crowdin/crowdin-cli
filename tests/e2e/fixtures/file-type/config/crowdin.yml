@@ -1,0 +1,9 @@
+# Every test switches to `alt-configs/file-type.yml` with its own `type`, so this one only has to render.
+project_id: "{{projectId}}"
+api_token: "{{token}}"
+base_path: "./files"
+base_url: "https://api.crowdin.com"
+preserve_hierarchy: true
+files:
+  - source: "/android.xml"
+    translation: "/android%two_letters_code%.xml"

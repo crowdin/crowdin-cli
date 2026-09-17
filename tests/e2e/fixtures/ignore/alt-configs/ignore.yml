@@ -1,0 +1,10 @@
+# `{{ignore}}` is the test's pattern list, rendered as a YAML flow sequence.
+project_id: "{{projectId}}"
+api_token: "{{token}}"
+base_path: "./files"
+base_url: "https://api.crowdin.com"
+preserve_hierarchy: true
+files:
+  - source: "/**/*.*"
+    translation: "/%original_path%/%file_name%-%two_letters_code%.%file_extension%"
+    ignore: {{ignore}}

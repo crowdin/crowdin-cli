@@ -25,6 +25,22 @@ function normalizeBaseUrl(url: string): string {
   return url.replace(/\/(api(\/|\/v2\/?)?)?$/, '');
 }
 
+/**
+ * Separators collapse to '/', and the pattern gets a * leading '/' unless it belongs to a multilingual file
+ * with no language placeholder. The leading separator matters on the wire — Crowdin silently ignores a file
+ * export pattern that doesn't start with '/' and falls back to the default '/%locale%/%original_path%'.
+ */
+function normalizeTranslation(file: { translation: string; scheme?: unknown; multilingual?: boolean }): string {
+  const normalized = file.translation.replace(/[\\/]+/g, '/');
+  const multilingual = file.scheme !== undefined || file.multilingual === true;
+
+  if (multilingual && !languagePatterns.some((pattern) => normalized.includes(pattern))) {
+    return normalized.replace(/^\/+/, '');
+  }
+
+  return normalized.startsWith('/') ? normalized : `/${normalized}`;
+}
+
 // Accepts 0/1 and their string forms in addition to real booleans.
 const coercedBoolean = z.preprocess((value) => {
   if (value === 1 || value === '1' || value === true || value === 'true') {

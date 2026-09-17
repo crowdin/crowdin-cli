@@ -1,0 +1,71 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`status renders both languages as a table 1`] = `
+"●  Fetching project info
+●  Fetching project progress
+●  Project info fetched
+●  Project progress fetched
+┌───────────────┬────────────┬───────────┐
+│               │ Translated │ Proofread │
+├───────────────┼────────────┼───────────┤
+│   Italian(it) │ 0%         │ 0%        │
+│ Ukrainian(uk) │ 100%       │ 0%        │
+└───────────────┴────────────┴───────────┘"
+`;
+
+exports[`status adds word and phrase columns with --verbose 1`] = `
+"●  Fetching project info
+●  Fetching project progress
+●  Loading configuration from '<workspace>/status/crowdin.yml' file
+●  Project info fetched
+●  Project progress fetched
+┌───────────────┬────────────┬──────────────────┬────────────────────┬───────────┬─────────────────┬───────────────────┐
+│               │ Translated │ Translated words │ Translated phrases │ Proofread │ Proofread words │ Proofread phrases │
+├───────────────┼────────────┼──────────────────┼────────────────────┼───────────┼─────────────────┼───────────────────┤
+│   Italian(it) │ 0%         │ 0/32             │ 0/8                │ 0%        │ 0/32            │ 0/8               │
+│ Ukrainian(uk) │ 100%       │ 32/32            │ 8/8                │ 0%        │ 0/32            │ 0/8               │
+└───────────────┴────────────┴──────────────────┴────────────────────┴───────────┴─────────────────┴───────────────────┘"
+`;
+
+exports[`status shows only the translation column for \`status translation\` 1`] = `
+"●  Fetching project info
+●  Fetching project progress
+●  Project info fetched
+●  Project progress fetched
+┌───────────────┬────────────┐
+│               │ Translated │
+├───────────────┼────────────┤
+│   Italian(it) │ 0%         │
+│ Ukrainian(uk) │ 100%       │
+└───────────────┴────────────┘"
+`;
+
+exports[`status shows only the proofreading column for \`status proofreading\` 1`] = `
+"●  Fetching project info
+●  Fetching project progress
+●  Project info fetched
+●  Project progress fetched
+┌───────────────┬───────────┐
+│               │ Proofread │
+├───────────────┼───────────┤
+│   Italian(it) │ 0%        │
+│ Ukrainian(uk) │ 0%        │
+└───────────────┴───────────┘"
+`;
+
+exports[`status rejects a language the project does not target 1`] = `"■  Language 'zz' doesn't exist in the project. Try specifying another language code"`;
+
+exports[`status rejects --file and --directory together 1`] = `"■  Only one of the following options can be used at a time: '--file', '--directory'"`;
+
+exports[`status fails on an incomplete project with --fail-if-incomplete 1`] = `
+"●  Fetching project info
+●  Fetching project progress
+●  Project info fetched
+●  Project progress fetched
+┌───────────────┬────────────┬───────────┐
+│               │ Translated │ Proofread │
+├───────────────┼────────────┼───────────┤
+│   Italian(it) │ 0%         │ 0%        │
+│ Ukrainian(uk) │ 100%       │ 0%        │
+└───────────────┴────────────┴───────────┘"
+`;

@@ -1,0 +1,58 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`tm uploads a TMX translation memory, creating it 1`] = `
+"●  Importing translation memory
+●  Importing translation memory (<pct>)
+◆  Imported in #id 'Created in Crowdin CLI (simple-tm.tmx)' translation memory
+#id Created in Crowdin CLI (simple-tm.tmx) (segments: 4)"
+`;
+
+exports[`tm uploads a CSV translation memory with an explicit scheme, creating it 1`] = `
+"●  Importing translation memory
+●  Importing translation memory (<pct>)
+◆  Imported in #id 'Created in Crowdin CLI (simple-tm.csv)' translation memory
+#id Created in Crowdin CLI (simple-tm.csv) (segments: 4)"
+`;
+
+exports[`tm uploads an XLSX translation memory with an explicit scheme, creating it 1`] = `
+"●  Importing translation memory
+●  Importing translation memory (<pct>)
+◆  Imported in #id 'Created in Crowdin CLI (simple-tm.xlsx)' translation memory
+#id Created in Crowdin CLI (simple-tm.xlsx) (segments: 4)"
+`;
+
+exports[`tm downloads the TMX translation memory by id and format 1`] = `
+"●  Building translation memory
+●  Building translation memory (<pct>)
+◆  'Created in Crowdin CLI (simple-tm.tmx).tmx' downloaded successfully"
+`;
+
+exports[`tm downloads the CSV translation memory by id and format 1`] = `
+"●  Building translation memory
+●  Building translation memory (<pct>)
+◆  'Created in Crowdin CLI (simple-tm.csv).csv' downloaded successfully"
+`;
+
+exports[`tm downloads the XLSX translation memory by id and format 1`] = `
+"●  Building translation memory
+●  Building translation memory (<pct>)
+◆  'Created in Crowdin CLI (simple-tm.xlsx).xlsx' downloaded successfully"
+`;
+
+exports[`tm downloads the TMX translation memory filtered by a language pair 1`] = `
+"●  Building translation memory
+●  Building translation memory (<pct>)
+◆  'download/simple-tm_en-uk.tmx' downloaded successfully"
+`;
+
+exports[`tm downloads the TMX translation memory without an explicit format 1`] = `
+"●  Building translation memory
+●  Building translation memory (<pct>)
+◆  'Created in Crowdin CLI (simple-tm.tmx).tmx' downloaded successfully"
+`;
+
+exports[`tm downloads the project's default translation memory by id 1`] = `
+"●  Building translation memory
+●  Building translation memory (<pct>)
+◆  'e2e-<run>-tm's TM.tmx' downloaded successfully"
+`;

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<martif type="TBX-Basic" xml:lang="en">
+  <martifHeader>
+    <fileDesc>
+      <sourceDesc>
+        <p>Crowdin glossary download</p>
+      </sourceDesc>
+    </fileDesc>
+    <encodingDesc>
+      <p type="XCSURI">http://www.lisa.org/fileadmin/standards/tbx_basic/TBXBasicXCSV02.xcs</p>
+    </encodingDesc>
+  </martifHeader>
+  <text>
+    <body>
+      <termEntry id="900">
+        <langSet xml:lang="en">
+          <tig>
+            <term id="900-en">checksum</term>
+            <descrip type="definition">checksum description</descrip>
+          </tig>
+        </langSet>
+        <langSet xml:lang="uk">
+          <tig>
+            <term id="900-uk">контрольна сума</term>
+            <descrip type="definition">опис контрольної суми</descrip>
+          </tig>
+        </langSet>
+      </termEntry>
+      <termEntry id="901">
+        <langSet xml:lang="en">
+          <tig>
+            <term id="901-en">payload</term>
+            <descrip type="definition">payload description</descrip>
+          </tig>
+        </langSet>
+        <langSet xml:lang="uk">
+          <tig>
+            <term id="901-uk">корисне навантаження</term>
+            <descrip type="definition">опис корисного навантаження</descrip>
+          </tig>
+        </langSet>
+      </termEntry>
+    </body>
+  </text>
+</martif>

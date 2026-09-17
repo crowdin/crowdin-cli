@@ -1,0 +1,10 @@
+project_id: "{{projectId}}"
+api_token: "{{token}}"
+base_path: "./files"
+base_url: "https://api.crowdin.com"
+preserve_hierarchy: true
+settings:
+  ignore_hidden_files: {{ignoreHiddenFiles}}
+files:
+  - source: "/folder/**/*.*"
+    translation: "/translations/%locale%/%original_file_name%"
