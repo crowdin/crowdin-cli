@@ -1,7 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { join } from 'node:path';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * The per-file `type:` config key reaching the
@@ -9,25 +8,7 @@ import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.t
  *
  * The API splits a file type into `type` (the base format) plus `parserVersion`, so the assertions below check both. A bare `type:
  * "android"` resolves to whatever parser version the backend currently defaults to.
- *
- * Each test writes its own `crowdin.yml`, since `type` differs per test and `renderConfig` only
- * substitutes credentials.
  */
-async function writeConfigWithType(ctx: SuiteContext, fileType: string): Promise<void> {
-  const yaml = [
-    `project_id: "${ctx.project.id}"`,
-    `api_token: "${ctx.env.token}"`,
-    `base_path: "./files"`,
-    `base_url: "https://api.crowdin.com"`,
-    `preserve_hierarchy: true`,
-    `files:`,
-    `  - source: "/android.xml"`,
-    `    translation: "/android%two_letters_code%.xml"`,
-    `    type: "${fileType}"`,
-  ].join('\n');
-  await Bun.write(join(ctx.workspace, 'crowdin.yml'), yaml);
-}
-
 async function deleteAllProjectFiles(ctx: SuiteContext): Promise<void> {
   const files = await ctx.client.sourceFilesApi.listProjectFiles(ctx.project.id);
   for (const file of files.data) {
@@ -59,7 +40,7 @@ describe('file type', () => {
 
   test('type "android6" is stored as android with parserVersion 6', async () => {
     await deleteAllProjectFiles(ctx);
-    await writeConfigWithType(ctx, 'android6');
+    await switchConfig(ctx, 'file-type', { type: 'android6' });
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -70,7 +51,7 @@ describe('file type', () => {
 
   test('type "android8" is stored as android with parserVersion 8', async () => {
     await deleteAllProjectFiles(ctx);
-    await writeConfigWithType(ctx, 'android8');
+    await switchConfig(ctx, 'file-type', { type: 'android8' });
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -81,7 +62,7 @@ describe('file type', () => {
 
   test('type "android" is normalized to parserVersion 11', async () => {
     await deleteAllProjectFiles(ctx);
-    await writeConfigWithType(ctx, 'android');
+    await switchConfig(ctx, 'file-type', { type: 'android' });
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -92,7 +73,7 @@ describe('file type', () => {
 
   test('type "android5" is stored as android with parserVersion 5', async () => {
     await deleteAllProjectFiles(ctx);
-    await writeConfigWithType(ctx, 'android5');
+    await switchConfig(ctx, 'file-type', { type: 'android5' });
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -103,7 +84,7 @@ describe('file type', () => {
 
   test('type "android4" is stored as android with parserVersion 4', async () => {
     await deleteAllProjectFiles(ctx);
-    await writeConfigWithType(ctx, 'android4');
+    await switchConfig(ctx, 'file-type', { type: 'android4' });
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -114,7 +95,7 @@ describe('file type', () => {
 
   test('type "android3" is stored as android with parserVersion 3', async () => {
     await deleteAllProjectFiles(ctx);
-    await writeConfigWithType(ctx, 'android3');
+    await switchConfig(ctx, 'file-type', { type: 'android3' });
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -125,7 +106,7 @@ describe('file type', () => {
 
   test('type "android2" is stored as android with parserVersion 2', async () => {
     await deleteAllProjectFiles(ctx);
-    await writeConfigWithType(ctx, 'android2');
+    await switchConfig(ctx, 'file-type', { type: 'android2' });
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -136,7 +117,7 @@ describe('file type', () => {
 
   test('type "android1" is normalized to parserVersion 1', async () => {
     await deleteAllProjectFiles(ctx);
-    await writeConfigWithType(ctx, 'android1');
+    await switchConfig(ctx, 'file-type', { type: 'android1' });
 
     const result = await ctx.runner.run(['upload', 'sources']);
 

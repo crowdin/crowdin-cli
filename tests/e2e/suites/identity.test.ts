@@ -1,37 +1,20 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { join } from 'node:path';
 import { expectFilesExist } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { renderFixture, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * The fixture's `crowdin.yml` carries no credentials at all: they come from a second file passed
- * via `--identity`, written here with the real post-setup values. The identity file outranks the
+ * The fixture's `crowdin.yml` carries no credentials at all: they come from `identity.yml`, passed
+ * via `--identity` and rendered with the real post-setup values. The identity file outranks the
  * config file but not CLI flags.
  */
-async function writeIdentityFile(ctx: SuiteContext): Promise<string> {
-  const identityPath = join(ctx.workspace, 'identity.yml');
-
-  await Bun.write(
-    identityPath,
-    [
-      `project_id: "${ctx.project.id}"`,
-      `api_token: "${ctx.env.token}"`,
-      `base_url: "https://api.crowdin.com"`,
-      `base_path: "."`,
-    ].join('\n'),
-  );
-
-  return identityPath;
-}
-
 describe('identity file credentials', () => {
   let ctx: SuiteContext;
   let identityPath: string;
 
   beforeAll(async () => {
     ctx = await setupSuite('identity', { targetLanguageIds: ['it', 'uk'] });
-    identityPath = await writeIdentityFile(ctx);
+    identityPath = await renderFixture(ctx, 'identity.yml');
   });
 
   afterAll(async () => {
