@@ -5,7 +5,7 @@ import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Ported from `crowdin-backend/tests/Cli/Common/CliFileTreeTest.php`. Exercises `upload sources` /
+ * Exercises `upload sources` /
  * `upload translations` / `download translations` / `file list` against a real (trimmed) NetBeans
  * PHP-module source tree, both on the default branch and on a brand-new branch, asserting the deep
  * nested directory hierarchy gets created correctly and the exact set of server-side file paths.

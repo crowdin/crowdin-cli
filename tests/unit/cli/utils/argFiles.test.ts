@@ -24,7 +24,7 @@ describe('expandArgFiles', () => {
     expect(expandArgFiles([`@${path}`, '--verbose'])).toEqual(['upload', 'sources', '-b', 'main', '--verbose']);
   });
 
-  test('splits args on whitespace (default picocli mode, not one-per-line)', () => {
+  test('splits args on whitespace (not one-per-line)', () => {
     const path = file('spaced.txt', 'upload sources\t-b   main\n');
     expect(expandArgFiles([`@${path}`])).toEqual(['upload', 'sources', '-b', 'main']);
   });

@@ -80,7 +80,7 @@ describe('exit codes (offline, end-to-end)', () => {
   });
 
   // an unknown command/subcommand must read as "unknown command", not commander's
-  // confusing "too many arguments" (Java picocli parity: "Unknown subcommand 'X'").
+  // confusing "too many arguments".
   test('unknown root command reports "unknown command", not "too many arguments"', async () => {
     const out = await captureCli(['definitely-not-a-command'], workspace);
     expect(out).toContain("unknown command 'definitely-not-a-command'");
@@ -121,8 +121,7 @@ describe('exit codes (offline, end-to-end)', () => {
     expect(await runCli(['file', '--bogus'], workspace)).toBe(2);
   });
 
-  // Only the files tier insists on a config file, and only when no --source/--translation replaces
-  // it (Java PropertiesBuilders.buildPropertiesWithFiles + ParamsWithFiles.isEmpty).
+  // Only the files tier insists on a config file, and only when no --source/--translation replaces it.
   test('missing config file exits 102 (not found) for a file-based command', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'crowdin-exitcode-missing-'));
 
@@ -143,8 +142,7 @@ describe('exit codes (offline, end-to-end)', () => {
     }
   });
 
-  // Java separates "doesn't exist" (102) from "that's a folder" (2) for both file options
-  // (ConfigurationFilesProperties.getConfigFile / getIdentityFile).
+  // "Doesn't exist" (102) and "that's a folder" (2) are separate errors for both file options.
   test('explicit --config pointing at a directory exits 2 (validation)', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'crowdin-exitcode-configdir-'));
     await mkdir(join(dir, 'somedir'));
@@ -168,8 +166,7 @@ describe('exit codes (offline, end-to-end)', () => {
   });
 
   // A project-scoped command reads the config only when it happens to exist. With no config file and
-  // no token, Java reports the missing file rather than the missing options
-  // (BaseProperties.checkProperties -> NotFoundException, exit 102).
+  // no token, the missing file is reported rather than the missing options.
   test('project-scoped command without a config file exits 102 (not found)', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'crowdin-exitcode-noconfig-'));
 

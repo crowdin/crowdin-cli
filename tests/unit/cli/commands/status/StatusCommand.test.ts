@@ -159,7 +159,7 @@ describe('StatusCommand', () => {
     );
   });
 
-  // Java throws at the end of its non-verbose branch, so the progress is on screen before it fails.
+  // The progress is on screen before it fails.
   test('prints the progress before failing with --fail-if-incomplete', async () => {
     const statusCommand = createStatusCommand();
 
@@ -175,7 +175,7 @@ describe('StatusCommand', () => {
     expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ language: 'fr', translation: 99 }], null, 2));
   });
 
-  // Java StatusAction verbose view: word and phrase counts per language, rendered as a wider grid.
+  // Verbose view: word and phrase counts per language, rendered as a wider grid.
   test('renders per-language detail with --verbose', async () => {
     output = createOutput({ ...globalOptions, output: 'text' });
     const statusCommand = createStatusCommand();

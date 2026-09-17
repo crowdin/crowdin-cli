@@ -122,7 +122,7 @@ describe('download sources', () => {
   test('downloads sources again with --output plain', async () => {
     await removeDownloadedSources(ctx);
 
-    // `--output plain` stands in for Java's `--plain`: bare downloaded paths instead of messages.
+    // `--output plain`: bare downloaded paths instead of messages.
     const result = await ctx.runner.run(['download', 'sources', '--output', 'plain']);
 
     expect(result).toMatchObject({ exitCode: 0 });

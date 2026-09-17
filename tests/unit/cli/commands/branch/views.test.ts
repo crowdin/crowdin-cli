@@ -32,7 +32,6 @@ describe('branch views', () => {
       expect(mergeView('dev', 'main').text(summary)).not.toContain('targetBranchId');
     });
 
-    // Java BranchMergeAction prints the target branch id alone in plain view.
     test('prints the target branch id alone in plain', () => {
       expect(mergeView('dev', 'main').plain?.(summary)).toBe('15');
     });

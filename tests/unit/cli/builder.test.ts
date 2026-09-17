@@ -43,7 +43,7 @@ describe('buildOption negation', () => {
 });
 
 describe('buildOption', () => {
-  test('marks a required option mandatory, as picocli does', () => {
+  test('marks a required option mandatory', () => {
     const command = new Command('add').exitOverride().addOption(buildOption(language));
 
     expect(() => command.parse([], { from: 'user' })).toThrow(/required option .* not specified/);

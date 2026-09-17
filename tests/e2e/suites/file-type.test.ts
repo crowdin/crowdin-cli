@@ -4,11 +4,10 @@ import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Port of `CliFileTypeTest::testUploadSources`: the per-file `type:` config key reaching the
+ * The per-file `type:` config key reaching the
  * file-create API call.
  *
- * PHP asserted one combined `type` string (`android6`); the API has since split that into `type`
- * (the base format) plus `parserVersion`, so the assertions below check both. A bare `type:
+ * The API splits a file type into `type` (the base format) plus `parserVersion`, so the assertions below check both. A bare `type:
  * "android"` resolves to whatever parser version the backend currently defaults to.
  *
  * Each test writes its own `crowdin.yml`, since `type` differs per test and `renderConfig` only

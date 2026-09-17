@@ -305,7 +305,7 @@ describe('InitCommand', () => {
     );
     // @ts-expect-error
     expect(command.validateTranslationPattern('/resources/%two_letters_code%/%original_file_name%')).toBeUndefined();
-    // @ts-expect-error - empty is allowed (matches Java)
+    // @ts-expect-error - empty is allowed
     expect(command.validateTranslationPattern('')).toBeUndefined();
   });
 

@@ -114,8 +114,8 @@ describe('custom segmentation', () => {
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     // Changing `dest` does not move the file: the lookup misses, so a second file is created at the
-    // new path with no translations while the original stays behind holding all of its. Java behaves
-    // the same way; `--delete-obsolete` deletes the orphan rather than moving it.
+    // new path with no translations while the original stays behind holding all of its.
+    // `--delete-obsolete` deletes the orphan rather than moving it.
     const files = await ctx.client.sourceFilesApi.listProjectFiles(ctx.project.id, { recursion: '1' });
     const docxPaths = files.data
       .filter((file) => file.data.name === 'sample.docx')

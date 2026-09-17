@@ -137,7 +137,7 @@ describe('FileService', () => {
       expect(result.missingPaths).toEqual(['gone.md']);
     });
 
-    // Java looked files up by their path inside the branch, so '--file' stays branch-relative and
+    // Files are looked up by their path inside the branch, so '--file' stays branch-relative and
     // the branch itself only ever arrives through '--branch'.
     test('matches a branch-relative path against the branch-prefixed server path', async () => {
       spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({

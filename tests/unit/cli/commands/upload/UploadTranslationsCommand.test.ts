@@ -591,8 +591,7 @@ describe('UploadTranslationsCommand', () => {
     expect(output.info).toHaveBeenCalledWith("File 'locale/es/app.json' would be queued for translations import");
   });
 
-  // Java routes --dryrun to ListTranslationsAction -> DryrunTranslations, which resolves paths from
-  // local sources only and never looks the source up in the project.
+  // Dry-run resolves paths from local sources only and never looks the source up in the project.
   test('dry-run does not check whether the source exists in the project', async () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
     await Bun.write(`${tempDir}/locale/es/app.json`, '{}');
@@ -628,7 +627,7 @@ describe('UploadTranslationsCommand', () => {
 
   test('dry-run lists translation paths that do not exist on disk yet', async () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
-    // Deliberately no locale/es/app.json: Java passes filesMustExist=false, so it is still listed.
+    // Deliberately no locale/es/app.json: files need not exist, so it is still listed.
 
     const projectService = {
       loadProject: mock(async () => ({

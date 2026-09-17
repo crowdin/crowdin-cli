@@ -4,7 +4,7 @@ import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Port of crowdin-backend's `tests/Cli/Common/CliTranslationPatternsTest.php`: ten file groups,
+ * Ten file groups,
  * one per `translation:` placeholder token plus two combining `%original_path%` with a language
  * token, exercised through upload sources -> dryrun/real upload translations -> dryrun/real
  * download translations -> `config translations`, against target languages `uk` and `zh-CN`.

@@ -227,7 +227,7 @@ describe('export options', () => {
       '--skip-untranslated-files',
     ]);
 
-    // Java/PHP exit 2 here; DownloadCommand.ts throws a plain CliError, which exits 1.
+    // DownloadCommand.ts throws a plain CliError, which exits 1.
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain(
       'You cannot skip strings and files at the same time. Please use one of these parameters instead.',

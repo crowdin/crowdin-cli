@@ -20,10 +20,10 @@ describe('parseYaml', () => {
     expect(() => parseYaml('')).toThrow(InvalidConfigurationError);
   });
 
-  // Java (SnakeYAML) accepts a flow collection whose lines are not indented past its block key, and
-  // real Crowdin configs are written this way. Spec-strict parsers reject it: the `yaml` package with
+  // Crowdin configs may hold a flow collection whose lines are not indented past its block key, and
+  // real configs are written this way. Spec-strict parsers reject it: the `yaml` package with
   // BAD_INDENT, js-yaml 5 with "deficient indentation". Both would drop the second entry or throw.
-  test('parses a flow collection dedented to column 0, as SnakeYAML does', () => {
+  test('parses a flow collection dedented to column 0', () => {
     const raw = parseYaml(
       [
         'files: [{',
@@ -66,11 +66,11 @@ describe('mapConfig', () => {
     expect(out).not.toHaveProperty('api_token_env');
   });
 
-  test('reads ignore_hidden_files nested under the settings block (Java SettingsBean)', () => {
+  test('reads ignore_hidden_files nested under the settings block', () => {
     expect(mapConfig({ settings: { ignore_hidden_files: false } }).ignoreHiddenFiles).toBe(false);
   });
 
-  test('ignores a top-level ignore_hidden_files (Java only nests it under settings)', () => {
+  test('ignores a top-level ignore_hidden_files (only read under settings)', () => {
     expect(mapConfig({ ignore_hidden_files: false }).ignoreHiddenFiles).toBeUndefined();
   });
 });

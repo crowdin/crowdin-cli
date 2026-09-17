@@ -3,7 +3,7 @@ import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Port of crowdin-backend/tests/Cli/Common/CliUploadSingleFileTest.php: uploading one file via a
+ * Uploading one file via a
  * single-file `-s`/`-t` pair, alone and in combination with a config file, `--dest`, an empty file,
  * an empty `files:` group, a branch, and `--preserve-hierarchy`.
  *
@@ -16,7 +16,7 @@ import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.t
  *    only drops the `-c` flag, and the config is still auto-discovered). So the local `sources/`
  *    prefix reaches the project path from the first test on, the `sources` directory is created
  *    once and never again, and the final test's explicit `--preserve-hierarchy` changes nothing -
- *    it exists for 1:1 parity with the PHP original.
+ *    it only confirms the explicit flag agrees.
  */
 describe('upload single file', () => {
   let ctx: SuiteContext;
@@ -188,7 +188,7 @@ describe('upload single file', () => {
   });
 
   test('uploads the same file again with --preserve-hierarchy explicitly set', async () => {
-    // Matches the value already in effect; kept for parity with the PHP original.
+    // Matches the value already in effect.
     const result = await ctx.runner.run([
       'upload',
       'sources',

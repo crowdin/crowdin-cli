@@ -2,10 +2,9 @@ import { describe, expect, test } from 'bun:test';
 import { ExitCode, getExitCode } from '@/cli/errors/CliError.ts';
 import { normalizeBranchName, normalizePath, parseNumericId, parseScheme, toNumberArray } from '@/cli/utils/parsing.ts';
 
-// Java declares these ids as Long, so picocli's Long.parseLong rejects anything else with a usage
-// error. Number() would accept all of the below and forward junk to the API as a real id.
+// Ids must be plain integers; anything else is a usage error. Number() would accept all of the below and forward junk to the API as a real id.
 describe('parseNumericId', () => {
-  test('accepts the integer forms Long.parseLong does', () => {
+  test('accepts signed integer forms', () => {
     expect(parseNumericId('12', 'Bundle')).toBe(12);
     expect(parseNumericId('-3', 'Bundle')).toBe(-3);
     expect(parseNumericId('+7', 'Bundle')).toBe(7);
@@ -15,7 +14,7 @@ describe('parseNumericId', () => {
     expect(() => parseNumericId(value, 'Bundle')).toThrow('Bundle id');
   });
 
-  test('rejects with the validation exit code, as picocli does', () => {
+  test('rejects with the validation exit code', () => {
     try {
       parseNumericId('1.5', 'Bundle');
       throw new Error('expected parseNumericId to throw');
@@ -56,7 +55,7 @@ describe('parseScheme', () => {
     expect(() => parseScheme([value])).toThrow("The '--scheme' parameter has an invalid value");
   });
 
-  test('rejects with the validation exit code, as picocli does', () => {
+  test('rejects with the validation exit code', () => {
     try {
       parseScheme(['en']);
       throw new Error('expected parseScheme to throw');

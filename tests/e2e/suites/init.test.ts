@@ -5,7 +5,7 @@ import { generate } from '@/lib/config/yamlGenerator.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
-// Ports crowdin-backend/tests/Cli/Common/CliInitTest.php. `init --quiet` never talks to the API.
+// `init --quiet` never talks to the API.
 describe('init generates a configuration skeleton', () => {
   let ctx: SuiteContext;
 
@@ -35,7 +35,7 @@ describe('init generates a configuration skeleton', () => {
     expect(stdout).toMatchSnapshot();
 
     // With no credentials passed, the generated file omits `api_token` entirely and keeps the real
-    // `base_url` - both differ from the PHP fixture, which is why it is not compared against.
+    // `base_url`, so it is compared against a freshly generated skeleton rather than a static fixture.
     const expectedContent = generate({
       projectId: '',
       apiToken: undefined,
@@ -123,7 +123,7 @@ describe('init generates a configuration skeleton', () => {
     expect(stderr).toContain('Configuration file is invalid.');
     expect(stderr).toContain('source parameter cannot be empty');
     expect(stderr).toContain('translation parameter cannot be empty');
-    // The empty `project_id` fails as a zod range error rather than PHP's "Required option" one,
+    // The empty `project_id` fails as a zod range error,
     // and `api_token` is absent from the skeleton entirely - left to the snapshot, since the
     // remaining wording is zod's own.
     expect(stderr).toMatchSnapshot();

@@ -4,9 +4,8 @@ import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Port of `CliIgnoreTest` (crowdin-backend tests/Cli/Common/CliIgnoreTest.php). Exercises the
- * per-file `ignore:` config key against a fixed 15-file local tree (`ALL_FILES`) with source pattern
- * `/**\/*.*`, plus the project-wide `ignore_hidden_files` setting against two hidden dotfiles that
+ * Exercises the per-file `ignore:` config key against a fixed 15-file local tree (`ALL_FILES`) with
+ * source pattern `/**\/*.*`, plus the project-wide `ignore_hidden_files` setting against two hidden dotfiles that
  * are deliberately NOT part of `ALL_FILES`.
  *
  * `ignore` differs per row and `renderConfig` only substitutes credentials, so each test writes a

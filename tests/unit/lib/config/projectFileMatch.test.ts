@@ -17,7 +17,7 @@ describe('globToRegex', () => {
     expect(globToRegex('%original_file_name%')).toBe('[^/]+');
   });
 
-  // Java PlaceholderUtil:308 rewrites `.+/` to `(.+/)?` before substituting placeholders, so a
+  // `.+/` is rewritten to `(.+/)?` before substituting placeholders, so a
   // `**` segment is optional but an `%original_path%` segment is not.
   test('makes a ** segment optional and leaves %original_path% mandatory', () => {
     expect(globToRegex('src/**/*.json')).toBe('src/(.+/)?[^/]+\\.json');
@@ -25,7 +25,7 @@ describe('globToRegex', () => {
     expect(globToRegex('%original_path%/*.json')).toBe('.+/[^/]+\\.json');
   });
 
-  // Java never escapes brackets, and Bun's Glob (which scans the local sources) honours sets, so
+  // Brackets are never escaped: Bun's Glob (which scans the local sources) honours sets, so
   // escaping them here made the server-side matcher disagree with the local scan.
   test('passes character sets through as regex classes', () => {
     expect(globToRegex('file[12].json')).toBe('file[12]\\.json');

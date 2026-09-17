@@ -19,7 +19,6 @@ describe('file views', () => {
   });
 
   test('falls back to the type alone when parser and revision are missing', () => {
-    // Java's FileListAction switches on FileInfo vs File for the same reason.
     expect(fileVerboseView.text(createFile())).toBe('#1 docs/readme.md md');
     expect(fileVerboseView.plain?.(createFile())).toBe('1 docs/readme.md md');
   });

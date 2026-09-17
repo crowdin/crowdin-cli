@@ -6,7 +6,7 @@ import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Ports crowdin-backend/tests/Cli/Common/CliWithoutConfigParamTest.php: upload sources / upload
+ * Upload sources / upload
  * translations / download translations run three ways - discovered via `crowdin.yaml`, discovered
  * via `crowdin.yml`, and with no config file at all, credentials and patterns given as CLI flags.
  *
@@ -108,7 +108,7 @@ describe('cli commands without an explicit config parameter', () => {
   });
 
   test('uploads sources using only CLI flags, no config file at all', async () => {
-    // CN-41531 regression: `-s`/`-t` together skip reading any config file, so the crowdin.yml left
+    // `-s`/`-t` together skip reading any config file, so the crowdin.yml left
     // over from the previous test is ignored.
     const result = await ctx.runner.run(
       [
@@ -134,7 +134,7 @@ describe('cli commands without an explicit config parameter', () => {
   });
 
   test('downloads translations using only CLI flags, no config file at all', async () => {
-    // CN-41531 regression, download side.
+    // Same as above, download side.
     const result = await ctx.runner.run(
       [
         'download',

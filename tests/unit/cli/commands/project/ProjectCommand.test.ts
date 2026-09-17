@@ -241,9 +241,8 @@ describe('ProjectCommand', () => {
     });
   });
 
-  // Java ProjectAddAction prints the id alone under --plain, unlike the listing it shares its text
-  // line with.
-  test('echoes the bare id in plain, as Java ProjectAddAction does', async () => {
+  // Prints the id alone, unlike the listing it shares its text line with.
+  test('echoes the bare id in plain', async () => {
     const plainOutput = createOutput({ ...globalOptions, output: 'plain' });
     const projectCommand = new ProjectCommand(
       () => plainOutput,

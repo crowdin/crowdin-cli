@@ -1832,9 +1832,8 @@ describe('UploadSourcesCommand', () => {
     expect(createCalls[0]?.[0]?.name).toBe('app.json');
   });
 
-  // Java suppresses the message under --plain and returns, exiting 0 on a pattern that matched
-  // nothing. `upload translations` keeps the exit code and drops only the message; a plain
-  // consumer is a script, so that is the behaviour worth carrying here too.
+  // A plain consumer is a script, so the exit code is kept and only the message is dropped,
+  // same as `upload translations`.
   test('keeps the exit code in plain, message suppressed, when a pattern matches nothing', async () => {
     const output = createOutputMock();
     const command = createUploadCommand(
@@ -1992,8 +1991,8 @@ describe('UploadSourcesCommand', () => {
       expect(summaryOf(output)).toEqual([{ path: 'src/app.json', action: 'skipped', reason: 'auto-update disabled' }]);
     });
 
-    // plain is line-oriented and cannot carry the action, so it lists only what changed — Java
-    // prints nothing there for a skipped file.
+    // plain is line-oriented and cannot carry the action, so it lists only what changed and
+    // prints nothing for a skipped file.
     test('lists only changed files in plain', async () => {
       await Bun.write(`${tempDir}/src/uploaded.json`, '{}');
       await Bun.write(`${tempDir}/src/kept.json`, '{}');

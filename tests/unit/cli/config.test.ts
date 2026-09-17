@@ -165,8 +165,8 @@ describe('createGetConfig', () => {
   });
 
   test('an explicit --identity suppresses the default ~/.crowdin.yml (single identity slot)', async () => {
-    // Home file has a token; --identity file does not. Config has no token. Java uses only the
-    // explicit identity file, so the home token is never picked up.
+    // Home file has a token; --identity file does not. Config has no token. Only the
+    // explicit identity file is read, so the home token is never picked up.
     await Bun.write(configPath, CONFIG_YAML.replace(`api_token: "${TOKEN}"\n`, ''));
     await Bun.write(join(homeDir, '.crowdin.yml'), `api_token: "${HOME_TOKEN}"\n`);
     const identityPath = join(tempDir, 'identity.yml');
@@ -227,7 +227,7 @@ describe('createGetConfig', () => {
         {
           source: '/only/*.md',
           translation: '/tr/%two_letters_code%/%original_file_name%',
-          // A patterned --source needs a per-file dest, same as in a config file (FileBean.checkDest).
+          // A patterned --source needs a per-file dest, same as in a config file.
           dest: '/dest/%original_file_name%',
         },
         ['source'],
@@ -258,7 +258,7 @@ describe('createGetConfig', () => {
 
   test('resolves credentials from CROWDIN_* env vars when the config file omits them', async () => {
     // Config file with no project_id / api_token: the whole credential set comes from the
-    // environment. Proves validation runs after env resolution, not before (Java parity).
+    // environment. Proves validation runs after env resolution, not before.
     await Bun.write(
       configPath,
       ['files:', '  - source: /src/**/*.json', '    translation: /l10n/%locale%/%original_file_name%', ''].join('\n'),
@@ -314,7 +314,7 @@ describe('createGetConfig', () => {
     }
   });
 
-  test('a `*_env` key wins over a literal key set in the same file (Java parity)', async () => {
+  test('a `*_env` key wins over a literal key set in the same file', async () => {
     await Bun.write(
       configPath,
       [
@@ -385,8 +385,8 @@ describe('createGetConfig', () => {
     expect(promise).rejects.toThrow(/should be a directory/);
   });
 
-  // Java collects every config problem into one ValidationException instead of failing on the first,
-  // so a single run tells you everything to fix (BaseProperties/ProjectProperties.checkProperties).
+  // Every config problem is collected into one error instead of failing on the first,
+  // so a single run tells you everything to fix.
   test('reports a bad base_path and a missing project_id together', async () => {
     await Bun.write(configPath, `api_token: "${TOKEN}"\nbase_path: ./nope\n`);
 
@@ -398,7 +398,7 @@ describe('createGetConfig', () => {
   });
 
   // The project tier is the command's declared option set: no --project-id, no requirement
-  // (Java runs glossary/tm on BaseProperties, which has no project_id at all).
+  // (glossary/tm have no project_id at all).
   test('does not require project_id for a command that does not declare it', async () => {
     await Bun.write(configPath, `api_token: "${TOKEN}"\n`);
 

@@ -4,7 +4,7 @@ import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Port of crowdin-backend/tests/Cli/Common/CliFileGroupsTest.php: four overlapping file groups over
+ * Four overlapping file groups over
  * the same `sources/` files, two of them ('*.xml' and the literal 'android.xml') matching the same
  * file and one ('*.pot') matching nothing.
  *

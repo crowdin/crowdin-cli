@@ -5,7 +5,7 @@ import { createTestProject, deleteTestProject } from '../helpers/project.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Port of crowdin-backend/tests/Cli/Common/CliStringTest.php, covering `StringCommand.ts`
+ * Covers `StringCommand.ts`
  * (list/add/edit/delete) and `CommentCommand.ts` (add/list/resolve).
  *
  * The "file does not support online string managing/editing" wording is API-owned and has differed
@@ -191,7 +191,7 @@ describe('string', () => {
 
     thirdStringId = await findStringId('third string');
     const added = await ctx.client.sourceStringsApi.getString(ctx.project.id, thirdStringId);
-    // Stored verbatim - the PHP original assumed Crowdin md5-hashes an Android-XML identifier.
+    // Stored verbatim, not md5-hashed, even for an Android-XML identifier.
     expect(added.data.identifier).toBe('str3');
     expect(added.data.maxLength).toBe(0);
     expect(added.data.context).toBe('str3');
@@ -329,7 +329,6 @@ describe('string', () => {
   test('reports a missing file when listing by file', async () => {
     const result = await ctx.runner.run(['string', 'list', '--file', 'not-exists-file.xml']);
 
-    // Exit 1, where the PHP CLI exited 102.
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("File 'not-exists-file.xml' not found");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -338,7 +337,6 @@ describe('string', () => {
   test('warns then fails adding a string to a missing file', async () => {
     const result = await ctx.runner.run(['string', 'add', 'simple string', '--file', 'not-exists-file.xml']);
 
-    // The warning matches the PHP wording, but the final error exits 1 where the PHP CLI exited 102.
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("Project doesn't contain the 'not-exists-file.xml' file");
     expect(result.stderr).toContain('No valid file specified for the string');

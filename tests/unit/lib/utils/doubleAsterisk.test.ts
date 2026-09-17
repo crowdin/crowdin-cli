@@ -2,7 +2,6 @@ import { describe, expect, test } from 'bun:test';
 import { expandDestDoubleAsterisk, replaceDoubleAsterisk } from '@/lib/utils/doubleAsterisk.ts';
 
 describe('replaceDoubleAsterisk', () => {
-  // Ported verbatim from Java TranslationsUtilsTest.testReplaceDoubleAsterisk.
   const cases: [source: string, translation: string, sourceFile: string, expected: string][] = [
     [
       '/folder/**/*.txt',
@@ -88,7 +87,7 @@ describe('replaceDoubleAsterisk', () => {
     );
   });
 
-  // Java's String.replace is literal; a JS string replacement would read `$&` as the match.
+  // A JS string replacement would read `$&` as the match.
   test('substitutes a directory containing $ literally', () => {
     expect(replaceDoubleAsterisk('/folder/**/*.txt', '/f/**/%original_file_name%', 'folder/$&x/file.txt')).toBe(
       '/f/$&x/%original_file_name%',

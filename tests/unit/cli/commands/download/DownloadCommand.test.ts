@@ -510,7 +510,7 @@ describe('DownloadCommand', () => {
         },
       } as never);
       const buildProject = spyOn(apiClient.translationsApi, 'buildProject').mockResolvedValue({} as never);
-      // Dry-run now always loads the server file map to filter excluded target languages (Java parity).
+      // Dry-run now always loads the server file map to filter excluded target languages.
       spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({ data: [] } as never);
       const listSpy = spyOn(output, 'list');
       await Bun.write(join(tempDir, 'resources/en/messages.json'), '{}');
@@ -1787,7 +1787,7 @@ describe('DownloadCommand', () => {
       await downloadCommand.sourcesAction(commandContext);
 
       // Else branch: the filename segment is substituted into the source pattern, so the file lands
-      // at its source-side location (mirrors Java's replaceUnaryAsterisk).
+      // at its source-side location.
       expect(await Bun.file(join(tempDir, 'resources', 'en', 'messages.json')).text()).toBe('source content');
     });
 
@@ -1836,7 +1836,7 @@ describe('DownloadCommand', () => {
       const downloadCommand = createDownloadCommand();
 
       spyOn(projectService, 'isEnterprise').mockReturnValue(false);
-      // The enterprise guard runs before the project is fetched (Java ordering), so loadProject and
+      // The enterprise guard runs before the project is fetched, so loadProject and
       // the build are never reached.
       const loadProjectSpy = spyOn(projectService, 'loadProject');
       const buildReviewedSpy = spyOn(fileService, 'buildReviewedSources');

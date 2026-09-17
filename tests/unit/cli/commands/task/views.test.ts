@@ -23,7 +23,7 @@ describe('task views', () => {
     expect(taskVerboseView.text(task)).toBe('#11 fr First task todo 42 NoDueDate');
   });
 
-  test('ignores verbose in plain, as Java TaskListAction does', () => {
+  test('ignores verbose in plain', () => {
     const task = createTask({ status: 'todo' as TasksModel.Status, wordsCount: 42 });
 
     expect(taskVerboseView.plain?.(task)).toBe('11 First task');
