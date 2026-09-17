@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
+import { expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
@@ -85,17 +86,14 @@ describe('multilingual csv with language placeholder', () => {
     expect(result.stdout).toContain("File 'translations/uk/2_multilingual.csv' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    expect(await Bun.file(join(ctx.workspace, 'translations/it/1_multilingual.csv')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/it/1_multilingual.csv')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'translations/it/2_multilingual.csv')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/it/2_multilingual.csv')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'translations/uk/1_multilingual.csv')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/uk/1_multilingual.csv')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'translations/uk/2_multilingual.csv')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/uk/2_multilingual.csv')).text(),
+    await expectFilesMatch(
+      ctx.workspace,
+      'translations',
+      'expected',
+      'it/1_multilingual.csv',
+      'it/2_multilingual.csv',
+      'uk/1_multilingual.csv',
+      'uk/2_multilingual.csv',
     );
   });
 
@@ -170,17 +168,14 @@ describe('multilingual csv with language placeholder', () => {
     expect(result.stdout).toContain("File 'translations/uk/2_multilingual.csv' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    expect(await Bun.file(join(ctx.workspace, 'translations/it/1_multilingual.csv')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/it/1_multilingual.csv')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'translations/it/2_multilingual.csv')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/it/2_multilingual.csv')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'translations/uk/1_multilingual.csv')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/uk/1_multilingual.csv')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'translations/uk/2_multilingual.csv')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/uk/2_multilingual.csv')).text(),
+    await expectFilesMatch(
+      ctx.workspace,
+      'translations',
+      'expected',
+      'it/1_multilingual.csv',
+      'it/2_multilingual.csv',
+      'uk/1_multilingual.csv',
+      'uk/2_multilingual.csv',
     );
   });
 });

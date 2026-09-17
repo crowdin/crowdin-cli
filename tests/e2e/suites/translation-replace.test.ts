@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { expectFilesExist, listFilesRecursively } from '../helpers/files.ts';
+import { expectFilesExist, expectFilesMatch, listFilesRecursively } from '../helpers/files.ts';
 import { projectFilePaths } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
@@ -138,17 +138,14 @@ describe('translation replace', () => {
       'files/uk/src/main/resources/org/crowdin/strings.xml',
     );
 
-    expect(await Bun.file(join(ctx.workspace, 'files/it/src/main/resources/android.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/it/src/main/resources/android.xml')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'files/it/src/main/resources/org/crowdin/strings.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/it/src/main/resources/org/crowdin/strings.xml')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'files/uk/src/main/resources/android.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/uk/src/main/resources/android.xml')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'files/uk/src/main/resources/org/crowdin/strings.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/uk/src/main/resources/org/crowdin/strings.xml')).text(),
+    await expectFilesMatch(
+      ctx.workspace,
+      'files',
+      'expected',
+      'it/src/main/resources/android.xml',
+      'it/src/main/resources/org/crowdin/strings.xml',
+      'uk/src/main/resources/android.xml',
+      'uk/src/main/resources/org/crowdin/strings.xml',
     );
 
     expect(await listFilesRecursively(join(ctx.workspace, 'files'))).toEqual(EXPECTED_LOCAL_FILES_AFTER_DOWNLOAD);

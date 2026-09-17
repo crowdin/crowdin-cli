@@ -1,6 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { join } from 'node:path';
-import { expectFilesExist } from '../helpers/files.ts';
+import { expectFilesExist, expectFilesMatch } from '../helpers/files.ts';
 import { findFileId } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
@@ -72,9 +71,7 @@ describe('multilingual csv', () => {
     await expectFilesExist(ctx.workspace, 'sources/rev1/with-translations/sample.csv');
 
     // syntax in downloaded file is different from source, so we know the file was downloaded
-    expect(await Bun.file(join(ctx.workspace, 'sources/rev1/with-translations/sample.csv')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/with-translations/sample.csv')).text(),
-    );
+    await expectFilesMatch(ctx.workspace, 'sources/rev1', 'expected', 'with-translations/sample.csv');
   });
 
   test('upload without translations import', async () => {
@@ -193,9 +190,7 @@ describe('multilingual csv', () => {
 
     await expectFilesExist(ctx.workspace, 'sources/rev1/branch/sample.csv');
 
-    expect(await Bun.file(join(ctx.workspace, 'sources', 'rev1', 'branch', 'sample.csv')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected', 'branch', 'sample.csv')).text(),
-    );
+    await expectFilesMatch(ctx.workspace, 'sources/rev1', 'expected', 'branch/sample.csv');
   });
 
   test('upload source to the root of the project', async () => {

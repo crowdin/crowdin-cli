@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { readdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { expectFilesExist } from '../helpers/files.ts';
+import { expectFilesExist, expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -72,24 +72,14 @@ describe('download translations --all', () => {
     expect(result.stdout).toContain("File 'translations/uk/{{cookiecutter.module_name}}/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await expectFilesExist(
+    await expectFilesMatch(
       ctx.workspace,
-      'files/translations/it/android.xml',
-      'files/translations/it/folder/android.xml',
-      'files/translations/uk/android.xml',
-      'files/translations/uk/folder/android.xml',
-    );
-    expect(await Bun.file(join(ctx.workspace, 'files/translations/it/android.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/translations/it/android.xml')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'files/translations/it/folder/android.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/translations/it/folder/android.xml')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'files/translations/uk/android.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/translations/uk/android.xml')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'files/translations/uk/folder/android.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/translations/uk/folder/android.xml')).text(),
+      'files',
+      'expected',
+      'translations/it/android.xml',
+      'translations/it/folder/android.xml',
+      'translations/uk/android.xml',
+      'translations/uk/folder/android.xml',
     );
   });
 
@@ -117,24 +107,14 @@ describe('download translations --all', () => {
     expect(result.stdout).toContain("File 'translations/uk/{{cookiecutter.module_name}}/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await expectFilesExist(
+    await expectFilesMatch(
       ctx.workspace,
-      'files/translations/it/android.xml',
-      'files/translations/it/folder/android.xml',
-      'files/translations/uk/android.xml',
-      'files/translations/uk/folder/android.xml',
-    );
-    expect(await Bun.file(join(ctx.workspace, 'files/translations/it/android.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/translations/it/android.xml')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'files/translations/it/folder/android.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/translations/it/folder/android.xml')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'files/translations/uk/android.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/translations/uk/android.xml')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'files/translations/uk/folder/android.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/translations/uk/folder/android.xml')).text(),
+      'files',
+      'expected',
+      'translations/it/android.xml',
+      'translations/it/folder/android.xml',
+      'translations/uk/android.xml',
+      'translations/uk/folder/android.xml',
     );
   });
 
@@ -163,17 +143,14 @@ describe('download translations --all', () => {
     expect(zipName).toBeDefined();
     expect(await Bun.file(join(ctx.workspace, 'files', zipName as string)).exists()).toBe(true);
 
-    expect(await Bun.file(join(ctx.workspace, 'files/translations/it/android.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/translations/it/android.xml')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'files/translations/it/folder/android.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/translations/it/folder/android.xml')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'files/translations/uk/android.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/translations/uk/android.xml')).text(),
-    );
-    expect(await Bun.file(join(ctx.workspace, 'files/translations/uk/folder/android.xml')).text()).toBe(
-      await Bun.file(join(ctx.workspace, 'expected/translations/uk/folder/android.xml')).text(),
+    await expectFilesMatch(
+      ctx.workspace,
+      'files',
+      'expected',
+      'translations/it/android.xml',
+      'translations/it/folder/android.xml',
+      'translations/uk/android.xml',
+      'translations/uk/folder/android.xml',
     );
   });
 

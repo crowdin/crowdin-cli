@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { expectFilesExist } from '../helpers/files.ts';
+import { expectFilesExist, expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -77,13 +77,15 @@ describe('env variables', () => {
       'translations/uk/2_android.xml',
     );
 
-    for (const language of ['it', 'uk']) {
-      for (const file of ['1_android.xml', '2_android.xml']) {
-        const downloaded = await Bun.file(join(ctx.workspace, 'translations', language, file)).text();
-        const expected = await Bun.file(join(ctx.workspace, 'expected', language, file)).text();
-        expect(downloaded).toBe(expected);
-      }
-    }
+    await expectFilesMatch(
+      ctx.workspace,
+      'translations',
+      'expected',
+      'it/1_android.xml',
+      'it/2_android.xml',
+      'uk/1_android.xml',
+      'uk/2_android.xml',
+    );
   });
 
   test('a process-level env var overrides an invalid token in the env file on re-upload', async () => {

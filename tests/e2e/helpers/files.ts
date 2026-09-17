@@ -24,6 +24,29 @@ export async function expectFilesExist(workspace: string, ...relativePaths: stri
 }
 
 /**
+ * Assert that each path exists under `actualDir` with the same content as under `expectedDir` (all
+ * relative to `workspace`). Compared as one path-to-content map, so a failure names every file that
+ * differs.
+ */
+export async function expectFilesMatch(
+  workspace: string,
+  actualDir: string,
+  expectedDir: string,
+  ...relativePaths: string[]
+): Promise<void> {
+  await expectFilesExist(workspace, ...relativePaths.map((path) => join(actualDir, path)));
+
+  const read = async (dir: string) =>
+    Object.fromEntries(
+      await Promise.all(
+        relativePaths.map(async (path) => [path, await Bun.file(join(workspace, dir, path)).text()] as const),
+      ),
+    );
+
+  expect(await read(actualDir)).toEqual(await read(expectedDir));
+}
+
+/**
  * Record the content of every given path and delete it. Most suites' `translation` patterns resolve
  * to paths their upload fixtures already occupy, so a download that silently writes nothing would
  * still leave those files on disk and pass an existence check - and comparing a file against content
