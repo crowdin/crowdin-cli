@@ -82,7 +82,7 @@ describe('BranchCommand', () => {
 
     spyOn(Bun, 'sleep').mockResolvedValue(undefined);
     spyOn(console, 'log').mockImplementation(() => {});
-    spyOn(console, 'error').mockImplementation(() => {});
+    spyOn(process.stderr, 'write').mockImplementation(() => true);
     spyOn(console, 'table').mockImplementation(() => {});
   });
 
@@ -266,7 +266,7 @@ describe('BranchCommand', () => {
       await branchCommand.addAction(createCommandContext({}, ['main']));
 
       expect(branchService.add).not.toHaveBeenCalled();
-      expect(console.error).toHaveBeenCalledWith(
+      expect(process.stderr.write).toHaveBeenCalledWith(
         expect.stringContaining("Branch 'main' already exists in the project"),
       );
     });
@@ -319,7 +319,9 @@ describe('BranchCommand', () => {
       await branchCommand.deleteAction(createCommandContext({}, ['main']));
 
       expect(branchService.delete).not.toHaveBeenCalled();
-      expect(console.error).toHaveBeenCalledWith(expect.stringContaining("Branch 'main' doesn't exist in the project"));
+      expect(process.stderr.write).toHaveBeenCalledWith(
+        expect.stringContaining("Branch 'main' doesn't exist in the project"),
+      );
     });
 
     test('propagates delete errors', async () => {

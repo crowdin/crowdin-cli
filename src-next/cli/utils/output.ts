@@ -107,6 +107,11 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
    * a command that warns about three files and then fails still leaves parseable output behind.
    */
   function diagnostic(level: 'error' | 'warning', message: string, code?: number): void {
+    // Not console.error: bun paints the whole line red under FORCE_COLOR, whatever --no-colors says.
+    process.stderr.write(`${diagnosticLine(level, message, code)}\n`);
+  }
+
+  function diagnosticLine(level: 'error' | 'warning', message: string, code?: number): string {
     // One record per diagnostic, emitted as it happens, so a killed run keeps the warnings it
     // already produced. json separates records by newline, toon by blank line; both escape newlines
     // inside a message, so neither separator can appear within a record. TOON's list form is out:
@@ -116,19 +121,17 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
 
       // Not formatData for json: it indents for readability on stdout, which would spread one
       // record over several lines and take the newline separator with it.
-      console.error(format === 'toon' ? `${formatData(record, format)}\n` : JSON.stringify(record));
-      return;
+      return format === 'toon' ? `${formatData(record, format)}\n` : JSON.stringify(record);
     }
 
     // plain drops the symbol for the same reason its views do: the line is the contract.
     if (format === 'plain') {
-      console.error(message);
-      return;
+      return message;
     }
 
     const symbol = level === 'error' ? colors.red(S_ERROR) : colors.yellow(S_WARN);
 
-    console.error(`${symbol}  ${message}`);
+    return `${symbol}  ${message}`;
   }
 
   return {

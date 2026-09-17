@@ -84,7 +84,7 @@ describe('ContextCommand', () => {
     mockProject();
 
     spyOn(console, 'log').mockImplementation(() => {});
-    spyOn(console, 'error').mockImplementation(() => {});
+    spyOn(process.stderr, 'write').mockImplementation(() => true);
     spyOn(Bun.inspect, 'table').mockImplementation(() => '');
   });
 
@@ -95,7 +95,7 @@ describe('ContextCommand', () => {
 
   // Diagnostics go to stderr, results to stdout; this is everything the user saw.
   const loggedOutput = () =>
-    [console.log, console.error]
+    [console.log, process.stderr.write]
       .flatMap((fn) => (fn as ReturnType<typeof mock>).mock.calls)
       .map((call) => String(call[0]))
       .join('\n');

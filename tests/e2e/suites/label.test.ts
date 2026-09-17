@@ -46,6 +46,14 @@ describe('label', () => {
     expect(result.stdout).toContain('delete <title>');
   });
 
+  test('colors help unless --no-colors is passed', async () => {
+    const result = await ctx.runner.run(['label'], { colors: true });
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    // Bold title, cyan program name.
+    expect(result.stdout).toContain('\u001b[1mUsage:\u001b[22m \u001b[36mcrowdin\u001b[39m');
+  });
+
   test('rejects an unknown subcommand', async () => {
     const result = await ctx.runner.run(['label', 'bogus']);
 

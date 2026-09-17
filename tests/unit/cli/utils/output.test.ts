@@ -92,6 +92,22 @@ describe('machine output keys', () => {
 });
 
 describe('diagnostics', () => {
+  /** stderr writes with the newline each one ends in stripped, one entry per diagnostic. */
+  function captureStderr(): string[] {
+    const errors: string[] = [];
+
+    spyOn(process.stderr, 'write').mockImplementation((chunk) => {
+      errors.push(String(chunk).replace(/\n$/, ''));
+      return true;
+    });
+
+    return errors;
+  }
+
+  afterEach(() => {
+    (process.stderr.write as ReturnType<typeof spyOn>).mockRestore?.();
+  });
+
   const options = (output: string): GlobalOptions => ({
     colors: false,
     config: '',
@@ -105,7 +121,7 @@ describe('diagnostics', () => {
   // still leaves parseable output behind.
   test.each(['json', 'toon', 'text', 'plain'])('keeps diagnostics off stdout in %s', (format) => {
     const log = spyOn(console, 'log').mockImplementation(() => {});
-    spyOn(console, 'error').mockImplementation(() => {});
+    captureStderr();
 
     const out = createOutput(options(format));
 
@@ -116,11 +132,7 @@ describe('diagnostics', () => {
   });
 
   test('emits one JSON object per diagnostic in machine formats', () => {
-    const errors: string[] = [];
-
-    spyOn(console, 'error').mockImplementation((line) => {
-      errors.push(String(line));
-    });
+    const errors = captureStderr();
 
     const out = createOutput(options('json'));
 
@@ -139,29 +151,20 @@ describe('diagnostics', () => {
   // toon records span lines, so a blank line ends each one. Newlines inside a message are
   // escaped by both formats, so neither separator can turn up inside a record.
   test('emits toon blocks separated by a blank line when the output format is toon', () => {
-    const errors: string[] = [];
-
-    spyOn(console, 'error').mockImplementation((line) => {
-      errors.push(String(line));
-    });
+    const errors = captureStderr();
 
     const out = createOutput(options('toon'));
 
     out.warning('a warning');
     out.error('a failure', { code: 1 });
 
-    // console.error appends the newline the spy does not capture, so add it back.
     expect(errors.map((line) => `${line}\n`).join('')).toBe(
       'level: warning\nmessage: a warning\n\nlevel: error\nmessage: a failure\ncode: 1\n\n',
     );
   });
 
   test('escapes a newline inside a message rather than ending the record', () => {
-    const errors: string[] = [];
-
-    spyOn(console, 'error').mockImplementation((line) => {
-      errors.push(String(line));
-    });
+    const errors = captureStderr();
 
     createOutput(options('toon')).warning('first line\n\nsecond line');
 
@@ -175,21 +178,21 @@ describe('diagnostics', () => {
   // Warnings used to be dropped outside text, so --output consumers lost them silently.
   test('reports warnings in every format', () => {
     for (const format of ['json', 'toon', 'text', 'plain']) {
-      const error = spyOn(console, 'error').mockImplementation(() => {});
+      const errors = captureStderr();
 
       createOutput(options(format)).warning('a warning');
 
-      expect(error).toHaveBeenCalledWith(expect.stringContaining('a warning'));
-      error.mockRestore();
+      expect(errors).toEqual([expect.stringContaining('a warning')]);
+      (process.stderr.write as ReturnType<typeof spyOn>).mockRestore();
     }
   });
 
   test('leaves the symbol off the plain line', () => {
-    const error = spyOn(console, 'error').mockImplementation(() => {});
+    const errors = captureStderr();
 
     createOutput(options('plain')).error('a failure');
 
-    expect(error).toHaveBeenCalledWith('a failure');
+    expect(errors).toEqual(['a failure']);
   });
 });
 

@@ -61,7 +61,7 @@ describe('createGetConfig', () => {
 
     output = createOutput(globalOptions);
     spyOn(console, 'log').mockImplementation(() => {});
-    spyOn(console, 'error').mockImplementation(() => {});
+    spyOn(process.stderr, 'write').mockImplementation(() => true);
   });
 
   afterEach(async () => {

@@ -76,7 +76,7 @@ describe('GlossaryCommand', () => {
     };
 
     spyOn(console, 'log').mockImplementation(() => {});
-    spyOn(console, 'error').mockImplementation(() => {});
+    spyOn(process.stderr, 'write').mockImplementation(() => true);
     spyOn(console, 'table').mockImplementation(() => {});
   });
 
@@ -217,7 +217,7 @@ describe('GlossaryCommand', () => {
 
       await glossaryCommand.listAction(createCommandContext({ verbose: true, output: 'text' }));
 
-      expect(console.error).toHaveBeenCalledWith(
+      expect(process.stderr.write).toHaveBeenCalledWith(
         expect.stringContaining('You do not have permission to manage this glossary'),
       );
     });

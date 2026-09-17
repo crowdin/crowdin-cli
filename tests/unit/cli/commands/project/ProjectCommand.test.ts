@@ -105,7 +105,7 @@ describe('ProjectCommand', () => {
     spyOn(projectService, 'loadProject').mockResolvedValue({
       data: { id: 123, webUrl: 'https://crowdin.com/project/demo' },
     } as never);
-    const error = spyOn(console, 'error').mockImplementation(() => {});
+    const error = spyOn(process.stderr, 'write').mockImplementation(() => true);
 
     await projectCommand.browseAction(commandContext);
 
