@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
+import { projectFilePaths } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -81,11 +82,6 @@ async function resetProject(ctx: SuiteContext): Promise<void> {
   for (const directory of rootDirectories) {
     await ctx.client.sourceFilesApi.deleteDirectory(ctx.project.id, directory.data.id);
   }
-}
-
-async function projectFilePaths(ctx: SuiteContext): Promise<string[]> {
-  const files = await ctx.client.sourceFilesApi.listProjectFiles(ctx.project.id, { recursion: '1' });
-  return files.data.map((file) => file.data.path).sort();
 }
 
 describe('ignore', () => {

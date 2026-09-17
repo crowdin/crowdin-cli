@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { decode } from '@toon-format/toon';
+import { findBranch } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { createTestProject, deleteTestProject } from '../helpers/project.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
@@ -53,19 +54,8 @@ describe('branch', () => {
     return response.data.map((entry) => entry.data.name).sort();
   }
 
-  async function findBranch(name: string, projectId = ctx.project.id) {
-    const response = await ctx.client.sourceFilesApi.withFetchAll().listProjectBranches(projectId, { name });
-    const match = response.data.find((entry) => entry.data.name === name);
-
-    if (!match) {
-      throw new Error(`Branch '${name}' not found via the API`);
-    }
-
-    return match.data;
-  }
-
   async function branchStringTexts(branchName: string): Promise<string[]> {
-    const branch = await findBranch(branchName);
+    const branch = await findBranch(ctx, branchName);
     const response = await ctx.client.sourceStringsApi
       .withFetchAll()
       .listProjectStrings(ctx.project.id, { branchId: branch.id });
@@ -129,7 +119,7 @@ describe('branch', () => {
     const result = await ctx.runner.run(['branch', 'add', FEATURE_BRANCH, '--title', 'Feature work']);
 
     expect(result).toMatchObject({ exitCode: 0 });
-    expect((await findBranch(FEATURE_BRANCH)).title).toBe('Feature work');
+    expect((await findBranch(ctx, FEATURE_BRANCH)).title).toBe('Feature work');
   });
 
   // --priority and --export-pattern are file-based concepts: the API answers "Field 'priority' is
@@ -149,7 +139,7 @@ describe('branch', () => {
 
     expect(result).toMatchObject({ exitCode: 0 });
 
-    const branch = await findBranch('prioritized', fileBasedProjectId);
+    const branch = await findBranch(ctx, 'prioritized', fileBasedProjectId);
 
     expect(branch.priority).toBe('high');
     expect(branch.exportPattern).toBe('/%two_letters_code%/%original_file_name%');
@@ -167,7 +157,7 @@ describe('branch', () => {
     ]);
 
     expect(result).toMatchObject({ exitCode: 0 });
-    expect((await findBranch('prioritized', fileBasedProjectId)).priority).toBe('low');
+    expect((await findBranch(ctx, 'prioritized', fileBasedProjectId)).priority).toBe('low');
   });
 
   test('rejects an unsupported --priority value', async () => {
@@ -185,7 +175,7 @@ describe('branch', () => {
     expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain(NORMALIZED_BRANCH);
 
-    const branch = await findBranch(NORMALIZED_BRANCH);
+    const branch = await findBranch(ctx, NORMALIZED_BRANCH);
 
     expect(branch.title).toBe(SLASHED_BRANCH);
   });
@@ -261,7 +251,7 @@ describe('branch', () => {
     const result = await ctx.runner.run(['branch', 'edit', RENAMED_BRANCH, '--title', 'Renamed feature']);
 
     expect(result).toMatchObject({ exitCode: 0 });
-    expect((await findBranch(RENAMED_BRANCH)).title).toBe('Renamed feature');
+    expect((await findBranch(ctx, RENAMED_BRANCH)).title).toBe('Renamed feature');
   });
 
   test('clones a branch', async () => {

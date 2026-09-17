@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { findCommentId, findStringId } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -22,30 +23,6 @@ describe('comment', () => {
   afterAll(async () => {
     await teardownSuite(ctx);
   });
-
-  async function findStringId(text: string): Promise<number> {
-    const response = await ctx.client.sourceStringsApi
-      .withFetchAll()
-      .listProjectStrings(ctx.project.id, { filter: text });
-    const match = response.data.find((entry) => entry.data.text === text);
-
-    if (!match) {
-      throw new Error(`String '${text}' not found via the API`);
-    }
-
-    return match.data.id;
-  }
-
-  async function findCommentId(text: string): Promise<number> {
-    const response = await ctx.client.stringCommentsApi.withFetchAll().listStringComments(ctx.project.id);
-    const match = response.data.find((entry) => entry.data.text === text);
-
-    if (!match) {
-      throw new Error(`Comment '${text}' not found via the API`);
-    }
-
-    return match.data.id;
-  }
 
   test('prints help when invoked without a subcommand', async () => {
     const result = await ctx.runner.run(['comment']);
@@ -79,8 +56,8 @@ describe('comment', () => {
     expect(result.stdout).toContain("File 'strings.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    welcomeStringId = await findStringId('Welcome aboard');
-    farewellStringId = await findStringId('See you next time');
+    welcomeStringId = await findStringId(ctx, 'Welcome aboard');
+    farewellStringId = await findStringId(ctx, 'See you next time');
   });
 
   // `text` is declared as a required positional (builder.ts wraps every argument in `<>`), so
@@ -209,7 +186,7 @@ describe('comment', () => {
     expect(result.stdout).toContain('Wrong translation of farewell');
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    translationMistakeId = await findCommentId('Wrong translation of farewell');
+    translationMistakeId = await findCommentId(ctx, 'Wrong translation of farewell');
   });
 
   test('adds an issue with a source_mistake type', async () => {

@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
+import { findFileId, translationCount } from '../helpers/lookup.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
@@ -28,16 +29,8 @@ describe('update_option', () => {
   });
 
   async function findString(fileName: string): Promise<number> {
-    const files = await ctx.client.sourceFilesApi.withFetchAll().listProjectFiles(ctx.project.id);
-    const file = files.data.find((entry) => entry.data.path === `/sources/${fileName}`);
-
-    if (!file) {
-      throw new Error(`File '${fileName}' not found via the API`);
-    }
-
-    const strings = await ctx.client.sourceStringsApi
-      .withFetchAll()
-      .listProjectStrings(ctx.project.id, { fileId: file.data.id });
+    const fileId = await findFileId(ctx, `/sources/${fileName}`);
+    const strings = await ctx.client.sourceStringsApi.withFetchAll().listProjectStrings(ctx.project.id, { fileId });
     const match = strings.data[0];
 
     if (!match) {
@@ -56,12 +49,6 @@ describe('update_option', () => {
     return response.data.length;
   }
 
-  async function translationCount(stringId: number): Promise<number> {
-    const response = await ctx.client.stringTranslationsApi.listStringTranslations(ctx.project.id, stringId, LANGUAGE);
-
-    return response.data.length;
-  }
-
   test('uploads both sources and translates them', async () => {
     const upload = await ctx.runner.run(['upload', 'sources']);
 
@@ -76,7 +63,7 @@ describe('update_option', () => {
         text: 'Привіт',
       });
 
-      expect(await translationCount(stringId)).toBe(1);
+      expect(await translationCount(ctx, stringId, LANGUAGE)).toBe(1);
 
       // Only the third file's option claims to carry approvals through an update.
       if (fileName === 'approved.json') {
@@ -108,8 +95,8 @@ describe('update_option', () => {
     expect(uploaded.map((file) => file.action)).toEqual(['updated', 'updated', 'updated']);
 
     // The string ids change with the text, so look them up again rather than reusing the old ones.
-    const keptTranslations = await translationCount(await findString('kept.json'));
-    const plainTranslations = await translationCount(await findString('plain.json'));
+    const keptTranslations = await translationCount(ctx, await findString('kept.json'), LANGUAGE);
+    const plainTranslations = await translationCount(ctx, await findString('plain.json'), LANGUAGE);
 
     expect(keptTranslations).toBe(1);
     expect(plainTranslations).toBe(0);
@@ -120,7 +107,7 @@ describe('update_option', () => {
     // survives the edit still approved rather than reset to unapproved.
     const stringId = await findString('approved.json');
 
-    expect(await translationCount(stringId)).toBe(1);
+    expect(await translationCount(ctx, stringId, LANGUAGE)).toBe(1);
     expect(await approvalCount(stringId)).toBe(1);
   });
 });

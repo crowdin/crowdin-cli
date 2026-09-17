@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { decode } from '@toon-format/toon';
+import { findBranch, findCommentId, findFileId, findStringId } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { createTestProject, deleteTestProject } from '../helpers/project.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
@@ -39,54 +40,6 @@ describe('string', () => {
 
     await teardownSuite(ctx);
   });
-
-  async function findBranchId(name: string): Promise<number> {
-    const response = await ctx.client.sourceFilesApi.withFetchAll().listProjectBranches(ctx.project.id, { name });
-    const match = response.data.find((entry) => entry.data.name === name);
-
-    if (!match) {
-      throw new Error(`Branch '${name}' not found via the API`);
-    }
-
-    return match.data.id;
-  }
-
-  async function findFileId(projectPath: string): Promise<number> {
-    const response = await ctx.client.sourceFilesApi.withFetchAll().listProjectFiles(ctx.project.id);
-    const match = response.data.find((entry) => entry.data.path === projectPath);
-
-    if (!match) {
-      throw new Error(`File '${projectPath}' not found via the API`);
-    }
-
-    return match.data.id;
-  }
-
-  async function findStringId(text: string, scope: { branchId?: number; fileId?: number } = {}): Promise<number> {
-    const response = await ctx.client.sourceStringsApi.withFetchAll().listProjectStrings(ctx.project.id, {
-      ...(scope.branchId !== undefined ? { branchId: scope.branchId } : {}),
-      ...(scope.fileId !== undefined ? { fileId: scope.fileId } : {}),
-      filter: text,
-    });
-    const match = response.data.find((entry) => entry.data.text === text);
-
-    if (!match) {
-      throw new Error(`String '${text}' not found via the API`);
-    }
-
-    return match.data.id;
-  }
-
-  async function findCommentId(text: string): Promise<number> {
-    const response = await ctx.client.stringCommentsApi.withFetchAll().listStringComments(ctx.project.id);
-    const match = response.data.find((entry) => entry.data.text === text);
-
-    if (!match) {
-      throw new Error(`Comment '${text}' not found via the API`);
-    }
-
-    return match.data.id;
-  }
 
   async function labelTitles(labelIds: number[]): Promise<string[]> {
     if (labelIds.length === 0) {
@@ -189,7 +142,7 @@ describe('string', () => {
     expect(result.stdout).toContain('third string');
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    thirdStringId = await findStringId('third string');
+    thirdStringId = await findStringId(ctx, 'third string');
     const added = await ctx.client.sourceStringsApi.getString(ctx.project.id, thirdStringId);
     // Stored verbatim, not md5-hashed, even for an Android-XML identifier.
     expect(added.data.identifier).toBe('str3');
@@ -221,7 +174,7 @@ describe('string', () => {
     expect(result.stdout).toContain('fourth string');
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    fourthStringId = await findStringId('fourth string');
+    fourthStringId = await findStringId(ctx, 'fourth string');
     const added = await ctx.client.sourceStringsApi.getString(ctx.project.id, fourthStringId);
     expect(added.data.identifier).toBe('str4');
     expect(added.data.maxLength).toBe(10);
@@ -295,7 +248,7 @@ describe('string', () => {
     expect(result.stdout).toContain("File 'text.txt'");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    branchId = await findBranchId('test-branch');
+    branchId = (await findBranch(ctx, 'test-branch')).id;
   });
 
   test('adds a source string to a branch-scoped file', async () => {
@@ -318,7 +271,7 @@ describe('string', () => {
   });
 
   test('deletes a source string from a branch-scoped file', async () => {
-    const id = await findStringId('first string', { branchId });
+    const id = await findStringId(ctx, 'first string', { branchId });
     const result = await ctx.runner.run(['string', 'delete', String(id)]);
 
     expect(result).toMatchObject({ exitCode: 0 });
@@ -377,8 +330,8 @@ describe('string', () => {
   });
 
   test('fails editing a string in an unsupported file type', async () => {
-    const textFileId = await findFileId('/text.txt');
-    const id = await findStringId('First text string.', { fileId: textFileId });
+    const textFileId = await findFileId(ctx, '/text.txt');
+    const id = await findStringId(ctx, 'First text string.', { fileId: textFileId });
     const result = await ctx.runner.run(['string', 'edit', String(id), '--text', 'simple string']);
 
     expect(result.exitCode).toBe(1);
@@ -410,8 +363,8 @@ describe('string', () => {
   });
 
   test('fails deleting a string in an unsupported file type', async () => {
-    const textFileId = await findFileId('/text.txt');
-    const id = await findStringId('First text string.', { fileId: textFileId });
+    const textFileId = await findFileId(ctx, '/text.txt');
+    const id = await findStringId(ctx, 'First text string.', { fileId: textFileId });
     const result = await ctx.runner.run(['string', 'delete', String(id)]);
 
     expect(result.exitCode).toBe(1);
@@ -461,7 +414,7 @@ describe('string', () => {
   });
 
   test('adds a comment to a source string', async () => {
-    const id = await findStringId("first string source' with quotes", { branchId });
+    const id = await findStringId(ctx, "first string source' with quotes", { branchId });
     const result = await ctx.runner.run(['comment', 'add', 'Added comment', '--string-id', String(id), '-l', 'uk']);
 
     expect(result).toMatchObject({ exitCode: 0 });
@@ -478,7 +431,7 @@ describe('string', () => {
   });
 
   test('adds an issue to a source string', async () => {
-    branchStr2Id = await findStringId('second string', { branchId });
+    branchStr2Id = await findStringId(ctx, 'second string', { branchId });
     const result = await ctx.runner.run([
       'comment',
       'add',
@@ -515,7 +468,7 @@ describe('string', () => {
     expect(result.stdout).toContain('Added issue string context_request id 10');
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    contextRequestCommentId = await findCommentId('Added issue string context_request id 10');
+    contextRequestCommentId = await findCommentId(ctx, 'Added issue string context_request id 10');
   });
 
   test('lists comments filtered by a specific string id', async () => {

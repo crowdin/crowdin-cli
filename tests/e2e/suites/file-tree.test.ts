@@ -1,6 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { readdir, rm } from 'node:fs/promises';
+import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
+import { listFilesRecursively } from '../helpers/files.ts';
+import { projectFilePaths } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -45,32 +47,6 @@ const MASTER_SOURCE_FILE_PATHS = [
 ].sort();
 
 const BRANCH_SOURCE_FILE_PATHS = MASTER_SOURCE_FILE_PATHS.map((path) => `/branch1${path}`).sort();
-
-async function projectFilePaths(ctx: SuiteContext): Promise<string[]> {
-  const files = await ctx.client.sourceFilesApi.listProjectFiles(ctx.project.id, { recursion: '1' });
-  return files.data.map((file) => file.data.path).sort();
-}
-
-async function listFilesRecursively(root: string): Promise<string[]> {
-  const results: string[] = [];
-
-  async function walk(dir: string, prefix: string): Promise<void> {
-    const entries = await readdir(dir, { withFileTypes: true });
-
-    for (const entry of entries) {
-      const relativePath = prefix ? `${prefix}/${entry.name}` : entry.name;
-
-      if (entry.isDirectory()) {
-        await walk(join(dir, entry.name), relativePath);
-      } else if (entry.isFile()) {
-        results.push(relativePath);
-      }
-    }
-  }
-
-  await walk(root, '');
-  return results.sort();
-}
 
 describe('file tree', () => {
   let ctx: SuiteContext;

@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
 import { expectFilesExist } from '../helpers/files.ts';
+import { findFileId } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
@@ -24,7 +25,7 @@ describe('multilingual csv', () => {
     expect(result.stdout).toContain("File 'with-translations/sample.csv'");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    fileId = await findFileId('/with-translations/sample.csv');
+    fileId = await findFileId(ctx, '/with-translations/sample.csv');
 
     expect(await translationsFor('uk', fileId)).toEqual([
       'стрічка 1',
@@ -86,7 +87,7 @@ describe('multilingual csv', () => {
     expect(result.stdout).toContain("File 'without-translations/sample.csv'");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    fileId = await findFileId('/without-translations/sample.csv');
+    fileId = await findFileId(ctx, '/without-translations/sample.csv');
 
     expect(await translationsFor('uk', fileId)).toBeEmpty();
     expect(await translationsFor('it', fileId)).toBeEmpty();
@@ -212,16 +213,5 @@ describe('multilingual csv', () => {
       fileId,
     });
     return response.data.map((entry) => ('text' in entry.data ? entry.data.text : null));
-  }
-
-  async function findFileId(projectPath: string): Promise<number> {
-    const response = await ctx.client.sourceFilesApi.listProjectFiles(ctx.project.id);
-    const match = response.data.find((entry) => entry.data.path === projectPath);
-
-    if (!match) {
-      throw new Error(`File '${projectPath}' not found via the API`);
-    }
-
-    return match.data.id;
   }
 });

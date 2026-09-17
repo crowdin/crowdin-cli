@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
+import { findStringId } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -76,19 +77,6 @@ describe('context', () => {
     return output.replace(/\(ID: \d+\)/g, '(ID: <project>)');
   }
 
-  async function findStringId(text: string): Promise<number> {
-    const response = await ctx.client.sourceStringsApi
-      .withFetchAll()
-      .listProjectStrings(ctx.project.id, { filter: text });
-    const match = response.data.find((entry) => entry.data.text === text);
-
-    if (!match) {
-      throw new Error(`String '${text}' not found via the API`);
-    }
-
-    return match.data.id;
-  }
-
   test('prints help when invoked without a subcommand', async () => {
     const result = await ctx.runner.run(['context']);
 
@@ -115,9 +103,9 @@ describe('context', () => {
     expect(result.stdout).toContain("File 'web.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    welcomeStringId = await findStringId('Welcome aboard');
-    logoutStringId = await findStringId('Log out');
-    checkoutStringId = await findStringId('Proceed to checkout');
+    welcomeStringId = await findStringId(ctx, 'Welcome aboard');
+    logoutStringId = await findStringId(ctx, 'Log out');
+    checkoutStringId = await findStringId(ctx, 'Proceed to checkout');
   });
 
   // Crowdin derives a context of its own for every string it imports from an XML resource, so the
