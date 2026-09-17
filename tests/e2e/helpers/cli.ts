@@ -14,8 +14,10 @@ export interface CliRunOptions {
   env?: Record<string, string>;
   /** Working directory; defaults to the workspace. */
   cwd?: string;
-  /** Skip the auto-appended `-c <config>` flag (the output flags are always added - see run()). */
+  /** Skip the auto-appended `-c <config>` flag (`--no-progress` is always added - see run()). */
   noConfig?: boolean;
+  /** Leave `--no-colors` off, for the tests that check colored output. */
+  colors?: boolean;
   timeoutMs?: number;
 }
 
@@ -43,9 +45,15 @@ export class CliRunner {
 
     // Always appended, `noConfig` or not: without `--no-progress` the spinner's frames land in
     // stdout, and how many depends on how long the call took.
-    fullArgs.push('--no-progress', '--no-colors');
+    fullArgs.push('--no-progress');
 
-    const env: Record<string, string | undefined> = { ...process.env, HOME: ISOLATED_HOME };
+    if (!runOpts.colors) {
+      fullArgs.push('--no-colors');
+    }
+
+    // FORCE_COLOR pinned: `bun test --parallel` sets it only on a TTY. The `colors` tests need it on
+    // a pipe, and --no-colors must win over it everywhere else.
+    const env: Record<string, string | undefined> = { ...process.env, HOME: ISOLATED_HOME, FORCE_COLOR: '1' };
 
     for (const key of CREDENTIAL_ENV_VARS) {
       delete env[key];
