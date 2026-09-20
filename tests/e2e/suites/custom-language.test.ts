@@ -1,9 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { rm } from 'node:fs/promises';
-import { join } from 'node:path';
 import { type Client, CrowdinValidationError, type LanguagesModel } from '@crowdin/crowdin-api-client';
 import { resolveEnv } from '../helpers/env.ts';
-import { expectFilesMatch } from '../helpers/files.ts';
+import { clearDir, expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { createApiClient } from '../helpers/project.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
@@ -80,7 +78,7 @@ describe('custom language', () => {
   test('downloads translations for both the custom and standard target language', async () => {
     // The upload fixtures sit at the download's own paths, so clear them first - otherwise the
     // comparison is against the local copy, not what the server returned.
-    await rm(join(ctx.workspace, 'translations'), { recursive: true, force: true });
+    await clearDir(ctx.workspace, 'translations');
 
     const result = await ctx.runner.run(['download', 'translations']);
 

@@ -1,20 +1,9 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { expectFailure } from '../helpers/cli.ts';
-import { expectFilesMatch } from '../helpers/files.ts';
+import { clearDir, expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
-
-/**
- * Every valid pseudo-localization test downloads to `translations/<language>/android.xml`, and the
- * three "no character_transformation" cases plus the default-settings case all share the same
- * `en` destination. Clear it before each download so a would-be failed/omitted extraction can't be
- * masked by a stale file left over from an earlier test at the same path.
- */
-async function clearDownloadedTranslations(ctx: SuiteContext): Promise<void> {
-  await rm(join(ctx.workspace, 'translations'), { recursive: true, force: true });
-}
 
 describe('download pseudo', () => {
   let ctx: SuiteContext;
@@ -44,7 +33,9 @@ describe('download pseudo', () => {
 
   test('downloads pseudo translations with all parameters (cyrillic transformation)', async () => {
     await switchConfig(ctx, 'all-params');
-    await clearDownloadedTranslations(ctx);
+    // Cleared first: several cases share the same `en` destination, so a stale file could mask a
+    // failed extraction.
+    await clearDir(ctx.workspace, 'translations');
 
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
@@ -59,7 +50,7 @@ describe('download pseudo', () => {
 
   test('downloads pseudo translations with asian character transformation', async () => {
     await switchConfig(ctx, 'asian');
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
 
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
@@ -72,7 +63,7 @@ describe('download pseudo', () => {
 
   test('downloads pseudo translations with european character transformation', async () => {
     await switchConfig(ctx, 'european');
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
 
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
@@ -85,7 +76,7 @@ describe('download pseudo', () => {
 
   test('downloads pseudo translations with arabic character transformation', async () => {
     await switchConfig(ctx, 'arabic');
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
 
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
@@ -98,7 +89,7 @@ describe('download pseudo', () => {
 
   test('downloads pseudo translations with length correction only', async () => {
     await switchConfig(ctx, 'length-correction');
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
 
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
@@ -111,7 +102,7 @@ describe('download pseudo', () => {
 
   test('downloads pseudo translations with prefix only', async () => {
     await switchConfig(ctx, 'prefix');
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
 
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
@@ -124,7 +115,7 @@ describe('download pseudo', () => {
 
   test('downloads pseudo translations with suffix only', async () => {
     await switchConfig(ctx, 'suffix');
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
 
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
@@ -137,7 +128,7 @@ describe('download pseudo', () => {
 
   test('downloads pseudo translations using default settings when pseudo_localization is absent', async () => {
     await switchConfig(ctx, 'no-pseudo-section');
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
 
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
@@ -179,7 +170,7 @@ describe('download pseudo', () => {
   // schema-failure tests leave an invalid config behind, so each of these switches first.
   test('previews a pseudo download without writing anything', async () => {
     await switchConfig(ctx, 'cyrillic');
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
 
     const result = await ctx.runner.run(['download', 'translations', '--pseudo', '--dryrun']);
 
@@ -190,7 +181,7 @@ describe('download pseudo', () => {
 
   test('maps the pseudo archive against every project language, ignoring --language', async () => {
     await switchConfig(ctx, 'cyrillic');
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
 
     // `-l fr` narrows a normal download to French. A pseudo build has one language of its own -
     // cyrillic means uk - and is mapped against every project language rather than the resolved
@@ -204,7 +195,7 @@ describe('download pseudo', () => {
 
   test('builds pseudo translations for a branch', async () => {
     await switchConfig(ctx, 'cyrillic');
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
 
     const upload = await ctx.runner.run(['upload', 'sources', '-b', 'pseudo-branch']);
 
@@ -219,7 +210,7 @@ describe('download pseudo', () => {
 
   test('still builds pseudo translations when the config sets export options', async () => {
     await switchConfig(ctx, 'export-only-approved');
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
 
     // Nothing here is approved, so a normal download of this config falls back to the source text.
     const normal = await ctx.runner.run(['download', 'translations']);
@@ -231,7 +222,7 @@ describe('download pseudo', () => {
     // no project source, the sibling of the warning translations-not-match covers.
     expect(normal.stderr).toContain('Due to missing respective sources, the following translations will be omitted:');
 
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
 
     // A pseudo build is a single all-files request carrying no export options, so the same config
     // yields transformed text instead of the source.

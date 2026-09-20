@@ -1,10 +1,16 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { expectFailure } from '../helpers/cli.ts';
-import { capturedContent, expectFilesExist } from '../helpers/files.ts';
+import { capturedContent, clearDir, expectFilesExist } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { createExtraProject, type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
+import {
+  createExtraProject,
+  restoreConfig,
+  type SuiteContext,
+  setupSuite,
+  switchConfig,
+  teardownSuite,
+} from '../helpers/suite.ts';
 
 // Local paths the nested source patterns resolve to (see fixtures/download-sources/config/crowdin.yml).
 // `download sources` reconstructs these exact local paths from the `source` pattern regardless of the
@@ -20,14 +26,11 @@ const SOURCE_RELATIVE_PATHS = [
 ];
 
 async function removeDownloadedSources(ctx: SuiteContext): Promise<void> {
-  await rm(join(ctx.workspace, 'folder_1'), { recursive: true, force: true });
-  await rm(join(ctx.workspace, 'folder_2'), { recursive: true, force: true });
+  await clearDir(ctx.workspace, 'folder_1', 'folder_2');
 }
 
 describe('download sources', () => {
   let ctx: SuiteContext;
-  // Captured so a later test can switch back after the no-sources config is swapped in.
-  let originalConfig: string;
   let stringsBasedProjectId: number;
   // Captured before the first download deletes the local copies; the branch upload used the same
   // fixture files, so every later test compares against these bytes.
@@ -35,7 +38,6 @@ describe('download sources', () => {
 
   beforeAll(async () => {
     ctx = await setupSuite('download-sources', { targetLanguageIds: ['it', 'uk'] });
-    originalConfig = await Bun.file(join(ctx.workspace, 'crowdin.yml')).text();
     // File management is refused for string-based projects, and this suite's own is file-based.
     stringsBasedProjectId = await createExtraProject(ctx, { suite: 'download-sources-strings', stringsBased: true });
   });
@@ -160,8 +162,7 @@ describe('download sources', () => {
   });
 
   test('rejects --reviewed on a non-Enterprise (SaaS) account', async () => {
-    // Restores the bytes captured in `beforeAll`, already rendered.
-    await Bun.write(join(ctx.workspace, 'crowdin.yml'), originalConfig);
+    await restoreConfig(ctx);
 
     const result = await ctx.runner.run(['download', 'sources', '--reviewed']);
 
@@ -214,7 +215,7 @@ describe('download sources', () => {
   });
 
   test('refuses to download sources from a string-based project', async () => {
-    await Bun.write(join(ctx.workspace, 'crowdin.yml'), originalConfig);
+    await restoreConfig(ctx);
 
     const result = await ctx.runner.run(['download', 'sources', '--project-id', String(stringsBasedProjectId)]);
 

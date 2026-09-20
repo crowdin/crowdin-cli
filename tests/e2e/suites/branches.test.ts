@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { copyFile, rm } from 'node:fs/promises';
+import { copyFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { expectFilesMatch } from '../helpers/files.ts';
+import { clearDir, expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
@@ -101,7 +101,7 @@ describe('branches', () => {
   });
 
   test('downloads translations for the branch', async () => {
-    await rm(join(ctx.workspace, 'translations'), { recursive: true, force: true });
+    await clearDir(ctx.workspace, 'translations');
 
     const result = await ctx.runner.run(['download', 'translations', '-b', 'test-branch']);
 

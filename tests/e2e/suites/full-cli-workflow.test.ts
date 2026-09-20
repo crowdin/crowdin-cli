@@ -1,8 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { expectFailure } from '../helpers/cli.ts';
-import { capturedContent, expectFilesExist } from '../helpers/files.ts';
+import { capturedContent, clearDir, expectFilesExist } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -144,8 +143,7 @@ describe('full CLI project workflow', () => {
   });
 
   test('downloads translations for a single language', async () => {
-    await rm(join(ctx.workspace, 'translations', 'it'), { recursive: true, force: true });
-    await rm(join(ctx.workspace, 'translations', 'uk'), { recursive: true, force: true });
+    await clearDir(ctx.workspace, 'translations/it', 'translations/uk');
 
     const result = await ctx.runner.run(['download', 'translations', '--language', 'uk']);
 

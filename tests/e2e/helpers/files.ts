@@ -2,6 +2,13 @@ import { expect } from 'bun:test';
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 
+/** Delete each path (relative to `workspace`), file or directory, if it exists. */
+export async function clearDir(workspace: string, ...relativePaths: string[]): Promise<void> {
+  for (const relativePath of relativePaths) {
+    await rm(join(workspace, relativePath), { recursive: true, force: true });
+  }
+}
+
 /** Every file under `root`, as sorted `/`-separated paths relative to it. */
 export async function listFilesRecursively(root: string): Promise<string[]> {
   return (await Array.fromAsync(new Bun.Glob('**').scan({ cwd: root, dot: true }))).sort();

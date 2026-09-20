@@ -1,9 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { decode } from '@toon-format/toon';
 import { expectFailure } from '../helpers/cli.ts';
-import { expectFilesExist, expectFilesMatch } from '../helpers/files.ts';
+import { clearDir, expectFilesExist, expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
@@ -172,7 +171,7 @@ describe('translations not match', () => {
   });
 
   test('downloads translations for a single specified language (uk)', async () => {
-    await rm(join(ctx.workspace, 'translations'), { recursive: true, force: true });
+    await clearDir(ctx.workspace, 'translations');
 
     const result = await ctx.runner.run(['download', 'translations', '-l', 'uk']);
 
@@ -186,7 +185,7 @@ describe('translations not match', () => {
   });
 
   test('downloads translations for a single specified language (uk) with --verbose', async () => {
-    await rm(join(ctx.workspace, 'translations'), { recursive: true, force: true });
+    await clearDir(ctx.workspace, 'translations');
 
     const result = await ctx.runner.run(['download', 'translations', '-l', 'uk', '--verbose']);
 
@@ -218,7 +217,7 @@ describe('translations not match', () => {
   });
 
   test('downloads translations for the branch, with the same configuration mismatch', async () => {
-    await rm(join(ctx.workspace, 'translations'), { recursive: true, force: true });
+    await clearDir(ctx.workspace, 'translations');
     await switchConfig(ctx, 'single-file');
 
     const result = await ctx.runner.run(['download', 'translations', '-b', 'test-branch']);

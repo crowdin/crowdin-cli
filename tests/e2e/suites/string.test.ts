@@ -5,6 +5,7 @@ import { findBranch, findCommentId, findFileId, findStringId } from '../helpers/
 import { normalize } from '../helpers/normalize.ts';
 import {
   createExtraProject,
+  restoreConfig,
   runJson,
   type SuiteContext,
   setupSuite,
@@ -92,7 +93,7 @@ describe('string', () => {
 
   test('lists source strings filtered by file', async () => {
     // Restores the full config (token + project id + both file entries).
-    await switchConfig(ctx, 'default');
+    await restoreConfig(ctx);
 
     const result = await ctx.runner.run(['string', 'list', '--file', 'android.xml']);
 

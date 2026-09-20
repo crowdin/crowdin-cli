@@ -1,18 +1,10 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { copyFile, rm } from 'node:fs/promises';
+import { copyFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { expectFailure } from '../helpers/cli.ts';
-import { expectFilesMatch } from '../helpers/files.ts';
+import { clearDir, expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
-
-/**
- * `download translations` never removes stale files from a previous download, and several tests
- * below download a strict subset of an earlier test's file set, so the destination is cleared first.
- */
-async function clearDownloadedTranslations(ctx: SuiteContext): Promise<void> {
-  await rm(join(ctx.workspace, 'translations'), { recursive: true, force: true });
-}
+import { restoreConfig, type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 describe('export options', () => {
   let ctx: SuiteContext;
@@ -85,7 +77,7 @@ describe('export options', () => {
   test('uploads translations for both languages', async () => {
     // Revert to the plain config - the previous test left `skip_untranslated_files: true` in place,
     // which would otherwise silently force every later "plain" download to skip untranslated files too.
-    await switchConfig(ctx, 'base');
+    await restoreConfig(ctx);
 
     const result = await ctx.runner.run(['upload', 'translations']);
 
@@ -132,7 +124,8 @@ describe('export options', () => {
   });
 
   test('downloads translations skipping untranslated strings via the CLI flag', async () => {
-    await clearDownloadedTranslations(ctx);
+    // Cleared first: several tests below download a strict subset of an earlier test's file set.
+    await clearDir(ctx.workspace, 'translations');
 
     const result = await ctx.runner.run(['download', 'translations', '--skip-untranslated-strings']);
 
@@ -151,7 +144,7 @@ describe('export options', () => {
   });
 
   test('downloads translations skipping untranslated files via the CLI flag', async () => {
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
 
     const result = await ctx.runner.run(['download', 'translations', '--skip-untranslated-files']);
 
@@ -168,7 +161,7 @@ describe('export options', () => {
   });
 
   test('downloads translations exporting only approved translations via the CLI flag', async () => {
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
 
     const result = await ctx.runner.run(['download', 'translations', '--export-only-approved']);
 
@@ -187,7 +180,7 @@ describe('export options', () => {
   });
 
   test('downloads translations skipping untranslated strings and exporting only approved via CLI flags', async () => {
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
 
     const result = await ctx.runner.run([
       'download',
@@ -211,7 +204,7 @@ describe('export options', () => {
   });
 
   test('downloads translations skipping untranslated files and exporting only approved via CLI flags', async () => {
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
 
     const result = await ctx.runner.run([
       'download',
@@ -246,7 +239,7 @@ describe('export options', () => {
   });
 
   test('downloads translations with skip_untranslated_strings set in config', async () => {
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
     await switchConfig(ctx, 'skip-untranslated-strings');
 
     const result = await ctx.runner.run(['download', 'translations']);
@@ -266,7 +259,7 @@ describe('export options', () => {
   });
 
   test('downloads translations with skip_untranslated_files set in config', async () => {
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
     await switchConfig(ctx, 'skip-untranslated-files');
 
     const result = await ctx.runner.run(['download', 'translations']);
@@ -284,7 +277,7 @@ describe('export options', () => {
   });
 
   test('downloads translations with export_only_approved set in config', async () => {
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
     await switchConfig(ctx, 'export-only-approved');
 
     const result = await ctx.runner.run(['download', 'translations']);
@@ -304,7 +297,7 @@ describe('export options', () => {
   });
 
   test('downloads translations with skip_untranslated_strings and export_only_approved set in config', async () => {
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
     await switchConfig(ctx, 'skip-strings-approved');
 
     const result = await ctx.runner.run(['download', 'translations']);
@@ -324,7 +317,7 @@ describe('export options', () => {
   });
 
   test('downloads translations with skip_untranslated_files and export_only_approved set in config', async () => {
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
     await switchConfig(ctx, 'skip-files-approved');
 
     const result = await ctx.runner.run(['download', 'translations']);
@@ -350,7 +343,7 @@ describe('export options', () => {
   });
 
   test('downloads translations across two file groups with different export options in config', async () => {
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
     await switchConfig(ctx, 'two-groups');
 
     const result = await ctx.runner.run(['download', 'translations']);

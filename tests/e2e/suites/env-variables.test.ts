@@ -1,7 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { expectFilesExist, expectFilesMatch } from '../helpers/files.ts';
+import { clearDir, expectFilesExist, expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -58,7 +57,7 @@ describe('env variables', () => {
     // Uploaded translations already occupy translations/<lang>/<file> (same path the download
     // lands at, per the /translations/%two_letters_code%/%original_file_name% pattern) - clear it
     // first so the assertions below only see what this download produced.
-    await rm(join(ctx.workspace, 'translations'), { recursive: true, force: true });
+    await clearDir(ctx.workspace, 'translations');
 
     const result = await ctx.runner.run(['download', 'translations']);
 

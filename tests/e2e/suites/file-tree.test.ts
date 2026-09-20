@@ -1,7 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { listFilesRecursively } from '../helpers/files.ts';
+import { clearDir, listFilesRecursively } from '../helpers/files.ts';
 import { projectFilePaths } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
@@ -199,8 +198,7 @@ describe('file tree', () => {
 
   test('downloads translations, overwriting the local it/uk trees', async () => {
     // Prove the download recreates these from the server rather than finding them on disk.
-    await rm(join(ctx.workspace, 'files', 'it'), { recursive: true, force: true });
-    await rm(join(ctx.workspace, 'files', 'uk'), { recursive: true, force: true });
+    await clearDir(ctx.workspace, 'files/it', 'files/uk');
 
     const result = await ctx.runner.run(['download', 'translations']);
 
@@ -334,8 +332,7 @@ describe('file tree', () => {
   });
 
   test('downloads translations on the branch, overwriting the local it/uk trees again', async () => {
-    await rm(join(ctx.workspace, 'files', 'it'), { recursive: true, force: true });
-    await rm(join(ctx.workspace, 'files', 'uk'), { recursive: true, force: true });
+    await clearDir(ctx.workspace, 'files/it', 'files/uk');
 
     const result = await ctx.runner.run(['download', 'translations', '-b', 'branch1']);
 

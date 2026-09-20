@@ -1,18 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { rm } from 'node:fs/promises';
-import { join } from 'node:path';
-import { expectFilesMatch } from '../helpers/files.ts';
+import { clearDir, expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
-
-/**
- * `download translations` writes to the exact local path the `upload translations` fixtures
- * already occupy (`translations/<lang>/<file>`), and a stale file left over from an earlier
- * upload/download in this suite could masquerade as a successful download. Clear it first.
- */
-async function clearDownloadedTranslations(ctx: SuiteContext): Promise<void> {
-  await rm(join(ctx.workspace, 'translations'), { recursive: true, force: true });
-}
+import { restoreConfig, type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 describe('multilingual csv with language placeholder', () => {
   let ctx: SuiteContext;
@@ -75,7 +64,8 @@ describe('multilingual csv with language placeholder', () => {
   });
 
   test('downloads translations and matches the merged multilingual content', async () => {
-    await clearDownloadedTranslations(ctx);
+    // Cleared first: downloads land on the paths the upload fixtures already occupy.
+    await clearDir(ctx.workspace, 'translations');
 
     const result = await ctx.runner.run(['download', 'translations']);
 
@@ -120,7 +110,7 @@ describe('multilingual csv with language placeholder', () => {
   });
 
   test('uploads sources to a new branch', async () => {
-    await switchConfig(ctx, 'crowdin-original');
+    await restoreConfig(ctx);
 
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 
@@ -157,7 +147,7 @@ describe('multilingual csv with language placeholder', () => {
 
   // Depends on the two branch upload tests above actually having pushed content server-side.
   test('downloads translations on the branch', async () => {
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
 
     const result = await ctx.runner.run(['download', 'translations', '-b', 'test-branch']);
 

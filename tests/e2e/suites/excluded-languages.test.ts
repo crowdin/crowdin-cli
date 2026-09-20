@@ -1,8 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { expectFailure } from '../helpers/cli.ts';
-import { expectFilesMatch } from '../helpers/files.ts';
+import { clearDir, expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
@@ -12,16 +11,6 @@ async function deleteAllProjectFiles(ctx: SuiteContext): Promise<void> {
   for (const file of files.data) {
     await ctx.client.sourceFilesApi.deleteFile(ctx.project.id, file.data.id);
   }
-}
-
-/**
- * `download translations` only writes the languages included in the current build — it never
- * removes files from a previous download. Every test but the first re-downloads into the same
- * workspace, so a language excluded *this* run would otherwise still "exist" from an earlier run.
- * Clear the destination first so each download test's `exists()` assertions reflect this run only.
- */
-async function clearDownloadedTranslations(ctx: SuiteContext): Promise<void> {
-  await rm(join(ctx.workspace, 'translations'), { recursive: true, force: true });
 }
 
 describe('excluded languages', () => {
@@ -106,7 +95,9 @@ describe('excluded languages', () => {
   });
 
   test('downloads translations after the excluded language changed', async () => {
-    await clearDownloadedTranslations(ctx);
+    // Cleared first: `download translations` leaves files from a previous run, so a language
+    // excluded this run would still "exist".
+    await clearDir(ctx.workspace, 'translations');
     const result = await ctx.runner.run(['download', 'translations']);
 
     expect(result).toMatchObject({ exitCode: 0 });
@@ -125,7 +116,7 @@ describe('excluded languages', () => {
   });
 
   test('downloads translations, exclusion unchanged since the flag was omitted', async () => {
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
     const result = await ctx.runner.run(['download', 'translations']);
 
     expect(result).toMatchObject({ exitCode: 0 });
@@ -149,7 +140,7 @@ describe('excluded languages', () => {
   });
 
   test('downloads translations honoring the config-declared exclusion', async () => {
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
     const result = await ctx.runner.run(['download', 'translations']);
 
     expect(result).toMatchObject({ exitCode: 0 });
@@ -170,7 +161,7 @@ describe('excluded languages', () => {
   });
 
   test('downloads translations honoring the merged config+CLI exclusion', async () => {
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
     const result = await ctx.runner.run(['download', 'translations']);
 
     expect(result).toMatchObject({ exitCode: 0 });
@@ -193,7 +184,7 @@ describe('excluded languages', () => {
   });
 
   test('downloads translations honoring per-file exclusions', async () => {
-    await clearDownloadedTranslations(ctx);
+    await clearDir(ctx.workspace, 'translations');
     const result = await ctx.runner.run(['download', 'translations']);
 
     expect(result).toMatchObject({ exitCode: 0 });

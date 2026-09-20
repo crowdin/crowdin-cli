@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { readdir, rm } from 'node:fs/promises';
+import { readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { expectFailure } from '../helpers/cli.ts';
-import { expectFilesExist, expectFilesMatch } from '../helpers/files.ts';
+import { clearDir, expectFilesExist, expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -21,7 +21,7 @@ async function findKeptArchive(ctx: SuiteContext): Promise<string | undefined> {
 }
 
 async function removeKeptArchive(ctx: SuiteContext): Promise<void> {
-  await rm(join(ctx.workspace, 'files', 'crowdin-translations.zip'), { force: true });
+  await clearDir(ctx.workspace, 'files/crowdin-translations.zip');
 }
 
 describe('download translations --all', () => {
@@ -95,7 +95,7 @@ describe('download translations --all', () => {
   });
 
   test('downloads translations for the branch', async () => {
-    await rm(join(ctx.workspace, 'files', 'translations'), { recursive: true, force: true });
+    await clearDir(ctx.workspace, 'files/translations');
 
     const result = await ctx.runner.run(['download', '-b', 'b1', '--all']);
 

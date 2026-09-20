@@ -20,6 +20,8 @@ import { copyFixtures, createWorkspace, removeWorkspace } from './workspace.ts';
 const FIXTURES_ROOT = join(import.meta.dir, '..', 'fixtures');
 
 export interface SuiteContext {
+  /** Fixture directory name, so helpers can re-read the suite's own `config/crowdin.yml`. */
+  suite: string;
   env: E2eEnv;
   client: Client;
   workspace: string;
@@ -79,7 +81,7 @@ export async function setupSuite(suite: string, opts: SetupSuiteOptions = {}): P
     const configPath = await writeConfig(workspace, template, { projectId: project.id, token });
 
     const runner = new CliRunner({ workspace, configPath });
-    return { env, client, workspace, project, runner, extraProjects: [] };
+    return { suite, env, client, workspace, project, runner, extraProjects: [] };
   } catch (error) {
     await teardownSuite({ env, client, workspace, project });
     throw error;
@@ -100,6 +102,12 @@ export async function renderFixture(
   const path = join(ctx.workspace, to);
   await Bun.write(path, renderConfig(template, { ...vars, projectId: ctx.project.id, token: ctx.env.token as string }));
   return path;
+}
+
+/** Restore the suite's own `crowdin.yml`, rendered exactly as `setupSuite` wrote it. */
+export async function restoreConfig(ctx: SuiteContext): Promise<void> {
+  const template = await Bun.file(join(FIXTURES_ROOT, ctx.suite, 'config', 'crowdin.yml')).text();
+  await writeConfig(ctx.workspace, template, { projectId: ctx.project.id, token: ctx.env.token as string });
 }
 
 /**
