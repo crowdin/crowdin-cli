@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { expectFailure } from '../helpers/cli.ts';
 import { captureAndClear, expectFilesExist, expectRestored } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
@@ -205,8 +206,9 @@ describe('dest', () => {
 
     const result = await ctx.runner.run(['upload', 'sources', '--no-preserve-hierarchy']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain(
+    expectFailure(
+      result,
+      2,
       "The 'dest' parameter only works for single files with the specified 'preserve_hierarchy': true option",
     );
   });

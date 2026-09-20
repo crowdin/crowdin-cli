@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
+import { expectFailure } from '../helpers/cli.ts';
 import {
   createExtraProject,
   runJson,
@@ -180,8 +181,7 @@ describe('upload sources', () => {
   test('requires a branch for a string-based project', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '--project-id', String(stringsBasedProjectId)]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('A branch is required to upload sources for a strings-based project');
+    expectFailure(result, 1, 'A branch is required to upload sources for a strings-based project');
   });
 
   test('warns that a configured context does not apply to a string-based project', async () => {

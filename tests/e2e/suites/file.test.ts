@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
+import { expectFailure } from '../helpers/cli.ts';
 import { expectFilesExist } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
@@ -44,50 +45,43 @@ describe('file', () => {
   test('rejects an unknown subcommand', async () => {
     const result = await ctx.runner.run(['file', 'bogus']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("unknown command 'bogus'");
+    expectFailure(result, 2, "unknown command 'bogus'");
   });
 
   test('requires a file path on upload', async () => {
     const result = await ctx.runner.run(['file', 'upload']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("missing required argument 'file'");
+    expectFailure(result, 2, "missing required argument 'file'");
   });
 
   test('fails to upload a local file that does not exist', async () => {
     const result = await ctx.runner.run(['file', 'upload', 'sources/missing.xml']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("File 'sources/missing.xml' not found in the Crowdin project");
+    expectFailure(result, 1, "File 'sources/missing.xml' not found in the Crowdin project");
   });
 
   test('refuses to upload a directory', async () => {
     const result = await ctx.runner.run(['file', 'upload', 'sources']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('The specified file is a directory');
+    expectFailure(result, 1, 'The specified file is a directory');
   });
 
   test('requires --type alongside --parser-version', async () => {
     const result = await ctx.runner.run(['file', 'upload', SOURCE_FILE, '--parser-version', '2']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("'--type' is required for '--parser-version' option");
+    expectFailure(result, 1, "'--type' is required for '--parser-version' option");
   });
 
   test('requires --language for an offline translation file', async () => {
     const result = await ctx.runner.run(['file', 'upload', SOURCE_FILE, '--xliff']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("'--language' parameter is required for offline translation file");
+    expectFailure(result, 1, "'--language' parameter is required for offline translation file");
   });
 
   test('refuses --dest for an offline translation file', async () => {
     const result = await ctx.runner.run(['file', 'upload', SOURCE_FILE, '--xliff', '-l', 'uk', '-d', '/somewhere']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("'--dest' parameter can not be used for offline translation file");
+    expectFailure(result, 1, "'--dest' parameter can not be used for offline translation file");
   });
 
   test('uploads a file, creating its directory', async () => {
@@ -168,8 +162,7 @@ describe('file', () => {
   test('fails to download a file the project does not hold', async () => {
     const result = await ctx.runner.run(['file', 'download', '/sources/missing.xml']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("File '/sources/missing.xml' not found in the Crowdin project");
+    expectFailure(result, 1, "File '/sources/missing.xml' not found in the Crowdin project");
   });
 
   test('uploads a translation for a file', async () => {
@@ -190,15 +183,13 @@ describe('file', () => {
   test('rejects a language the project does not have', async () => {
     const result = await ctx.runner.run(['file', 'download', `/${SOURCE_FILE}`, '-l', 'de']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Language 'de' doesn't exist in the project");
+    expectFailure(result, 1, "Language 'de' doesn't exist in the project");
   });
 
   test('fails to delete a file the project does not hold', async () => {
     const result = await ctx.runner.run(['file', 'delete', '/sources/missing.xml']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("File '/sources/missing.xml' not found in the Crowdin project");
+    expectFailure(result, 1, "File '/sources/missing.xml' not found in the Crowdin project");
   });
 
   test('deletes a file inside a branch', async () => {
@@ -223,7 +214,6 @@ describe('file', () => {
   test.each([['upload'], ['download'], ['delete']])('rejects an empty file path on %s', async (subcommand) => {
     const result = await ctx.runner.run(['file', subcommand, '']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('File path is required');
+    expectFailure(result, 1, 'File path is required');
   });
 });

@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { decode } from '@toon-format/toon';
+import { expectFailure } from '../helpers/cli.ts';
 import { expectFilesExist, expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
@@ -267,7 +268,6 @@ describe('translations not match', () => {
 
     // The hard-error arm of the same check: with --skip-untranslated-files this is only a warning,
     // which export-options.test.ts covers.
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Couldn't find any file to download");
+    expectFailure(result, 1, "Couldn't find any file to download");
   });
 });

@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
+import { expectFailure } from '../helpers/cli.ts';
 import { expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
@@ -210,8 +211,7 @@ describe('excluded languages', () => {
   test('rejects an excluded language that does not exist in the project', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '--excluded-language', 'ar']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Project doesn't have 'ar' language(s)");
+    expectFailure(result, 1, "Project doesn't have 'ar' language(s)");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 });

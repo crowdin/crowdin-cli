@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { expectFailure } from '../helpers/cli.ts';
 import { translationCount } from '../helpers/lookup.ts';
 import { createExtraProject, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -85,14 +86,12 @@ describe('upload translations', () => {
   test('rejects a language the project does not target', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '-l', 'de']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Language 'de' does not exist in the project");
+    expectFailure(result, 1, "Language 'de' does not exist in the project");
   });
 
   test('requires a branch for a string-based project', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '--project-id', String(stringsBasedProjectId)]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('A branch is required to upload translations for a strings-based project');
+    expectFailure(result, 1, 'A branch is required to upload translations for a strings-based project');
   });
 });

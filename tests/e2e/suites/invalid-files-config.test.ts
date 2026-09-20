@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { expectFailure } from '../helpers/cli.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -27,7 +28,7 @@ describe('invalid files config', () => {
     ]);
 
     // A zero-match group flags the run; both lines land on stderr.
-    expect(result.exitCode).toBe(1);
+    expectFailure(result, 1);
     expect(result.stdout).toContain('Fetching project info');
     expect(result.stderr).toContain(
       "No sources found for '/sources/android-not-exists.xml' pattern. Check the source paths in your configuration file",
@@ -47,7 +48,7 @@ describe('invalid files config', () => {
     ]);
 
     // A nonexistent base folder globs to zero matches too.
-    expect(result.exitCode).toBe(1);
+    expectFailure(result, 1);
     expect(result.stdout).toContain('Fetching project info');
     expect(result.stderr).toContain(
       "No sources found for '/not-exists/**/*.*' pattern. Check the source paths in your configuration file",
@@ -68,7 +69,7 @@ describe('invalid files config', () => {
     ]);
 
     // The config schema rejects this before any API call.
-    expect(result.exitCode).toBe(2);
+    expectFailure(result, 2);
     expect(result.stdout).not.toContain('Fetching project info');
     expect(result.stderr).toContain(
       "The 'translation' parameter should contain at least one language placeholder (e.g. %locale%)",
@@ -87,7 +88,7 @@ describe('invalid files config', () => {
     ]);
 
     // Same gate, different rule: the translation field rejects `../`.
-    expect(result.exitCode).toBe(2);
+    expectFailure(result, 2);
     expect(result.stdout).not.toContain('Fetching project info');
     expect(result.stderr).toContain("The 'translation' parameter can't contain any relative paths '../' or './'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -106,7 +107,7 @@ describe('invalid files config', () => {
     // No earlier test in this suite uploads anything, so the project is still empty: the run fails
     // on the missing SOURCE file and never reaches the nonexistent translation filename. One error
     // line per source file, not per target language.
-    expect(result.exitCode).toBe(1);
+    expectFailure(result, 1);
     expect(result.stdout).toContain('Fetching project info');
     expect(result.stderr).toContain("Source file 'sources/android.xml' does not exist in the project");
     expect(result.stderr).toContain('Current execution finished with errors');

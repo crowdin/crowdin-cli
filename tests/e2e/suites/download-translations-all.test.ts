@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { readdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
+import { expectFailure } from '../helpers/cli.ts';
 import { expectFilesExist, expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
@@ -224,14 +225,12 @@ describe('download translations --all', () => {
   test('rejects --language and --exclude-language together', async () => {
     const result = await ctx.runner.run(['download', 'translations', '-l', 'uk', '--exclude-language', 'it']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("The '--language' and '--exclude-language' options can't be used simultaneously");
+    expectFailure(result, 1, "The '--language' and '--exclude-language' options can't be used simultaneously");
   });
 
   test('rejects an excluded language the project does not target', async () => {
     const result = await ctx.runner.run(['download', 'translations', '--exclude-language', 'de', '--dryrun']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Language 'de' doesn't exist in the project");
+    expectFailure(result, 1, "Language 'de' doesn't exist in the project");
   });
 });

@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
+import { expectFailure } from '../helpers/cli.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -86,8 +87,7 @@ describe('auto-translate via MT', () => {
   test('requires --engine-id for the MT method', async () => {
     const result = await ctx.runner.run(['auto-translate', '-l', 'uk', '--method', 'mt']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Machine Translation should be used with the '--engine-id' parameter");
+    expectFailure(result, 1, "Machine Translation should be used with the '--engine-id' parameter");
     expect(normalize(result.stderr)).toMatchSnapshot();
   });
 

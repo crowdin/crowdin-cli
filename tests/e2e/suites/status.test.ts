@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { decode } from '@toon-format/toon';
+import { expectFailure } from '../helpers/cli.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -136,8 +137,7 @@ describe('status', () => {
   test('rejects a language the project does not target', async () => {
     const result = await ctx.runner.run(['status', '-l', 'zz']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Language 'zz' doesn't exist in the project. Try specifying another language code");
+    expectFailure(result, 1, "Language 'zz' doesn't exist in the project. Try specifying another language code");
     expect(normalize(result.stderr)).toMatchSnapshot();
   });
 
@@ -151,8 +151,7 @@ describe('status', () => {
   test('rejects a file the project does not contain', async () => {
     const result = await ctx.runner.run(['status', '-f', 'nope.xml']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Project doesn't contain the 'nope.xml' file");
+    expectFailure(result, 1, "Project doesn't contain the 'nope.xml' file");
   });
 
   test('scopes the progress to one directory with --directory', async () => {
@@ -164,23 +163,20 @@ describe('status', () => {
   test('rejects a directory the project does not contain', async () => {
     const result = await ctx.runner.run(['status', '-d', 'nope']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Project doesn't contain the 'nope' directory");
+    expectFailure(result, 1, "Project doesn't contain the 'nope' directory");
   });
 
   test('rejects --file and --directory together', async () => {
     const result = await ctx.runner.run(['status', '-f', 'sources/1_android.xml', '-d', 'sources/nested']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Only one of the following options can be used at a time: '--file', '--directory'");
+    expectFailure(result, 1, "Only one of the following options can be used at a time: '--file', '--directory'");
     expect(normalize(result.stderr)).toMatchSnapshot();
   });
 
   test('fails on an incomplete project with --fail-if-incomplete', async () => {
     const result = await ctx.runner.run(['status', '--fail-if-incomplete']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('The current project is incomplete');
+    expectFailure(result, 1, 'The current project is incomplete');
     // The check runs after the table is printed, so a failing run still shows what is behind.
     expect(result.stdout).toContain('Translated');
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -197,8 +193,7 @@ describe('status', () => {
   test('fails --fail-if-incomplete for proofreading, which nothing here approves', async () => {
     const result = await ctx.runner.run(['status', 'proofreading', '--fail-if-incomplete']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('The current project is incomplete');
+    expectFailure(result, 1, 'The current project is incomplete');
   });
 
   // Must stay last: `upload sources -b` adds a second untranslated copy of every string, dropping
@@ -218,7 +213,6 @@ describe('status', () => {
   test('rejects a branch that does not exist', async () => {
     const result = await ctx.runner.run(['status', '-b', 'nope']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("The branch with the specified name doesn't exist in the project");
+    expectFailure(result, 1, "The branch with the specified name doesn't exist in the project");
   });
 });

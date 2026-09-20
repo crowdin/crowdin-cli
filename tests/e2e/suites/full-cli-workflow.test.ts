@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
+import { expectFailure } from '../helpers/cli.ts';
 import { capturedContent, expectFilesExist } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
@@ -237,7 +238,6 @@ describe('full CLI project workflow', () => {
       'translations/%two_letters_code%/%original_file_name%',
     ]);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("No source files found for 'sources/does-not-exist-*.md' pattern");
+    expectFailure(result, 2, "No source files found for 'sources/does-not-exist-*.md' pattern");
   });
 });

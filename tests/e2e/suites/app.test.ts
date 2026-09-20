@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { expectFailure } from '../helpers/cli.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { runJson, type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
@@ -65,8 +66,7 @@ describe('app', () => {
   test('rejects an unknown subcommand', async () => {
     const result = await ctx.runner.run(['app', 'bogus']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("unknown command 'bogus'");
+    expectFailure(result, 2, "unknown command 'bogus'");
   });
 
   test('lists the installed applications as structured data', async () => {
@@ -108,32 +108,26 @@ describe('app', () => {
   test('requires an identifier to install', async () => {
     const result = await ctx.runner.run(['app', 'install']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("missing required argument 'identifier'");
+    expectFailure(result, 2, "missing required argument 'identifier'");
   });
 
   test('reports an identifier that is not in the Crowdin Store', async () => {
     const result = await ctx.runner.run(['app', 'install', UNKNOWN_IDENTIFIER]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain(
-      `Application with identifier '${UNKNOWN_IDENTIFIER}' doesn't exist in Crowdin Store`,
-    );
+    expectFailure(result, 1, `Application with identifier '${UNKNOWN_IDENTIFIER}' doesn't exist in Crowdin Store`);
     expect(normalize(result.stderr)).toMatchSnapshot();
   });
 
   test('requires an identifier to uninstall', async () => {
     const result = await ctx.runner.run(['app', 'uninstall']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("missing required argument 'identifier'");
+    expectFailure(result, 2, "missing required argument 'identifier'");
   });
 
   test('fails to uninstall an application that is not installed', async () => {
     const result = await ctx.runner.run(['app', 'uninstall', UNKNOWN_IDENTIFIER]);
 
-    expect(result.exitCode).toBe(102);
-    expect(result.stderr).toContain(`Failed to uninstall application '${UNKNOWN_IDENTIFIER}'`);
+    expectFailure(result, 102, `Failed to uninstall application '${UNKNOWN_IDENTIFIER}'`);
     expect(normalize(result.stderr)).toMatchSnapshot();
   });
 
@@ -182,15 +176,13 @@ describe('app', () => {
 
     const result = await ctx.runner.run(['app', 'list']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("Required option 'project_id' is missing");
+    expectFailure(result, 2, "Required option 'project_id' is missing");
     expect(normalize(result.stderr)).toMatchSnapshot();
   });
 
   test.each([['install'], ['uninstall']])('rejects an empty identifier on %s', async (subcommand) => {
     const result = await ctx.runner.run(['app', subcommand, '']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Application identifier can not be empty');
+    expectFailure(result, 1, 'Application identifier can not be empty');
   });
 });

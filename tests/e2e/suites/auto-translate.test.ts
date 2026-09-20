@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { expectFailure } from '../helpers/cli.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { createExtraProject, runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -39,15 +40,13 @@ describe('auto-translate', () => {
   test('requires --method', async () => {
     const result = await ctx.runner.run(['auto-translate']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Missing required option '--method'. Supported values: mt, tm, ai");
+    expectFailure(result, 1, "Missing required option '--method'. Supported values: mt, tm, ai");
   });
 
   test('rejects an unsupported --method', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'human']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Invalid value for '--method'. Supported values: mt, tm, ai");
+    expectFailure(result, 1, "Invalid value for '--method'. Supported values: mt, tm, ai");
   });
 
   // The checks below run in the order `defaultAction` declares them, before the project is loaded.
@@ -62,8 +61,7 @@ describe('auto-translate', () => {
       '/sources',
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Either '--file' or '--directory' can be specified");
+    expectFailure(result, 1, "Either '--file' or '--directory' can be specified");
   });
 
   test('refuses --language together with --exclude-language', async () => {
@@ -77,8 +75,7 @@ describe('auto-translate', () => {
       'it',
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("The '--language' and '--exclude-language' options can't be used simultaneously");
+    expectFailure(result, 1, "The '--language' and '--exclude-language' options can't be used simultaneously");
   });
 
   test('restricts --translate-with-perfect-match-only to the TM method', async () => {
@@ -91,24 +88,19 @@ describe('auto-translate', () => {
       '--translate-with-perfect-match-only',
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain(
-      "'--translate-with-perfect-match-only' only works with the TM auto-translation method",
-    );
+    expectFailure(result, 1, "'--translate-with-perfect-match-only' only works with the TM auto-translation method");
   });
 
   test('requires --ai-prompt for the AI method', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'ai']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("AI should be used with the '--ai-prompt' parameter");
+    expectFailure(result, 1, "AI should be used with the '--ai-prompt' parameter");
   });
 
   test('rejects an unsupported --auto-approve-option', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'tm', '--auto-approve-option', 'sometimes']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Wrong '--auto-approve-option' parameter");
+    expectFailure(result, 1, "Wrong '--auto-approve-option' parameter");
   });
 
   // --replace-translations-option declares `choices`, so commander rejects a bad value as a usage
@@ -123,43 +115,37 @@ describe('auto-translate', () => {
       'sometimes',
     ]);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain('sometimes');
+    expectFailure(result, 2, 'sometimes');
   });
 
   test('rejects a language the project does not target', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'tm', '--language', 'de']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Language(s) 'de' doesn't exist in the project");
+    expectFailure(result, 1, "Language(s) 'de' doesn't exist in the project");
   });
 
   test('rejects an excluded language the project does not target', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'tm', '--exclude-language', 'de']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Language(s) 'de' doesn't exist in the project");
+    expectFailure(result, 1, "Language(s) 'de' doesn't exist in the project");
   });
 
   test('fails on a branch the project does not hold', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'tm', '-b', 'no-such-branch']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Branch 'no-such-branch' doesn't exist in the project");
+    expectFailure(result, 1, "Branch 'no-such-branch' doesn't exist in the project");
   });
 
   test('fails on a single --file the project does not hold', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'tm', '--file', '/sources/missing.xml']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Project doesn't contain the '/sources/missing.xml' file");
+    expectFailure(result, 1, "Project doesn't contain the '/sources/missing.xml' file");
   });
 
   test('finds no files to translate under an empty --directory', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'tm', '--directory', '/nowhere']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Couldn't find any files to Auto-Translate in the current project");
+    expectFailure(result, 1, "Couldn't find any files to Auto-Translate in the current project");
   });
 
   test('translates the whole project', async () => {
@@ -185,9 +171,12 @@ describe('auto-translate', () => {
       '/sources/missing.xml',
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Project doesn't contain the '/sources/missing.xml' file");
-    expect(result.stderr).toContain('Some of the specified files were not found in the project');
+    expectFailure(
+      result,
+      1,
+      "Project doesn't contain the '/sources/missing.xml' file",
+      'Some of the specified files were not found in the project',
+    );
   });
 
   test('translates the files of a --directory', async () => {
@@ -289,9 +278,12 @@ describe('auto-translate', () => {
       'auto-translated',
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Key: replaceTranslationsOption');
-    expect(result.stderr).toContain('Field cannot be set when [scope] has the current value');
+    expectFailure(
+      result,
+      1,
+      'Key: replaceTranslationsOption',
+      'Field cannot be set when [scope] has the current value',
+    );
   });
 
   test('passes a --translation-modified-before value straight to the API', async () => {
@@ -305,8 +297,7 @@ describe('auto-translate', () => {
       '2030-01-01',
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('valid date in ISO 8601 format');
+    expectFailure(result, 1, 'valid date in ISO 8601 format');
   });
 
   test('reports the totals under --verbose', async () => {
@@ -343,8 +334,7 @@ describe('auto-translate', () => {
       String(stringsBasedProjectId),
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('File management is not available for string-based projects');
+    expectFailure(result, 1, 'File management is not available for string-based projects');
   });
 
   test('requires a branch for a string-based project', async () => {
@@ -356,7 +346,6 @@ describe('auto-translate', () => {
       String(stringsBasedProjectId),
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Branch is required for string-based projects');
+    expectFailure(result, 1, 'Branch is required for string-based projects');
   });
 });

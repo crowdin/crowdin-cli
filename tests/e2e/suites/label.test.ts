@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { decode } from '@toon-format/toon';
+import { expectFailure } from '../helpers/cli.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -53,8 +54,7 @@ describe('label', () => {
   test('rejects an unknown subcommand', async () => {
     const result = await ctx.runner.run(['label', 'bogus']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("unknown command 'bogus'");
+    expectFailure(result, 2, "unknown command 'bogus'");
   });
 
   test.each(['json', 'toon'] as const)(
@@ -63,7 +63,7 @@ describe('label', () => {
       const result = await ctx.runner.run(['label', 'bogus', '--output', format]);
       const parse = format === 'json' ? JSON.parse : decode;
 
-      expect(result.exitCode).toBe(2);
+      expectFailure(result, 2);
       // commander's own prose is suppressed; the top-level handler re-emits it as a record instead.
       expect(parse(result.stderr)).toEqual({ level: 'error', message: "unknown command 'bogus'", code: 2 });
     },
@@ -87,15 +87,13 @@ describe('label', () => {
   test('requires a title to add', async () => {
     const result = await ctx.runner.run(['label', 'add']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("missing required argument 'title'");
+    expectFailure(result, 2, "missing required argument 'title'");
   });
 
   test('requires a title to delete', async () => {
     const result = await ctx.runner.run(['label', 'delete']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("missing required argument 'title'");
+    expectFailure(result, 2, "missing required argument 'title'");
   });
 
   test('adds a label and echoes it back', async () => {
@@ -174,8 +172,7 @@ describe('label', () => {
   test('rejects deleting a title the project does not have', async () => {
     const result = await ctx.runner.run(['label', 'delete', 'nope']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Couldn't find label by the specified title");
+    expectFailure(result, 1, "Couldn't find label by the specified title");
     expect(normalize(result.stderr)).toMatchSnapshot();
   });
 

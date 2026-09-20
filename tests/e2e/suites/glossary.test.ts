@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
 import { decode } from '@toon-format/toon';
 import AdmZip from 'adm-zip';
+import { expectFailure } from '../helpers/cli.ts';
 import { findGlossaryId } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { runJson, type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
@@ -121,22 +122,19 @@ describe('glossary', () => {
   test('rejects a file that does not exist', async () => {
     const result = await ctx.runner.run(['glossary', 'upload', 'sources/missing.tbx', '--language', 'uk']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("File 'sources/missing.tbx' not found in the Crowdin project");
+    expectFailure(result, 1, "File 'sources/missing.tbx' not found in the Crowdin project");
   });
 
   test('rejects a directory', async () => {
     const result = await ctx.runner.run(['glossary', 'upload', 'sources', '--language', 'uk']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('The specified file is a directory');
+    expectFailure(result, 1, 'The specified file is a directory');
   });
 
   test('rejects an unsupported file extension', async () => {
     const result = await ctx.runner.run(['glossary', 'upload', 'sources/unsupported.txt', '--language', 'uk']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Supported formats: tbx, csv, xlsx');
+    expectFailure(result, 1, 'Supported formats: tbx, csv, xlsx');
   });
 
   // Unlike `tm upload`, which ignores a scheme it has no use for, glossary rejects it outright.
@@ -151,15 +149,13 @@ describe('glossary', () => {
       'term_en=1',
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Scheme is used only for CSV or XLS/XLSX files');
+    expectFailure(result, 1, 'Scheme is used only for CSV or XLS/XLSX files');
   });
 
   test('rejects a CSV without a scheme', async () => {
     const result = await ctx.runner.run(['glossary', 'upload', 'sources/simple-glossary.csv', '--language', 'en']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Scheme is required for CSV or XLS/XLSX files');
+    expectFailure(result, 1, 'Scheme is required for CSV or XLS/XLSX files');
   });
 
   test('rejects a malformed --scheme value', async () => {
@@ -173,8 +169,7 @@ describe('glossary', () => {
       'term_en',
     ]);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("The '--scheme' parameter has an invalid value 'term_en'");
+    expectFailure(result, 2, "The '--scheme' parameter has an invalid value 'term_en'");
   });
 
   test('rejects --first-line-contains-header for a TBX file', async () => {
@@ -187,22 +182,19 @@ describe('glossary', () => {
       '--first-line-contains-header',
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("'--first-line-contains-header' is used only for CSV or XLS/XLSX files");
+    expectFailure(result, 1, "'--first-line-contains-header' is used only for CSV or XLS/XLSX files");
   });
 
   test('requires --language when creating a new glossary', async () => {
     const result = await ctx.runner.run(['glossary', 'upload', 'sources/simple-glossary.tbx']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("'--language' is required for creating new glossary");
+    expectFailure(result, 1, "'--language' is required for creating new glossary");
   });
 
   test('rejects a non-numeric --id on upload', async () => {
     const result = await ctx.runner.run(['glossary', 'upload', 'sources/simple-glossary.tbx', '--id', 'not-a-number']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain('Glossary id must be numeric');
+    expectFailure(result, 2, 'Glossary id must be numeric');
   });
 
   test('uploads a TBX glossary, creating it', async () => {
@@ -356,22 +348,19 @@ describe('glossary', () => {
   test('rejects a non-numeric glossary id', async () => {
     const result = await ctx.runner.run(['glossary', 'download', 'not-a-number']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain('Glossary id must be numeric');
+    expectFailure(result, 2, 'Glossary id must be numeric');
   });
 
   test('rejects a --to extension that is not a supported format', async () => {
     const result = await ctx.runner.run(['glossary', 'download', '1', '--to', 'download/out.txt']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Supported formats: tbx, csv, xlsx');
+    expectFailure(result, 1, 'Supported formats: tbx, csv, xlsx');
   });
 
   test('reports a glossary that does not exist', async () => {
     const result = await ctx.runner.run(['glossary', 'download', String(MISSING_GLOSSARY_ID)]);
 
-    expect(result.exitCode).toBe(102);
-    expect(result.stderr).toContain('Not Found');
+    expectFailure(result, 102, 'Not Found');
   });
 
   test('downloads the TBX glossary by id and format', async () => {

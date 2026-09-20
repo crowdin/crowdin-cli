@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { copyFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
+import { expectFailure } from '../helpers/cli.ts';
 import { expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
@@ -236,8 +237,9 @@ describe('export options', () => {
     ]);
 
     // DownloadCommand.ts throws a plain CliError, which exits 1.
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain(
+    expectFailure(
+      result,
+      1,
       'You cannot skip strings and files at the same time. Please use one of these parameters instead.',
     );
     expect(normalize(result.stdout)).toMatchSnapshot();

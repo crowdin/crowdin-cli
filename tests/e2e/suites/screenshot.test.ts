@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { expectFailure } from '../helpers/cli.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -61,8 +62,7 @@ describe('screenshot', () => {
   test('rejects an unknown subcommand', async () => {
     const result = await ctx.runner.run(['screenshot', 'bogus']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("unknown command 'bogus'");
+    expectFailure(result, 2, "unknown command 'bogus'");
   });
 
   test('reports a project with no screenshots', async () => {
@@ -76,29 +76,25 @@ describe('screenshot', () => {
   test('requires a file path', async () => {
     const result = await ctx.runner.run(['screenshot', 'upload']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("missing required argument 'file'");
+    expectFailure(result, 2, "missing required argument 'file'");
   });
 
   test('rejects a path that does not exist locally', async () => {
     const result = await ctx.runner.run(['screenshot', 'upload', 'images/missing.png']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("File 'images/missing.png' not found in the Crowdin project");
+    expectFailure(result, 1, "File 'images/missing.png' not found in the Crowdin project");
   });
 
   test('rejects a directory', async () => {
     const result = await ctx.runner.run(['screenshot', 'upload', 'images']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('The specified file is a directory');
+    expectFailure(result, 1, 'The specified file is a directory');
   });
 
   test('rejects a file that is not an allowed image format', async () => {
     const result = await ctx.runner.run(['screenshot', 'upload', 'images/not-an-image.txt']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Wrong format of the file. Supported formats: jpeg, jpg, png, gif');
+    expectFailure(result, 1, 'Wrong format of the file. Supported formats: jpeg, jpg, png, gif');
     expect(normalize(result.stderr)).toMatchSnapshot();
   });
 
@@ -111,8 +107,7 @@ describe('screenshot', () => {
       'sources/1_android.xml',
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("'--auto-tag' is required for '--file' option");
+    expectFailure(result, 1, "'--auto-tag' is required for '--file' option");
   });
 
   test('rejects more than one targeting option at a time', async () => {
@@ -127,8 +122,9 @@ describe('screenshot', () => {
       'some-branch',
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain(
+    expectFailure(
+      result,
+      1,
       "Only one of the following options can be used at a time: '--file', '--branch' or '--directory'",
     );
   });
@@ -222,22 +218,19 @@ describe('screenshot', () => {
   test('rejects a label the project does not have', async () => {
     const result = await ctx.runner.run(['screenshot', 'list', '--label', 'no-such-label']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Project doesn't contain the 'no-such-label' label");
+    expectFailure(result, 1, "Project doesn't contain the 'no-such-label' label");
   });
 
   test('rejects a non-numeric --string-id', async () => {
     const result = await ctx.runner.run(['screenshot', 'list', '--string-id', 'abc']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("The '--string-id' value must be numeric");
+    expectFailure(result, 2, "The '--string-id' value must be numeric");
   });
 
   test('rejects a non-numeric id to delete', async () => {
     const result = await ctx.runner.run(['screenshot', 'delete', 'abc']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain('Screenshot id must be numeric');
+    expectFailure(result, 2, 'Screenshot id must be numeric');
   });
 
   test('warns instead of failing when the id is unknown', async () => {
@@ -261,7 +254,6 @@ describe('screenshot', () => {
   test('rejects an empty screenshot path', async () => {
     const result = await ctx.runner.run(['screenshot', 'upload', '']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Screenshot file path can not be empty');
+    expectFailure(result, 1, 'Screenshot file path can not be empty');
   });
 });

@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { decode } from '@toon-format/toon';
+import { expectFailure } from '../helpers/cli.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { runJson, type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
@@ -60,8 +61,7 @@ describe('language', () => {
   test('rejects an unknown subcommand', async () => {
     const result = await ctx.runner.run(['language', 'bogus']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("unknown command 'bogus'");
+    expectFailure(result, 2, "unknown command 'bogus'");
   });
 
   test('lists the target languages of the project', async () => {
@@ -118,8 +118,7 @@ describe('language', () => {
   test('rejects an unsupported --code value', async () => {
     const result = await ctx.runner.run(['language', 'list', '--code', 'bogus_code']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain('bogus_code');
+    expectFailure(result, 2, 'bogus_code');
   });
 
   test('lists the supported languages of the account with --all', async () => {

@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
+import { expectFailure } from '../helpers/cli.ts';
 import { capturedContent, expectFilesExist } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { createExtraProject, type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
@@ -217,7 +218,6 @@ describe('download sources', () => {
 
     const result = await ctx.runner.run(['download', 'sources', '--project-id', String(stringsBasedProjectId)]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('File management is not available for string-based projects');
+    expectFailure(result, 1, 'File management is not available for string-based projects');
   });
 });

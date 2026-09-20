@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { copyFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { expectFailure } from '../helpers/cli.ts';
 import { expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
@@ -172,7 +173,7 @@ describe('simple csv', () => {
 
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch-invalid-scheme']);
 
-    expect(result.exitCode).toBe(1);
+    expectFailure(result, 1);
     expect(result.stdout).toContain("Directory 'sources'");
     expect(result.stdout).toContain("Directory 'sources/files'");
     expect(result.stderr).toContain('The file schema must include the "Source String" and "Translation" elements');

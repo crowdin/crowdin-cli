@@ -1,3 +1,4 @@
+import { expect } from 'bun:test';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -84,5 +85,14 @@ export class CliRunner {
     } finally {
       clearTimeout(timeout);
     }
+  }
+}
+
+/** Assert a command failed with `exitCode`, and that its stderr carries each of `stderrSubstrings`. */
+export function expectFailure(result: CliResult, exitCode: number, ...stderrSubstrings: string[]): void {
+  expect(result).toMatchObject({ exitCode });
+
+  for (const substring of stderrSubstrings) {
+    expect(result.stderr).toContain(substring);
   }
 }

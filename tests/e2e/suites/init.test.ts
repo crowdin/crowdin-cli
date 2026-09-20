@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { generate } from '@/lib/config/yamlGenerator.ts';
+import { expectFailure } from '../helpers/cli.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -116,7 +117,7 @@ describe('init generates a configuration skeleton', () => {
     // Points --config at the previous test's skeleton; the auto-appended `-c` would override it.
     const result = await ctx.runner.run(['config', 'lint', '--config', 'crowdin.yaml'], { noConfig: true });
 
-    expect(result.exitCode).toBe(2);
+    expectFailure(result, 2);
 
     // Lint failures are diagnostics, so the whole report is on stderr and stdout stays empty.
     const stderr = normalize(result.stderr);

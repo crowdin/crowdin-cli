@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { expectFailure } from '../helpers/cli.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
@@ -69,8 +70,7 @@ describe('delete obsolete', () => {
     ]);
 
     // sources_rev2/ has no CSV, so the fixture's '/*.csv' group matches nothing and flags the run.
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("No sources found for '/*.csv' pattern");
+    expectFailure(result, 1, "No sources found for '/*.csv' pattern");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     // sources_rev2/ drops 2_android.xml and 1_simple.csv - a real run would delete their remote

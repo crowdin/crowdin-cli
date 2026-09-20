@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { decode } from '@toon-format/toon';
+import { expectFailure } from '../helpers/cli.ts';
 import { findBranch } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { createExtraProject, runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
@@ -68,8 +69,7 @@ describe('branch', () => {
   test('rejects an unknown subcommand', async () => {
     const result = await ctx.runner.run(['branch', 'bogus']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("unknown command 'bogus'");
+    expectFailure(result, 2, "unknown command 'bogus'");
   });
 
   // A strings-based project is never branch-free: Crowdin creates 'main' with the project, so the
@@ -85,8 +85,7 @@ describe('branch', () => {
   test('requires a branch name on add', async () => {
     const result = await ctx.runner.run(['branch', 'add']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("missing required argument 'name'");
+    expectFailure(result, 2, "missing required argument 'name'");
   });
 
   test('adds a branch', async () => {
@@ -154,8 +153,7 @@ describe('branch', () => {
   test('rejects an unsupported --priority value', async () => {
     const result = await ctx.runner.run(['branch', 'add', 'bad-priority', '--priority', 'urgent']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain('urgent');
+    expectFailure(result, 2, 'urgent');
   });
 
   // Crowdin refuses the separators a VCS branch name is full of, so the CLI replaces them with dots
@@ -214,15 +212,13 @@ describe('branch', () => {
   test('requires at least one parameter on edit', async () => {
     const result = await ctx.runner.run(['branch', 'edit', MAIN_BRANCH]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Specify some parameters to edit the branch');
+    expectFailure(result, 1, 'Specify some parameters to edit the branch');
   });
 
   test('fails to edit a branch that does not exist', async () => {
     const result = await ctx.runner.run(['branch', 'edit', 'no-such-branch', '--title', 'Nope']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Project doesn't contain the 'no-such-branch' branch");
+    expectFailure(result, 1, "Project doesn't contain the 'no-such-branch' branch");
   });
 
   test('renames a branch', async () => {
@@ -253,15 +249,13 @@ describe('branch', () => {
   test('fails to clone a branch that does not exist', async () => {
     const result = await ctx.runner.run(['branch', 'clone', 'no-such-branch', 'whatever']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Project doesn't contain the 'no-such-branch' branch");
+    expectFailure(result, 1, "Project doesn't contain the 'no-such-branch' branch");
   });
 
   test('requires both names on merge', async () => {
     const result = await ctx.runner.run(['branch', 'merge', MAIN_BRANCH]);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("missing required argument 'target'");
+    expectFailure(result, 2, "missing required argument 'target'");
   });
 
   test('merges a branch, carrying its strings into the target', async () => {
@@ -333,8 +327,7 @@ describe('branch', () => {
       String(fileBasedProjectId),
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('This command is only available for string-based projects');
+    expectFailure(result, 1, 'This command is only available for string-based projects');
   });
 
   test('refuses to merge in a file-based project', async () => {
@@ -347,15 +340,13 @@ describe('branch', () => {
       String(fileBasedProjectId),
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('This command is only available for string-based projects');
+    expectFailure(result, 1, 'This command is only available for string-based projects');
   });
 
   test.each([['add'], ['delete'], ['edit']])('rejects an empty branch name on %s', async (subcommand) => {
     const result = await ctx.runner.run(['branch', subcommand, '']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Branch name is required');
+    expectFailure(result, 1, 'Branch name is required');
   });
 
   test.each([
@@ -365,8 +356,7 @@ describe('branch', () => {
     for (const subcommand of ['clone', 'merge']) {
       const result = await ctx.runner.run(['branch', subcommand, ...(args as string[])]);
 
-      expect(result.exitCode).toBe(1);
-      expect(result.stderr).toContain('Source and target branch names are required');
+      expectFailure(result, 1, 'Source and target branch names are required');
     }
   });
 });

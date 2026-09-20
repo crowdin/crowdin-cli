@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
 import { decode } from '@toon-format/toon';
+import { expectFailure } from '../helpers/cli.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { runJson, type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
@@ -56,8 +57,7 @@ describe('config', () => {
   test('rejects an unknown subcommand', async () => {
     const result = await ctx.runner.run(['config', 'bogus']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("unknown command 'bogus'");
+    expectFailure(result, 2, "unknown command 'bogus'");
   });
 
   test('lists the matched source files', async () => {
@@ -84,8 +84,7 @@ describe('config', () => {
     // comes from commander not recognising it rather than from the expansion.
     const result = await ctx.runner.run(['@no-such-args.txt']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("unknown command '@no-such-args.txt'");
+    expectFailure(result, 2, "unknown command '@no-such-args.txt'");
   });
 
   test('lists bare source paths with --output plain', async () => {
@@ -169,8 +168,7 @@ describe('config', () => {
 
     const result = await ctx.runner.run(['config', 'lint']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain('The mapping format is the following: crowdin_language_code: code_you_use');
+    expectFailure(result, 2, 'The mapping format is the following: crowdin_language_code: code_you_use');
   });
 
   test('rejects a source pattern that matches nothing on disk', async () => {
@@ -178,7 +176,7 @@ describe('config', () => {
 
     const result = await ctx.runner.run(['config', 'lint']);
 
-    expect(result.exitCode).toBe(2);
+    expectFailure(result, 2);
     // `checkSourceFilesExist` runs nowhere else - no other command fails on a pattern matching zero
     // files, they just upload nothing.
     expect(result.stderr).toContain("No source files found for '/sources/nothing-here/*.xml' pattern");
@@ -196,7 +194,7 @@ describe('config', () => {
   test('reports a lint failure as one structured record carrying the exit code', async () => {
     const result = await ctx.runner.run(['config', 'lint', '--output', 'json']);
 
-    expect(result.exitCode).toBe(2);
+    expectFailure(result, 2);
 
     const records = structuredDiagnostics(result.stderr);
 
@@ -213,7 +211,7 @@ describe('config', () => {
     // This failure comes from `withSpinner`, which marks it reported; the record must still carry `code`.
     const result = await ctx.runner.run(['config', 'sources', '--project-id', '999999999', '--output', 'json']);
 
-    expect(result.exitCode).toBe(102);
+    expectFailure(result, 102);
 
     const records = structuredDiagnostics(result.stderr);
 
@@ -226,8 +224,7 @@ describe('config', () => {
     const result = await ctx.runner.run(['config', 'lint', '--config', 'no-such-config.yml'], { noConfig: true });
 
     // A missing file is NotFound (102); invalid content is Validation (2).
-    expect(result.exitCode).toBe(102);
-    expect(result.stderr).toContain('no-such-config.yml');
+    expectFailure(result, 102, 'no-such-config.yml');
   });
 
   test('prints a stack trace instead of the one-line message with --debug', async () => {
@@ -236,8 +233,8 @@ describe('config', () => {
     const plain = await ctx.runner.run(['config', 'lint']);
     const debug = await ctx.runner.run(['config', 'lint', '--debug']);
 
-    expect(plain.exitCode).toBe(2);
-    expect(debug.exitCode).toBe(2);
+    expectFailure(plain, 2);
+    expectFailure(debug, 2);
 
     expect(plain.stderr).not.toContain('    at ');
     expect(debug.stderr).toContain('    at ');

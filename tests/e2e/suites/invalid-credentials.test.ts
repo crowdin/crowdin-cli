@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { expectFailure } from '../helpers/cli.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
@@ -22,8 +23,7 @@ describe('invalid credentials', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("Option 'project_id' must be a numeric value");
+    expectFailure(result, 2, "Option 'project_id' must be a numeric value");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -32,7 +32,7 @@ describe('invalid credentials', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(102);
+    expectFailure(result, 102);
     expect(result.stdout).toContain('Fetching project info');
     expect(result.stderr).toContain('Not Found');
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -45,8 +45,7 @@ describe('invalid credentials', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(101);
-    expect(result.stderr).toContain("Couldn't authorize. Check your 'api_token'");
+    expectFailure(result, 101, "Couldn't authorize. Check your 'api_token'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -55,9 +54,10 @@ describe('invalid credentials', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain('Configuration file is invalid. Check the following parameters');
-    expect(result.stderr).toContain(
+    expectFailure(
+      result,
+      2,
+      'Configuration file is invalid. Check the following parameters',
       "The base path '/not/exists/path' was not found. Check your 'base_path' for possible typos and/or capitalization mismatches",
     );
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -69,8 +69,9 @@ describe('invalid credentials', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain(
+    expectFailure(
+      result,
+      2,
       'base_url must be a Crowdin URL (e.g. https://api.crowdin.com or https://<org>.crowdin.com)',
     );
     expect(normalize(result.stdout)).toMatchSnapshot();

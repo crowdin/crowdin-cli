@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
+import { expectFailure } from '../helpers/cli.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
@@ -43,7 +44,7 @@ describe('custom segmentation', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(1);
+    expectFailure(result, 1);
     // The "sources" directory is created before the per-file srxStorageId is validated by the API,
     // so it still succeeds even though both file creations below fail.
     expect(result.stdout).toContain("Directory 'sources'");
@@ -62,7 +63,7 @@ describe('custom segmentation', () => {
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
-    expect(result.exitCode).toBe(1);
+    expectFailure(result, 1);
     // The "sources" directory survived the previous failed attempt, so it is not created again.
     expect(result.stdout).not.toContain("Directory 'sources'");
     // The quoting around the regex is the API's own and has changed once already (backticks to

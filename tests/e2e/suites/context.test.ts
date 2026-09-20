@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
+import { expectFailure } from '../helpers/cli.ts';
 import { findStringId } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
@@ -87,8 +88,7 @@ describe('context', () => {
   test('rejects an unknown subcommand', async () => {
     const result = await ctx.runner.run(['context', 'bogus']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("unknown command 'bogus'");
+    expectFailure(result, 2, "unknown command 'bogus'");
   });
 
   test('uploads sources', async () => {
@@ -137,22 +137,19 @@ describe('context', () => {
   test('rejects an unsupported --status value', async () => {
     const result = await ctx.runner.run(['context', 'download', '--status', 'partial']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("The '--status' parameter has an invalid value");
+    expectFailure(result, 1, "The '--status' parameter has an invalid value");
   });
 
   test('rejects a malformed --since value', async () => {
     const result = await ctx.runner.run(['context', 'status', '--since', '2026/01/01']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("The '--since' parameter should be in 'YYYY-MM-DD' format");
+    expectFailure(result, 1, "The '--since' parameter should be in 'YYYY-MM-DD' format");
   });
 
   test('rejects a calendar-invalid --since date', async () => {
     const result = await ctx.runner.run(['context', 'status', '--since', '2026-02-30']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("The '--since' parameter should be in 'YYYY-MM-DD' format");
+    expectFailure(result, 1, "The '--since' parameter should be in 'YYYY-MM-DD' format");
   });
 
   test('downloads every string to the default context file', async () => {
@@ -220,16 +217,14 @@ describe('context', () => {
   test('refuses to overwrite a file that is not a context file', async () => {
     const result = await ctx.runner.run(['context', 'download', '--to', 'sources/app.xml']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('is not a context file');
+    expectFailure(result, 1, 'is not a context file');
     expect(await Bun.file(workspacePath('sources/app.xml')).text()).toContain('Welcome aboard');
   });
 
   test('fails to upload a context file that does not exist', async () => {
     const result = await ctx.runner.run(['context', 'upload', '--from', 'missing.jsonl']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("File 'missing.jsonl' not found in the Crowdin project");
+    expectFailure(result, 1, "File 'missing.jsonl' not found in the Crowdin project");
   });
 
   test('uploads nothing while every ai_context is empty', async () => {
@@ -303,8 +298,7 @@ describe('context', () => {
 
     const result = await ctx.runner.run(['context', 'upload', '--from', 'broken.jsonl']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('contains an invalid record at line 2');
+    expectFailure(result, 1, 'contains an invalid record at line 2');
   });
 
   test('breaks the coverage down per file', async () => {
@@ -327,8 +321,7 @@ describe('context', () => {
   test('requires --all when resetting without any filter', async () => {
     const result = await ctx.runner.run(['context', 'reset']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("The '--all' parameter should be specified explicitly if no other filter");
+    expectFailure(result, 1, "The '--all' parameter should be specified explicitly if no other filter");
   });
 
   test('reports the strings a filtered reset would clear under --dryrun', async () => {

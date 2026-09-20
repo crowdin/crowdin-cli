@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
 import { decode } from '@toon-format/toon';
 import AdmZip from 'adm-zip';
+import { expectFailure } from '../helpers/cli.ts';
 import { findTmId } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { runJson, type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
@@ -137,22 +138,19 @@ describe('tm', () => {
   test('rejects a file that does not exist', async () => {
     const result = await ctx.runner.run(['tm', 'upload', 'sources/missing.tmx', '--language', 'en']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("File 'sources/missing.tmx' not found in the Crowdin project");
+    expectFailure(result, 1, "File 'sources/missing.tmx' not found in the Crowdin project");
   });
 
   test('rejects a directory', async () => {
     const result = await ctx.runner.run(['tm', 'upload', 'sources', '--language', 'en']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('The specified file is a directory');
+    expectFailure(result, 1, 'The specified file is a directory');
   });
 
   test('rejects a CSV without a scheme', async () => {
     const result = await ctx.runner.run(['tm', 'upload', 'sources/simple-tm.csv', '--language', 'uk']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Scheme is required for CSV or XLS/XLSX files');
+    expectFailure(result, 1, 'Scheme is required for CSV or XLS/XLSX files');
   });
 
   test('rejects a malformed --scheme value', async () => {
@@ -166,15 +164,13 @@ describe('tm', () => {
       'en',
     ]);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("The '--scheme' parameter has an invalid value 'en'");
+    expectFailure(result, 2, "The '--scheme' parameter has an invalid value 'en'");
   });
 
   test('rejects an unsupported file extension', async () => {
     const result = await ctx.runner.run(['tm', 'upload', 'sources/unsupported.txt', '--language', 'en']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Supported formats: tmx, csv, xlsx');
+    expectFailure(result, 1, 'Supported formats: tmx, csv, xlsx');
   });
 
   test('rejects --first-line-contains-header for a TMX file', async () => {
@@ -187,15 +183,13 @@ describe('tm', () => {
       '--first-line-contains-header',
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("'--first-line-contains-header' is used only for CSV or XLS/XLSX files");
+    expectFailure(result, 1, "'--first-line-contains-header' is used only for CSV or XLS/XLSX files");
   });
 
   test('requires --language when creating a new translation memory', async () => {
     const result = await ctx.runner.run(['tm', 'upload', 'sources/simple-tm.tmx']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("'--language' is required for creating new translation memory");
+    expectFailure(result, 1, "'--language' is required for creating new translation memory");
   });
 
   test('uploads a TMX translation memory, creating it', async () => {
@@ -315,36 +309,31 @@ describe('tm', () => {
   test('rejects a non-numeric translation memory id', async () => {
     const result = await ctx.runner.run(['tm', 'download', 'not-a-number']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain('Translation memory id must be numeric');
+    expectFailure(result, 2, 'Translation memory id must be numeric');
   });
 
   test('rejects a --to extension that is not a supported format', async () => {
     const result = await ctx.runner.run(['tm', 'download', '1', '--to', 'download/out.txt']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Supported formats: tmx, csv, xlsx');
+    expectFailure(result, 1, 'Supported formats: tmx, csv, xlsx');
   });
 
   test('rejects --source-language-id without --target-language-id', async () => {
     const result = await ctx.runner.run(['tm', 'download', '1', '--source-language-id', 'en']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("'--target-language-id' must be specified along with '--source-language-id'");
+    expectFailure(result, 1, "'--target-language-id' must be specified along with '--source-language-id'");
   });
 
   test('rejects --target-language-id without --source-language-id', async () => {
     const result = await ctx.runner.run(['tm', 'download', '1', '--target-language-id', 'uk']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("'--source-language-id' must be specified along with '--target-language-id'");
+    expectFailure(result, 1, "'--source-language-id' must be specified along with '--target-language-id'");
   });
 
   test('reports a translation memory that does not exist', async () => {
     const result = await ctx.runner.run(['tm', 'download', String(MISSING_TM_ID)]);
 
-    expect(result.exitCode).toBe(102);
-    expect(result.stderr).toContain('Not Found');
+    expectFailure(result, 102, 'Not Found');
   });
 
   test('downloads the TMX translation memory by id and format', async () => {
@@ -492,8 +481,7 @@ describe('tm', () => {
   test('rejects a non-numeric --id on upload', async () => {
     const result = await ctx.runner.run(['tm', 'upload', 'sources/simple-tm.tmx', '--id', 'not-a-number']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain('Translation memory id must be numeric');
+    expectFailure(result, 2, 'Translation memory id must be numeric');
   });
 
   test('lists translation memories authenticating via -T against a config without an api_token', async () => {

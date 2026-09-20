@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { expectFailure } from '../helpers/cli.ts';
 import { findCommentId, findStringId } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
@@ -37,8 +38,7 @@ describe('comment', () => {
   test('rejects an unknown subcommand', async () => {
     const result = await ctx.runner.run(['comment', 'bogus']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("unknown command 'bogus'");
+    expectFailure(result, 2, "unknown command 'bogus'");
   });
 
   test('reports no comments before any exist', async () => {
@@ -65,15 +65,13 @@ describe('comment', () => {
   test('requires the comment text', async () => {
     const result = await ctx.runner.run(['comment', 'add', '--string-id', String(welcomeStringId)]);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("missing required argument 'text'");
+    expectFailure(result, 2, "missing required argument 'text'");
   });
 
   test('requires --string-id', async () => {
     const result = await ctx.runner.run(['comment', 'add', 'Orphan comment']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("The '--string-id' option is required");
+    expectFailure(result, 1, "The '--string-id' option is required");
   });
 
   test('requires --language when adding an issue', async () => {
@@ -87,8 +85,7 @@ describe('comment', () => {
       'issue',
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("The '--language' option is required when --type=issue");
+    expectFailure(result, 1, "The '--language' option is required when --type=issue");
   });
 
   test('rejects --issue-type on a plain comment', async () => {
@@ -104,8 +101,7 @@ describe('comment', () => {
       'source_mistake',
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Comment should not have the --issue-type parameter');
+    expectFailure(result, 1, 'Comment should not have the --issue-type parameter');
   });
 
   test('rejects an unsupported --type value', async () => {
@@ -121,8 +117,7 @@ describe('comment', () => {
       'suggestion',
     ]);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain('suggestion');
+    expectFailure(result, 2, 'suggestion');
   });
 
   test('rejects an unsupported --issue-type value', async () => {
@@ -140,15 +135,13 @@ describe('comment', () => {
       'typo',
     ]);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain('typo');
+    expectFailure(result, 2, 'typo');
   });
 
   test('fails to add a comment to a string that does not exist', async () => {
     const result = await ctx.runner.run(['comment', 'add', 'Ghost comment', '--string-id', '1', '-l', 'uk']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Comment was not added');
+    expectFailure(result, 1, 'Comment was not added');
   });
 
   test('adds a plain comment', async () => {
@@ -263,8 +256,7 @@ describe('comment', () => {
   test('rejects an unsupported --status value', async () => {
     const result = await ctx.runner.run(['comment', 'list', '--status', 'closed']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain('closed');
+    expectFailure(result, 2, 'closed');
   });
 
   test('lists comments with the verbose view', async () => {
@@ -300,15 +292,13 @@ describe('comment', () => {
   test('rejects a non-numeric comment id on resolve', async () => {
     const result = await ctx.runner.run(['comment', 'resolve', 'abc']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain('Comment id must be numeric');
+    expectFailure(result, 2, 'Comment id must be numeric');
   });
 
   test('fails to resolve a comment that does not exist', async () => {
     const result = await ctx.runner.run(['comment', 'resolve', '1']);
 
-    expect(result.exitCode).toBe(102);
-    expect(result.stderr).toContain('Comment #1 was not resolved');
+    expectFailure(result, 102, 'Comment #1 was not resolved');
   });
 
   test('resolves a string issue', async () => {
@@ -331,7 +321,6 @@ describe('comment', () => {
   test('rejects empty comment text', async () => {
     const result = await ctx.runner.run(['comment', 'add', '']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('String comment text is required');
+    expectFailure(result, 1, 'String comment text is required');
   });
 });

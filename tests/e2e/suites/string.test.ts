@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { decode } from '@toon-format/toon';
+import { expectFailure } from '../helpers/cli.ts';
 import { findBranch, findCommentId, findFileId, findStringId } from '../helpers/lookup.ts';
 import { normalize } from '../helpers/normalize.ts';
 import {
@@ -279,25 +280,26 @@ describe('string', () => {
   test('reports a missing file when listing by file', async () => {
     const result = await ctx.runner.run(['string', 'list', '--file', 'not-exists-file.xml']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("File 'not-exists-file.xml' not found");
+    expectFailure(result, 1, "File 'not-exists-file.xml' not found");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('warns then fails adding a string to a missing file', async () => {
     const result = await ctx.runner.run(['string', 'add', 'simple string', '--file', 'not-exists-file.xml']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Project doesn't contain the 'not-exists-file.xml' file");
-    expect(result.stderr).toContain('No valid file specified for the string');
+    expectFailure(
+      result,
+      1,
+      "Project doesn't contain the 'not-exists-file.xml' file",
+      'No valid file specified for the string',
+    );
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('fails adding a string to an unsupported file type', async () => {
     const result = await ctx.runner.run(['string', 'add', 'simple string', '--file', 'text.txt']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('does not support online string');
+    expectFailure(result, 1, 'does not support online string');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -305,24 +307,21 @@ describe('string', () => {
     const result = await ctx.runner.run(['string', 'add', '', '--file', 'android.xml']);
 
     // Rejected by the CLI before any API call, so the API's own `isEmpty` errors never occur.
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Source string text can not be empty');
+    expectFailure(result, 1, 'Source string text can not be empty');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('requires an identifier when adding a string without one', async () => {
     const result = await ctx.runner.run(['string', 'add', 'simple string', '--file', 'android.xml']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Value is required and can't be empty");
+    expectFailure(result, 1, "Value is required and can't be empty");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('reports a missing string when editing a nonexistent id', async () => {
     const result = await ctx.runner.run(['string', 'edit', '999999', '--text', 'simple string']);
 
-    expect(result.exitCode).toBe(102);
-    expect(result.stderr).toContain('String Not Found');
+    expectFailure(result, 102, 'String Not Found');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -331,16 +330,14 @@ describe('string', () => {
     const id = await findStringId(ctx, 'First text string.', { fileId: textFileId });
     const result = await ctx.runner.run(['string', 'edit', String(id), '--text', 'simple string']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('does not support online string');
+    expectFailure(result, 1, 'does not support online string');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('reports a missing string when deleting a nonexistent id', async () => {
     const result = await ctx.runner.run(['string', 'delete', '999999']);
 
-    expect(result.exitCode).toBe(102);
-    expect(result.stderr).toContain('String Not Found');
+    expectFailure(result, 102, 'String Not Found');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -352,7 +349,7 @@ describe('string', () => {
       code: number;
     };
 
-    expect(result.exitCode).toBe(102);
+    expectFailure(result, 102);
     expect(record.level).toBe('error');
     expect(record.message).toContain('String Not Found');
     expect(record.code).toBe(102);
@@ -364,8 +361,7 @@ describe('string', () => {
     const id = await findStringId(ctx, 'First text string.', { fileId: textFileId });
     const result = await ctx.runner.run(['string', 'delete', String(id)]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('does not support online string');
+    expectFailure(result, 1, 'does not support online string');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -405,8 +401,7 @@ describe('string', () => {
   test('rejects an invalid CroQL expression', async () => {
     const result = await ctx.runner.run(['string', 'list', '--croql', '11111111111']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("The inferred type is not equal to 'bool'");
+    expectFailure(result, 1, "The inferred type is not equal to 'bool'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -501,22 +496,19 @@ describe('string', () => {
   test('rejects --file and --directory together', async () => {
     const result = await ctx.runner.run(['string', 'list', '--file', 'android.xml', '--directory', 'sources']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("The '--file' and '--directory' options can't be used together");
+    expectFailure(result, 1, "The '--file' and '--directory' options can't be used together");
   });
 
   test('rejects --scope without --filter', async () => {
     const result = await ctx.runner.run(['string', 'list', '--scope', 'identifier']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("The '--scope' option can only be used together with '--filter'");
+    expectFailure(result, 1, "The '--scope' option can only be used together with '--filter'");
   });
 
   test('rejects --croql alongside another filter', async () => {
     const result = await ctx.runner.run(['string', 'list', '--croql', 'text = "x"', '--filter', 'str']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("The '--croql' option can't be used together with --filter");
+    expectFailure(result, 1, "The '--croql' option can't be used together with --filter");
   });
 
   test('names every filter that conflicts with --croql, not just the first', async () => {
@@ -531,36 +523,31 @@ describe('string', () => {
       'android.xml',
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("The '--croql' option can't be used together with --filter, --file");
+    expectFailure(result, 1, "The '--croql' option can't be used together with --filter, --file");
   });
 
   test('rejects a negative --max-length when adding', async () => {
     const result = await ctx.runner.run(['string', 'add', 'negative', '--file', 'android.xml', '--max-length=-1']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("'--max-length' cannot be lower than 0");
+    expectFailure(result, 1, "'--max-length' cannot be lower than 0");
   });
 
   test('rejects a negative --max-length when editing', async () => {
     const result = await ctx.runner.run(['string', 'edit', String(thirdStringId), '--max-length=-1']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("'--max-length' cannot be lower than 0");
+    expectFailure(result, 1, "'--max-length' cannot be lower than 0");
   });
 
   test('requires at least one parameter on edit', async () => {
     const result = await ctx.runner.run(['string', 'edit', String(thirdStringId)]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Specify some parameters to edit the string');
+    expectFailure(result, 1, 'Specify some parameters to edit the string');
   });
 
   test('requires --file when adding to a file-based project', async () => {
     const result = await ctx.runner.run(['string', 'add', 'no file given']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("The '--file' value can not be empty");
+    expectFailure(result, 1, "The '--file' value can not be empty");
   });
 
   test('reports a directory the project does not contain', async () => {
@@ -634,10 +621,7 @@ describe('string', () => {
       String(stringsBasedProjectId),
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain(
-      "The '--file' and '--directory' options are not supported for string-based projects",
-    );
+    expectFailure(result, 1, "The '--file' and '--directory' options are not supported for string-based projects");
   });
 
   test('rejects --file when adding to a string-based project', async () => {
@@ -651,8 +635,7 @@ describe('string', () => {
       String(stringsBasedProjectId),
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("The '--file' option is not supported for string-based projects");
+    expectFailure(result, 1, "The '--file' option is not supported for string-based projects");
   });
 
   test('requires --branch when adding to a string-based project', async () => {
@@ -664,7 +647,6 @@ describe('string', () => {
       String(stringsBasedProjectId),
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("The '--branch' option is required for string-based projects");
+    expectFailure(result, 1, "The '--branch' option is required for string-based projects");
   });
 });

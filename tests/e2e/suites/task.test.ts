@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { expectFailure } from '../helpers/cli.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -70,8 +71,7 @@ describe('task', () => {
   test('rejects an unknown subcommand', async () => {
     const result = await ctx.runner.run(['task', 'bogus']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("unknown command 'bogus'");
+    expectFailure(result, 2, "unknown command 'bogus'");
   });
 
   test('reports a project with no tasks', async () => {
@@ -85,29 +85,25 @@ describe('task', () => {
   test('requires a title', async () => {
     const result = await ctx.runner.run(['task', 'add']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("missing required argument 'title'");
+    expectFailure(result, 2, "missing required argument 'title'");
   });
 
   test('requires a language', async () => {
     const result = await ctx.runner.run(['task', 'add', 'T1']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Language can not be empty. (e.g. es-ES, en-US)');
+    expectFailure(result, 1, 'Language can not be empty. (e.g. es-ES, en-US)');
   });
 
   test('requires at least one file', async () => {
     const result = await ctx.runner.run(['task', 'add', 'T1', '--language', 'uk']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("The '--file' value can not be empty");
+    expectFailure(result, 1, "The '--file' value can not be empty");
   });
 
   test('requires a type outside Enterprise', async () => {
     const result = await ctx.runner.run(['task', 'add', 'T1', '--language', 'uk', '--file', 'sources/1_android.xml']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Task type can not be empty. Possible values: translate, proofread');
+    expectFailure(result, 1, 'Task type can not be empty. Possible values: translate, proofread');
   });
 
   test('rejects an unsupported type', async () => {
@@ -123,8 +119,7 @@ describe('task', () => {
       'bogus',
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Unsupported task type. Possible values: translate, proofread');
+    expectFailure(result, 1, 'Unsupported task type. Possible values: translate, proofread');
   });
 
   test("rejects --include-pre-translated-strings-only on a 'translate' task", async () => {
@@ -141,8 +136,9 @@ describe('task', () => {
       '--include-pre-translated-strings-only',
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain(
+    expectFailure(
+      result,
+      1,
       "The '--include-pre-translated-strings-only' option can't be used with the 'translate' task type",
     );
     expect(normalize(result.stderr)).toMatchSnapshot();
@@ -161,9 +157,12 @@ describe('task', () => {
       'translate',
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Project doesn't contain the 'nope.xml' file");
-    expect(result.stderr).toContain('No valid file specified for the task. At least one valid file is required');
+    expectFailure(
+      result,
+      1,
+      "Project doesn't contain the 'nope.xml' file",
+      'No valid file specified for the task. At least one valid file is required',
+    );
   });
 
   test('rejects a label the project does not have', async () => {
@@ -182,8 +181,7 @@ describe('task', () => {
       'no-such-label',
     ]);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Project doesn't contain the 'no-such-label' label");
+    expectFailure(result, 1, "Project doesn't contain the 'no-such-label' label");
   });
 
   test('adds a translate task', async () => {
@@ -305,16 +303,14 @@ describe('task', () => {
   test('rejects an unsupported status', async () => {
     const result = await ctx.runner.run(['task', 'list', '--status', 'bogus']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Unsupported status: 'bogus'");
+    expectFailure(result, 1, "Unsupported status: 'bogus'");
   });
 
   test('rejects a non-numeric --assignee-id', async () => {
     const result = await ctx.runner.run(['task', 'list', '--assignee-id', 'abc']);
 
     // toNumberArray raises a validation error, so exit 2 rather than the generic 1.
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("The '--assignee-id' value must be numeric");
+    expectFailure(result, 2, "The '--assignee-id' value must be numeric");
   });
 
   test('filters by assignee, client-side', async () => {
@@ -328,7 +324,6 @@ describe('task', () => {
   test('rejects an empty task title', async () => {
     const result = await ctx.runner.run(['task', 'add', '']);
 
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Task title can not be empty');
+    expectFailure(result, 1, 'Task title can not be empty');
   });
 });

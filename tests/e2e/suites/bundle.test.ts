@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
+import { expectFailure } from '../helpers/cli.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -49,8 +50,7 @@ describe('bundle', () => {
   test('rejects an unknown subcommand', async () => {
     const result = await ctx.runner.run(['bundle', 'bogus']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("unknown command 'bogus'");
+    expectFailure(result, 2, "unknown command 'bogus'");
   });
 
   test('reports an empty bundle list', async () => {
@@ -132,20 +132,17 @@ describe('bundle', () => {
   test('requires a bundle name', async () => {
     const result = await ctx.runner.run(['bundle', 'add']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("missing required argument 'name'");
+    expectFailure(result, 2, "missing required argument 'name'");
   });
 
   test('requires --format, --source-pattern and --export-pattern', async () => {
     const missingFormat = await ctx.runner.run(['bundle', 'add', 'Incomplete']);
 
-    expect(missingFormat.exitCode).toBe(1);
-    expect(missingFormat.stderr).toContain("'--format' can't be empty");
+    expectFailure(missingFormat, 1, "'--format' can't be empty");
 
     const missingSource = await ctx.runner.run(['bundle', 'add', 'Incomplete', '--format', 'xliff']);
 
-    expect(missingSource.exitCode).toBe(1);
-    expect(missingSource.stderr).toContain("'--source-pattern' can't be empty");
+    expectFailure(missingSource, 1, "'--source-pattern' can't be empty");
 
     const missingExport = await ctx.runner.run([
       'bundle',
@@ -157,8 +154,7 @@ describe('bundle', () => {
       '**',
     ]);
 
-    expect(missingExport.exitCode).toBe(1);
-    expect(missingExport.stderr).toContain("'--export-pattern' can't be empty");
+    expectFailure(missingExport, 1, "'--export-pattern' can't be empty");
   });
 
   test('lists every bundle', async () => {
@@ -223,8 +219,7 @@ describe('bundle', () => {
   test('rejects a non-numeric bundle id', async () => {
     const result = await ctx.runner.run(['bundle', 'delete', 'abc']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain('Bundle id must be numeric');
+    expectFailure(result, 2, 'Bundle id must be numeric');
   });
 
   test('warns instead of failing when deleting an unknown bundle', async () => {
@@ -237,8 +232,7 @@ describe('bundle', () => {
   test('fails to download an unknown bundle', async () => {
     const result = await ctx.runner.run(['bundle', 'download', '1']);
 
-    expect(result.exitCode).toBe(102);
-    expect(result.stderr).toContain("Couldn't find bundle by the specified ID");
+    expectFailure(result, 102, "Couldn't find bundle by the specified ID");
   });
 
   test('deletes a bundle', async () => {

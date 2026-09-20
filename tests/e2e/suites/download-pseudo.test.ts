@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
+import { expectFailure } from '../helpers/cli.ts';
 import { expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
@@ -152,8 +153,7 @@ describe('download pseudo', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain('Invalid option: expected one of "asian"|"european"|"arabic"|"cyrillic"');
+    expectFailure(result, 2, 'Invalid option: expected one of "asian"|"european"|"arabic"|"cyrillic"');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -162,8 +162,7 @@ describe('download pseudo', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain('Invalid input: expected string, received number');
+    expectFailure(result, 2, 'Invalid input: expected string, received number');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -172,8 +171,7 @@ describe('download pseudo', () => {
 
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain('Too big: expected number to be <=100');
+    expectFailure(result, 2, 'Too big: expected number to be <=100');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 

@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { expectFailure } from '../helpers/cli.ts';
 import { captureAndClear, expectFilesExist, expectRestored } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
@@ -26,8 +27,7 @@ describe('file groups', () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
     // A group matching zero files is a soft error: the other groups still upload.
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Current execution finished with errors');
+    expectFailure(result, 1, 'Current execution finished with errors');
     expect(result.stdout).toContain("Directory 'sources'");
     expect(result.stdout).toContain("File 'sources/java.properties'");
     expect(result.stdout).toContain("File 'sources/android.xml'");

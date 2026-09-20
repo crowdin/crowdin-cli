@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
+import { expectFailure } from '../helpers/cli.ts';
 import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
@@ -68,8 +69,7 @@ describe('project', () => {
   test('rejects an unknown subcommand', async () => {
     const result = await ctx.runner.run(['project', 'bogus']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("unknown command 'bogus'");
+    expectFailure(result, 2, "unknown command 'bogus'");
   });
 
   test("lists the projects the token manages, including this suite's own", async () => {
@@ -112,8 +112,7 @@ describe('project', () => {
   test('requires a name to add', async () => {
     const result = await ctx.runner.run(['project', 'add']);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("missing required argument 'name'");
+    expectFailure(result, 2, "missing required argument 'name'");
   });
 
   test('adds a project with target languages', async () => {
