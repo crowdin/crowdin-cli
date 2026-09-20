@@ -15,6 +15,7 @@ describe('TmCommand', () => {
   let tempDir: string;
   let output: Output;
   let organization: string | undefined;
+  let configuredProjectId: number | undefined;
   let tmService: {
     list: ReturnType<typeof mock<TmService['list']>>;
     get: ReturnType<typeof mock<TmService['get']>>;
@@ -53,6 +54,7 @@ describe('TmCommand', () => {
       async () => tmService as unknown as TmService,
       async () => storageService as unknown as StorageService,
       async () => ({ organization }) as unknown as Client,
+      async () => ({ projectId: configuredProjectId }) as never,
     );
   };
 
@@ -60,6 +62,7 @@ describe('TmCommand', () => {
     tempDir = await mkdtemp(join(tmpdir(), 'crowdin-tm-command-'));
     output = createOutput(globalOptions);
     organization = undefined;
+    configuredProjectId = 1;
     tmService = {
       list: mock(async () => [] as TranslationMemoryModel.TranslationMemory[]),
       get: mock(async () => createTm()),
@@ -117,6 +120,42 @@ describe('TmCommand', () => {
 
       expect(tmService.list).toHaveBeenCalledTimes(1);
       expect(console.log).toHaveBeenCalledWith(JSON.stringify(tms, null, 2));
+    });
+
+    test('passes the configured project id to the service with --assigned', async () => {
+      const tmCommand = createTmCommand();
+      tmService.list.mockResolvedValue([createTm()]);
+
+      await tmCommand.listAction(createCommandContext({ assigned: true }));
+
+      expect(tmService.list).toHaveBeenCalledWith(1);
+    });
+
+    test('lists account-wide without --assigned', async () => {
+      const tmCommand = createTmCommand();
+
+      await tmCommand.listAction(createCommandContext({}));
+
+      expect(tmService.list).toHaveBeenCalledWith(undefined);
+    });
+
+    test('fails when --assigned has no project id to filter by', async () => {
+      const tmCommand = createTmCommand();
+      configuredProjectId = undefined;
+
+      expect(tmCommand.listAction(createCommandContext({ assigned: true }))).rejects.toThrow(
+        "Required option 'project_id' is missing",
+      );
+    });
+
+    test('reports an empty assigned listing as project-scoped', async () => {
+      output = createOutput({ ...globalOptions, output: 'text' });
+      const tmCommand = createTmCommand();
+      const info = spyOn(output, 'info');
+
+      await tmCommand.listAction(createCommandContext({ assigned: true, output: 'text' }));
+
+      expect(info).toHaveBeenCalledWith('No translation memories assigned to the project');
     });
 
     test('prints id, name and segment count in text format', async () => {

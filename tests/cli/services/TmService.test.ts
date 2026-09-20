@@ -31,6 +31,21 @@ describe('TmService', () => {
   });
 
   describe('list', () => {
+    test('keeps only the memories assigned to the given project', async () => {
+      const listTm = mock(async () => ({
+        data: [
+          { data: { id: 42, name: '42', projectIds: [1], defaultProjectIds: [] } },
+          { data: { id: 43, name: '43', projectIds: [2], defaultProjectIds: [] } },
+          { data: { id: 44, name: '44', projectIds: [], defaultProjectIds: [1] } },
+        ],
+      }));
+      spyOn(apiClient.translationMemoryApi, 'withFetchAll').mockReturnValue({ listTm } as never);
+
+      const tms = await tmService.list(1);
+
+      expect(tms.map(({ id }) => id)).toEqual([42, 44]);
+    });
+
     test('returns unwrapped translation memories', async () => {
       const listTm = mock(async () => ({
         data: [{ data: { id: 42, name: '42', segmentsCount: 10 } }],

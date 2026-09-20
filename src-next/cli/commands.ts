@@ -145,8 +145,8 @@ const taskCommand = new TaskCommand(
   getFileService,
   getLabelService,
 );
-const tmCommand = new TmCommand(getOutput, getTmService, getStorageService, getApiClient);
-const glossaryCommand = new GlossaryCommand(getOutput, getGlossaryService, getStorageService, getApiClient);
+const tmCommand = new TmCommand(getOutput, getTmService, getStorageService, getApiClient, getConfig);
+const glossaryCommand = new GlossaryCommand(getOutput, getGlossaryService, getStorageService, getApiClient, getConfig);
 const contextCommand = new ContextCommand(
   getOutput,
   getProjectService,
