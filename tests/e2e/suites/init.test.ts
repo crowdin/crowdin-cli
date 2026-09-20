@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { generate } from '@/lib/config/yamlGenerator.ts';
 import { expectFailure } from '../helpers/cli.ts';
+import { expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -35,19 +35,10 @@ describe('init generates a configuration skeleton', () => {
     );
     expect(stdout).toMatchSnapshot();
 
-    // With no credentials passed, the generated file omits `api_token` entirely and keeps the real
-    // `base_url`, so it is compared against a freshly generated skeleton rather than a static fixture.
-    const expectedContent = generate({
-      projectId: '',
-      apiToken: undefined,
-      basePath: '',
-      baseUrl: 'https://api.crowdin.com',
-      preserveHierarchy: true,
-      ignoreHiddenFiles: true,
-      files: [{ source: '', translation: '' }],
-    });
-
-    expect(await Bun.file(destPath).text()).toBe(expectedContent);
+    // Compared against a checked-in skeleton rather than one built with the CLI's own generator: a
+    // generator regression would rewrite both sides of that comparison and pass. With no credentials
+    // passed, the skeleton omits `api_token` entirely and keeps the real `base_url`.
+    await expectFilesMatch(ctx.workspace, '.', 'expected', 'crowdin.yaml');
   });
 
   test('writes flag values into the skeleton in quiet mode', async () => {
@@ -78,19 +69,8 @@ describe('init generates a configuration skeleton', () => {
 
     expect(result).toMatchObject({ exitCode: 0 });
 
-    const content = await Bun.file(destPath).text();
-    const expectedContent = generate({
-      projectId: 123,
-      apiToken: 'abc',
-      basePath: 'src',
-      baseUrl: 'https://acme.api.crowdin.com',
-      preserveHierarchy: false,
-      ignoreHiddenFiles: true,
-      files: [{ source: 'src/**/*.json', translation: 'l10n/%locale%/%original_file_name%' }],
-    });
-
-    expect(content).toBe(expectedContent);
-    expect(content).toContain('api_token');
+    await expectFilesMatch(ctx.workspace, '.', 'expected', 'crowdin-full.yml');
+    expect(await Bun.file(destPath).text()).toContain('api_token');
   });
 
   test('skips regeneration when the destination already exists', async () => {
