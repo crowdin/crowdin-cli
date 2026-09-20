@@ -5,7 +5,8 @@
  * which are snapshot-stable, so `normalize`:
  *
  *   1. strips ANSI/invisible characters,
- *   2. masks generated ids (`#123` → `#id`) and durations (`1.2s` → `<dur>`),
+ *   2. masks generated ids (`#123` → `#id`, a bare leading id → `<id>`, `(ID: 123)` →
+ *      `(ID: <project>)`) and durations (`1.2s` → `<dur>`),
  *   3. gathers the status lines (`●`/`▲`/`◆`) into one block, grouped by marker
  *      and sorted within each group,
  *   4. sorts remaining lines within each contiguous run of same-marker lines.
@@ -35,6 +36,12 @@ const ANSI = /\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])/g;
 const INVISIBLE = /[\u200B-\u200D\uFEFF]/g;
 // `#123`-style identifiers (string/file ids) without touching bare counts.
 const IDS = /#\d+/g;
+// `--output plain` item lines lead with a bare server-assigned id (`12345 BundleName`, and the id
+// alone on a line): the same per-run volatility `#123` carries, without the `#` to match on.
+const LEADING_ID = /^\d+\b/gm;
+// Project id in a heading, e.g. `Context Status for Project "…" (ID: 123)`. The project is created
+// per run, so its id is new every time.
+const PROJECT_ID = /\(ID: \d+\)/g;
 // Timing/speed values like `1.23s` or `450ms`.
 const DURATIONS = /\d+(?:\.\d+)?\s?m?s\b/g;
 // Per-run temp workspace root: `<os-tmp>/crowdin-e2e/<pid>-<seed>` (see workspace.ts).
@@ -186,6 +193,8 @@ export function normalize(output: string): string {
     .replace(ANSI, '')
     .replace(INVISIBLE, '')
     .replace(IDS, '#id')
+    .replace(LEADING_ID, '<id>')
+    .replace(PROJECT_ID, '(ID: <project>)')
     .replace(DURATIONS, '<dur>')
     .replace(WORKSPACE, '<workspace>')
     .replace(PROJECT_NAME, 'e2e-<run>-')

@@ -104,13 +104,12 @@ describe('bundle', () => {
       '--output',
       'plain',
     ]);
-    const plainLine = normalize(result.stdout);
-    const localBundleId = plainLine.match(/^(\d+)\b/)?.[1] ?? '';
+    const localBundleId = result.stdout.match(/^(\d+)\b/)?.[1] ?? '';
 
     expect(result).toMatchObject({ exitCode: 0 });
     expect(localBundleId).not.toBe('');
-    expect(plainLine).toBe(`${localBundleId} BundleCreatedWithPlainOutput`);
-    expect(maskBundleId(plainLine, localBundleId)).toMatchSnapshot();
+    expect(result.stdout.trim()).toBe(`${localBundleId} BundleCreatedWithPlainOutput`);
+    expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('downloads the bundle', async () => {
@@ -351,14 +350,6 @@ describe('bundle', () => {
     expect((await apiBundle(result.stdout.match(/#(\d+)/)?.[1] ?? '')).ignorePatterns).toEqual(['**/other.json']);
   });
 });
-
-/**
- * Bundle ids are assigned by the server and are not project-scoped, so they differ on every run.
- * `normalize` only masks `#123`-style ids, which leaves the bare id in `--output plain`.
- */
-function maskBundleId(output: string, id: string): string {
-  return output.replaceAll(new RegExp(`\\b${id}\\b`, 'g'), '<id>');
-}
 
 async function sortedLines(path: string): Promise<string[]> {
   const content = await Bun.file(path).text();

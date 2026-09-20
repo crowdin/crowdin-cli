@@ -69,11 +69,6 @@ describe('context', () => {
     return runJson<ContextStats>(ctx, ['context', 'status', ...args]);
   }
 
-  /** The status title carries the project id, which is new on every run. */
-  function maskProjectId(output: string): string {
-    return output.replace(/\(ID: \d+\)/g, '(ID: <project>)');
-  }
-
   test('prints help when invoked without a subcommand', async () => {
     const result = await ctx.runner.run(['context']);
 
@@ -131,7 +126,7 @@ describe('context', () => {
 
     expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Context Status for Project');
-    expect(maskProjectId(normalize(result.stdout))).toMatchSnapshot();
+    expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('rejects an unsupported --status value', async () => {
@@ -307,7 +302,7 @@ describe('context', () => {
     expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('/app.xml');
     expect(result.stdout).toContain('/web.xml');
-    expect(maskProjectId(normalize(result.stdout))).toMatchSnapshot();
+    expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('breaks the coverage down per file in the plain output', async () => {

@@ -10,8 +10,8 @@ import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helper
  * A distribution is defined by the bundles it exports, so the suite creates its own first, reading
  * the id from `bundle add`'s `#<id>` echo as `bundle.test.ts` does.
  *
- * Hashes are server-generated and differ every run, and `normalize` masks only `#123`-style ids, so
- * snapshots go through `maskHash` - mirroring `bundle.test.ts`'s `maskBundleId`.
+ * Hashes are server-generated and differ every run. `normalize` masks ids, not hashes (nothing in
+ * the text marks one), so snapshots go through `maskHash` with the hash this run produced.
  */
 
 function maskHash(output: string, hash: string): string {
