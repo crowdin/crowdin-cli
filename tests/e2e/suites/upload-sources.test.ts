@@ -23,6 +23,9 @@ import {
  */
 const SOURCE_PATHS = ['sources/alpha.json', 'sources/beta.json'];
 
+/** Every strings-based project is created with this branch, which the guard tests upload into. */
+const STRINGS_BRANCH = 'main';
+
 interface UploadedFile {
   path: string;
   action: string;
@@ -132,49 +135,30 @@ describe('upload sources', () => {
     expect(uploaded.every((file) => file.action !== 'skipped')).toBe(true);
   });
 
-  // The four warning tests below assert the warning only. Uploading these sources into a
-  // string-based project succeeds or reports per-file errors depending on what the previous run
-  // left behind, so the exit code is not stable enough to assert - the warning is the contract.
-  test('warns that excluded languages do not apply to a string-based project', async () => {
+  // One real upload carries all three option guards, and uploads a single file: a strings-based
+  // import locks the branch, so two files going up concurrently (or a second upload racing this one)
+  // fail with 'This branch is currently being updated'. The lock is per project, not per branch.
+  test('warns that the options that do not apply to a string-based project are ignored', async () => {
     const result = await ctx.runner.run([
       'upload',
       'sources',
       '--excluded-language',
       'uk',
-      '--branch',
-      'main',
-      '--project-id',
-      String(stringsBasedProjectId),
-    ]);
-
-    expect(result.stderr).toContain("'excluded-languages' option can not be used for string-based projects");
-  });
-
-  test('warns that delete-obsolete does not apply to a string-based project', async () => {
-    const result = await ctx.runner.run([
-      'upload',
-      'sources',
       '--delete-obsolete',
-      '--branch',
-      'main',
-      '--project-id',
-      String(stringsBasedProjectId),
-    ]);
-
-    expect(result.stderr).toContain("'delete-obsolete' option can not be used for string-based projects");
-  });
-
-  test('warns that no-auto-update does not apply to a string-based project', async () => {
-    const result = await ctx.runner.run([
-      'upload',
-      'sources',
       '--no-auto-update',
+      '-s',
+      'sources/alpha.json',
+      '-t',
+      'translations/%two_letters_code%/%original_file_name%',
       '--branch',
-      'main',
+      STRINGS_BRANCH,
       '--project-id',
       String(stringsBasedProjectId),
     ]);
 
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stderr).toContain("'excluded-languages' option can not be used for string-based projects");
+    expect(result.stderr).toContain("'delete-obsolete' option can not be used for string-based projects");
     expect(result.stderr).toContain("'no-auto-update' option can not be used for string-based projects");
   });
 
@@ -184,18 +168,23 @@ describe('upload sources', () => {
     expectFailure(result, 1, 'A branch is required to upload sources for a strings-based project');
   });
 
+  // Its own project, for the same reason: this upload would otherwise race the one above. Its
+  // config carries `context:` and matches a single file.
   test('warns that a configured context does not apply to a string-based project', async () => {
+    const contextProjectId = await createExtraProject(ctx, { suite: 'upload-sources-context', stringsBased: true });
+
     await switchConfig(ctx, 'with-context');
 
     const result = await ctx.runner.run([
       'upload',
       'sources',
       '--branch',
-      'main',
+      STRINGS_BRANCH,
       '--project-id',
-      String(stringsBasedProjectId),
+      String(contextProjectId),
     ]);
 
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stderr).toContain('Context can not be used for string-based projects');
   });
 });
