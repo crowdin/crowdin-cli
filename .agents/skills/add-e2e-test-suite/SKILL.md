@@ -24,7 +24,7 @@ Same for any server behavior (locale folder names, file layout): **observe it, d
 
 ## Steps
 
-**1. Fixtures** — `tests/e2e/fixtures/<suite>/config/crowdin.yml` (template) + input files (e.g. `sources/*.md`). Use only `{{projectId}}` / `{{token}}` placeholders; `renderConfig` throws on any other `{{...}}`. Everything except the top-level `config/` dir is copied into the workspace.
+**1. Fixtures** — `tests/e2e/fixtures/<suite>/config/crowdin.yml` (template) + input files (e.g. `sources/*.md`). `{{projectId}}` / `{{token}}` are always available; any other `{{name}}` must be supplied by the caller (see `switchConfig` below) or `renderConfig` throws. Everything except the top-level `config/` dir is copied into the workspace, so `alt-configs/` and `expected/` land there too.
 
 ```yaml
 project_id: "{{projectId}}"
@@ -41,6 +41,7 @@ files:
 
 ```ts
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { expectFailure } from '../helpers/cli.ts';
 import { expectFilesExist } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
@@ -54,16 +55,21 @@ describe('<human-readable suite name>', () => {
 
   test('uploads sources', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
   test('downloads translations', async () => {
     const result = await ctx.runner.run(['download', 'translations']);
-    expect(result.exitCode).toBe(0);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(normalize(result.stdout)).toMatchSnapshot();
-    // Files land at <languageId>/<source path> — Crowdin's default build layout.
-    await expectFilesExist(ctx.workspace, 'it/sources/alpha.md', 'uk/sources/alpha.md');
+    // Files land where the config's `translation:` pattern resolves — assert the layout you observed.
+    await expectFilesExist(ctx.workspace, 'translations/it-IT/alpha.md', 'translations/uk-UA/alpha.md');
+  });
+
+  test('rejects an unknown language', async () => {
+    const result = await ctx.runner.run(['download', 'translations', '-l', 'xx']);
+    expectFailure(result, 1, "Language 'xx' doesn't exist in the project");
   });
 });
 ```
@@ -75,16 +81,32 @@ No registry to edit (suites are discovered by file). No file cleanup to write (`
 ## Rules learned the hard way
 
 - **Tests share one project, run top-to-bottom.** Order them so later tests build on earlier state (upload before download). No isolation between tests.
-- **`ctx.runner.run(args)` auto-appends `-c <config> --no-progress --no-colors`** — pass only what follows `crowdin`. Returns `{ stdout, stderr, exitCode, timedOut }`. Always assert `exitCode` *and* the snapshot.
-- **`normalize()` sorts lines only within contiguous same-marker runs** (`●` progress, `◆` results), not globally — so it doesn't guard ordering within a block. Assert load-bearing facts (exit code, files, counts) explicitly in the test; don't add per-suite normalize config.
-- **The config `translation:` pattern is NOT applied on `download`** — the CLI extracts the raw build ZIP, so files land at `<languageId>/<original_path>` (e.g. `it/sources/alpha.md`), not `translations/it-IT/...`. Assert the layout you observed.
+- **`ctx.runner.run(args)` auto-appends `-c <config> --no-progress --no-colors`** — pass only what follows `crowdin`. Returns `{ stdout, stderr, exitCode, timedOut }`. Always assert the exit code *and* the snapshot.
+- **Assert exit codes one way:** success is `expect(result).toMatchObject({ exitCode: 0 })`; a failing command is `expectFailure(result, <code>, ...stderrSubstrings)`. Don't reintroduce `expect(result.exitCode).toBe(...)`.
+- **`normalize()` gathers every status line** (`●`, `▲`, `◆`) into one block, markers in order of first appearance and sorted within each — their interleaving is a race, so position is not preserved. Other lines are still sorted only within contiguous same-token runs (which keeps table rows inside their own table). It also masks ids (`#123` → `#id`, a bare leading id → `<id>`, `(ID: 123)` → `(ID: <project>)`), durations, the workspace root, the per-run project name, collapses repeated poll-progress lines, and drops the update-check banner. Assert load-bearing facts (exit code, files, counts) explicitly; don't add per-suite normalize config.
+- **The config `translation:` pattern IS applied on `download`** — the CLI resolves each archive entry to the local path that pattern names, so `translation: "translations/%locale%/%original_file_name%"` lands `translations/it-IT/alpha.md` (see `basic-upload-download`). The layout follows the pattern and its placeholders, so assert what you observed for the pattern under test.
 - **Snapshot keys embed the `describe()` name** — renaming it orphans existing entries; update the `.snap` or regenerate.
-- **Prefer literal assertion strings** (`'it/sources/alpha.md'`) over paths derived from the API/config — clearer and obviously correct.
+- **Prefer literal assertion strings** (`'translations/it-IT/alpha.md'`) over paths derived from the API/config — clearer and obviously correct.
 - **Token required.** `setupSuite` throws without `CROWDIN_E2E_TOKEN`. Suites run via `bun run test:e2e`; the network-free helper unit tests run in the regular `bun test`.
+- **Suites run four at a time** (`test:e2e` passes `--parallel=4`). Tests inside one file still run in order, but another suite is running against the same account — so never assert on account-wide listings (every glossary, every project) without filtering to this suite's own names.
 
 ## Helpers (`tests/e2e/helpers/`)
 
-- `setupSuite(suite, { sourceLanguageId?, targetLanguageIds? })` → `SuiteContext { env, client, workspace, project, runner }`. Provisions workspace + fixtures + project + rendered config; rolls back the project if a later setup step fails. `ctx.client` is a `@crowdin/crowdin-api-client` `Client` for direct API setup/assertions.
-- `teardownSuite(ctx)` — deletes project + removes workspace; honors `CROWDIN_E2E_KEEP=1`; logs, never throws.
-- `ctx.runner.run(args, opts?)` → `{ stdout, stderr, exitCode, timedOut }`.
-- `normalize(output)`, `expectFilesExist(workspace, ...relativePaths)`.
+**Lifecycle (`suite.ts`)**
+
+- `setupSuite(suite, { sourceLanguageId?, targetLanguageIds?, stringsBased?, withoutProject? })` → `SuiteContext { suite, env, client, workspace, project, runner, extraProjects }`. Provisions workspace + fixtures + project + rendered config; rolls back the project if a later setup step fails. `ctx.client` is a `@crowdin/crowdin-api-client` `Client` for direct API setup/assertions.
+- `teardownSuite(ctx)` — deletes the project *and every `createExtraProject` one*, removes the workspace; honors `CROWDIN_E2E_KEEP=1`; logs, never throws.
+- `createExtraProject(ctx, opts)` → id of a second project (e.g. a strings-based one to fire a guard against); torn down with the rest. Don't hand-roll a delete in `afterAll`.
+- `switchConfig(ctx, name, vars?)` — swap in `alt-configs/<name>.yml`, rendered with the project id, token and any `vars`. Values go in as-is when they are strings and JSON-encoded otherwise, so an array renders as a YAML flow sequence: `switchConfig(ctx, 'ignore', { ignore: ['/**/?.xml'] })` against a template line `ignore: {{ignore}}`. Prefer this over building YAML from string arrays in the test.
+- `restoreConfig(ctx)` — put the suite's own `config/crowdin.yml` back. Don't add an alt-config that just duplicates it.
+- `renderFixture(ctx, from, to?, vars?)` — render any workspace fixture, not just `crowdin.yml` (e.g. an `--identity` file).
+- `runJson<T>(ctx, args, opts?)` — run with `--output json`, assert exit 0, return the parsed stdout.
+
+**Assertions**
+
+- `expectFailure(result, exitCode, ...stderrSubstrings)` (`cli.ts`).
+- `files.ts`: `expectFilesExist(workspace, ...paths)`, `expectFilesMatch(workspace, actualDir, expectedDir, ...paths)` (compares a download against `expected/` fixtures and names every file that differs), `clearDir(workspace, ...paths)` (clear a download destination so a stale file can't masquerade as a fresh one), `captureAndClear` / `expectRestored` / `capturedContent`, `listFilesRecursively(root)`.
+- `lookup.ts`: `projectFilePaths(ctx)`, `findStringId`, `findBranch`, `findFileId`, `findCommentId`, `findGlossaryId`, `findTmId`, `translationCount`. Reach for these before writing another list-find-or-throw by hand.
+- `normalize(output)` — see the rules above.
+
+**Compare against fixtures, not against the CLI's own code.** `init` used to build its expected YAML with the CLI's own generator, so a generator regression rewrote both sides and passed. Check in an `expected/` file captured from a real run instead.
