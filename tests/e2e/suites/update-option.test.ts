@@ -1,0 +1,110 @@
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { join } from 'node:path';
+import { findFileId, translationCount } from '../helpers/lookup.ts';
+import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+
+/**
+ * Covers the `update_option` config key (`UPDATE_OPTION_MAP` in `lib/config.ts`). Unlike the other
+ * per-file keys it is not stored on the file, so it cannot be read back - it only takes effect while
+ * an *existing* file is being replaced, and
+ * only for strings whose text changed. Proving it therefore needs the whole cycle: upload,
+ * translate, edit the source, re-upload.
+ *
+ * The config carries three groups so the result is a contrast rather than a claim. `kept.json`
+ * declares `update_as_unapproved` (the API's `keep_translations`), `approved.json` declares
+ * `update_without_changes` and `plain.json` declares nothing; all are translated and then edited
+ * identically, so whatever difference appears at the end is the key's doing.
+ */
+const LANGUAGE = 'uk';
+
+describe('update_option', () => {
+  let ctx: SuiteContext;
+
+  beforeAll(async () => {
+    ctx = await setupSuite('update-option', { targetLanguageIds: [LANGUAGE] });
+  });
+
+  afterAll(async () => {
+    await teardownSuite(ctx);
+  });
+
+  async function findString(fileName: string): Promise<number> {
+    const fileId = await findFileId(ctx, `/sources/${fileName}`);
+    const strings = await ctx.client.sourceStringsApi.withFetchAll().listProjectStrings(ctx.project.id, { fileId });
+    const match = strings.data[0];
+
+    if (!match) {
+      throw new Error(`No strings found in '${fileName}'`);
+    }
+
+    return match.data.id;
+  }
+
+  async function approvalCount(stringId: number): Promise<number> {
+    const response = await ctx.client.stringTranslationsApi.listTranslationApprovals(ctx.project.id, {
+      stringId,
+      languageId: LANGUAGE,
+    });
+
+    return response.data.length;
+  }
+
+  test('uploads both sources and translates them', async () => {
+    const upload = await ctx.runner.run(['upload', 'sources']);
+
+    expect(upload).toMatchObject({ exitCode: 0 });
+
+    for (const fileName of ['kept.json', 'plain.json', 'approved.json']) {
+      const stringId = await findString(fileName);
+
+      const translation = await ctx.client.stringTranslationsApi.addTranslation(ctx.project.id, {
+        stringId,
+        languageId: LANGUAGE,
+        text: 'Привіт',
+      });
+
+      expect(await translationCount(ctx, stringId, LANGUAGE)).toBe(1);
+
+      // Only the third file's option claims to carry approvals through an update.
+      if (fileName === 'approved.json') {
+        await ctx.client.stringTranslationsApi.addApproval(ctx.project.id, {
+          translationId: translation.data.id,
+        });
+
+        expect(await approvalCount(stringId)).toBe(1);
+      }
+    }
+  });
+
+  test('keeps the translation of a changed string only where update_option asks for it', async () => {
+    // Same edit to every file: the string's text changes, which is the only case the option
+    // governs - an untouched string keeps its translation either way.
+    for (const fileName of ['kept.json', 'plain.json', 'approved.json']) {
+      await Bun.write(join(ctx.workspace, 'sources', fileName), '{\n  "greeting": "Hello there"\n}\n');
+    }
+
+    const uploaded = await runJson<{ path: string; action: string }[]>(ctx, ['upload', 'sources']);
+
+    // Assert the update actually happened before reading translations off it. A run where the API
+    // did not replace the files would otherwise fail further down as a translation-count mismatch,
+    // which says nothing about why.
+
+    expect(uploaded.map((file) => file.action)).toEqual(['updated', 'updated', 'updated']);
+
+    // The string ids change with the text, so look them up again rather than reusing the old ones.
+    const keptTranslations = await translationCount(ctx, await findString('kept.json'), LANGUAGE);
+    const plainTranslations = await translationCount(ctx, await findString('plain.json'), LANGUAGE);
+
+    expect(keptTranslations).toBe(1);
+    expect(plainTranslations).toBe(0);
+  });
+
+  test('carries the approval through as well with update_without_changes', async () => {
+    // The other half of UPDATE_OPTION_MAP: keep_translations_and_approvals, where the translation
+    // survives the edit still approved rather than reset to unapproved.
+    const stringId = await findString('approved.json');
+
+    expect(await translationCount(ctx, stringId, LANGUAGE)).toBe(1);
+    expect(await approvalCount(stringId)).toBe(1);
+  });
+});

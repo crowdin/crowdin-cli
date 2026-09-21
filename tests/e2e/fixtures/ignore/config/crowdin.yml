@@ -1,0 +1,9 @@
+# Every test switches to an alt-config before running, so this one only has to render.
+project_id: "{{projectId}}"
+api_token: "{{token}}"
+base_path: "./files"
+base_url: "https://api.crowdin.com"
+preserve_hierarchy: true
+files:
+  - source: "/**/*.*"
+    translation: "/%original_path%/%file_name%-%two_letters_code%.%file_extension%"

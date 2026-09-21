@@ -1,0 +1,360 @@
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { join } from 'node:path';
+import { expectFailure } from '../helpers/cli.ts';
+import { normalize } from '../helpers/normalize.ts';
+import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+
+/**
+ * `bundle browse` is not covered, for the reason `project browse` is not: `browseAction` calls
+ * `openUrl`, which spawns a real `open`/`xdg-open`, so a test would pop a browser tab on every run.
+ */
+describe('bundle', () => {
+  let ctx: SuiteContext;
+  let bundleId: string;
+  let clonedBundleId: string;
+  let flaggedBundleId: string;
+
+  beforeAll(async () => {
+    ctx = await setupSuite('bundle', { targetLanguageIds: ['it', 'uk'] });
+  });
+
+  afterAll(async () => {
+    await teardownSuite(ctx);
+  });
+
+  /**
+   * The bundle as the API holds it. `includeInContextPseudoLanguage` is absent from the client's
+   * `Bundle` model but is returned by the API, so it is read off a widened type.
+   */
+  async function apiBundle(id: string | number) {
+    const response = await ctx.client.bundlesApi.getBundle(ctx.project.id, Number(id));
+
+    return response.data as (typeof response)['data'] & { includeInContextPseudoLanguage?: boolean };
+  }
+
+  async function listedBundles(): Promise<{ id: number; name: string; format: string }[]> {
+    return runJson<{ id: number; name: string; format: string }[]>(ctx, ['bundle', 'list']);
+  }
+
+  test('prints help when invoked without a subcommand', async () => {
+    const result = await ctx.runner.run(['bundle']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stdout).toContain('Manage bundles');
+
+    for (const subcommand of ['list', 'add', 'delete', 'download', 'clone', 'browse']) {
+      expect(result.stdout).toContain(subcommand);
+    }
+  });
+
+  test('rejects an unknown subcommand', async () => {
+    const result = await ctx.runner.run(['bundle', 'bogus']);
+
+    expectFailure(result, 2, "unknown command 'bogus'");
+  });
+
+  test('reports an empty bundle list', async () => {
+    const result = await ctx.runner.run(['bundle', 'list']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stdout).toContain('No bundles found');
+    expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test('uploads sources for the bundle', async () => {
+    const result = await ctx.runner.run(['upload', 'sources']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stdout).toContain("File 'sample.json'");
+    expect(result.stdout).toContain("File 'sample.xml'");
+    expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test('adds a bundle', async () => {
+    const result = await ctx.runner.run([
+      'bundle',
+      'add',
+      'RegularBundle',
+      '--format',
+      'macosx',
+      '--source-pattern',
+      '**',
+      '--export-pattern',
+      'all.string',
+    ]);
+    // Text renders `#<id> <format> <exportPattern> <name>`.
+    bundleId = result.stdout.match(/#(\d+)/)?.[1] ?? '';
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(bundleId).not.toBe('');
+    expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test('adds a bundle with plain output', async () => {
+    const result = await ctx.runner.run([
+      'bundle',
+      'add',
+      'BundleCreatedWithPlainOutput',
+      '--format',
+      'xliff',
+      '--source-pattern',
+      '**',
+      '--export-pattern',
+      'all.xliff',
+      '--output',
+      'plain',
+    ]);
+    const localBundleId = result.stdout.match(/^(\d+)\b/)?.[1] ?? '';
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(localBundleId).not.toBe('');
+    expect(result.stdout.trim()).toBe(`${localBundleId} BundleCreatedWithPlainOutput`);
+    expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test('downloads the bundle', async () => {
+    const result = await ctx.runner.run(['bundle', 'download', bundleId]);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stdout).toContain(`#${bundleId} 'RegularBundle' has been successfully downloaded`);
+    expect(result.stdout).toContain('it/all.string');
+    expect(result.stdout).toContain('uk/all.string');
+    expect(normalize(result.stdout)).toMatchSnapshot();
+    expect(await sortedLines(join(ctx.workspace, 'files/it/all.string'))).toEqual(
+      await sortedLines(join(ctx.workspace, 'expected/it_all.string')),
+    );
+    expect(await sortedLines(join(ctx.workspace, 'files/uk/all.string'))).toEqual(
+      await sortedLines(join(ctx.workspace, 'expected/uk_all.string')),
+    );
+  });
+
+  test('requires a bundle name', async () => {
+    const result = await ctx.runner.run(['bundle', 'add']);
+
+    expectFailure(result, 2, "missing required argument 'name'");
+  });
+
+  test('requires --format, --source-pattern and --export-pattern', async () => {
+    const missingFormat = await ctx.runner.run(['bundle', 'add', 'Incomplete']);
+
+    expectFailure(missingFormat, 1, "'--format' can't be empty");
+
+    const missingSource = await ctx.runner.run(['bundle', 'add', 'Incomplete', '--format', 'xliff']);
+
+    expectFailure(missingSource, 1, "'--source-pattern' can't be empty");
+
+    const missingExport = await ctx.runner.run([
+      'bundle',
+      'add',
+      'Incomplete',
+      '--format',
+      'xliff',
+      '--source-pattern',
+      '**',
+    ]);
+
+    expectFailure(missingExport, 1, "'--export-pattern' can't be empty");
+  });
+
+  test('lists every bundle', async () => {
+    const result = await ctx.runner.run(['bundle', 'list']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stdout).toContain('RegularBundle');
+    expect(result.stdout).toContain('BundleCreatedWithPlainOutput');
+
+    expect((await listedBundles()).map((bundle) => bundle.name).sort()).toEqual([
+      'BundleCreatedWithPlainOutput',
+      'RegularBundle',
+    ]);
+  });
+
+  // Every clone option is tri-state: omitted means "inherit from the source bundle".
+  test('clones a bundle, inheriting its settings', async () => {
+    const result = await ctx.runner.run(['bundle', 'clone', bundleId]);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+
+    clonedBundleId = result.stdout.match(/#(\d+)/)?.[1] ?? '';
+
+    expect(clonedBundleId).not.toBe('');
+    expect(clonedBundleId).not.toBe(bundleId);
+
+    const clone = (await listedBundles()).find((bundle) => bundle.id === Number(clonedBundleId));
+
+    expect(clone?.name).toBe('RegularBundle (clone)');
+    expect(clone?.format).toBe('macosx');
+  });
+
+  test('clones a bundle with overrides', async () => {
+    const result = await ctx.runner.run([
+      'bundle',
+      'clone',
+      bundleId,
+      '--name',
+      'OverriddenClone',
+      '--format',
+      'xliff',
+      '--export-pattern',
+      'all.xliff',
+    ]);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+
+    const id = Number(result.stdout.match(/#(\d+)/)?.[1] ?? '');
+    const clone = (await listedBundles()).find((bundle) => bundle.id === id);
+
+    expect(clone?.name).toBe('OverriddenClone');
+    expect(clone?.format).toBe('xliff');
+  });
+
+  test('warns instead of failing when cloning an unknown bundle', async () => {
+    const result = await ctx.runner.run(['bundle', 'clone', '1']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stderr).toContain("Couldn't find bundle by the specified ID");
+  });
+
+  test('rejects a non-numeric bundle id', async () => {
+    const result = await ctx.runner.run(['bundle', 'delete', 'abc']);
+
+    expectFailure(result, 2, 'Bundle id must be numeric');
+  });
+
+  test('warns instead of failing when deleting an unknown bundle', async () => {
+    const result = await ctx.runner.run(['bundle', 'delete', '1']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stderr).toContain("Couldn't find bundle by the specified ID");
+  });
+
+  test('fails to download an unknown bundle', async () => {
+    const result = await ctx.runner.run(['bundle', 'download', '1']);
+
+    expectFailure(result, 102, "Couldn't find bundle by the specified ID");
+  });
+
+  test('deletes a bundle', async () => {
+    const result = await ctx.runner.run(['bundle', 'delete', clonedBundleId]);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stdout).toContain(`Bundle #${clonedBundleId} deleted`);
+    expect(normalize(result.stdout)).toMatchSnapshot();
+
+    expect((await listedBundles()).map((bundle) => bundle.id)).not.toContain(Number(clonedBundleId));
+  });
+
+  // `add` declares only the flag that changes the request: the bundle is created with the
+  // pseudo-language included and the other two off, so only --no-include-pseudo-language,
+  // --include-source-language and --multilingual exist there.
+  test('applies the add defaults when no flag is given', async () => {
+    const result = await ctx.runner.run([
+      'bundle',
+      'add',
+      'DefaultFlags',
+      '--format',
+      'xliff',
+      '--source-pattern',
+      '**',
+      '--export-pattern',
+      'default.xliff',
+    ]);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+
+    const bundle = await apiBundle(result.stdout.match(/#(\d+)/)?.[1] ?? '');
+
+    expect(bundle.includeProjectSourceLanguage).toBe(false);
+    expect(bundle.includeInContextPseudoLanguage).toBe(true);
+    expect(bundle.isMultilingual).toBe(false);
+  });
+
+  test('honours every add flag', async () => {
+    const result = await ctx.runner.run([
+      'bundle',
+      'add',
+      'AllFlags',
+      '--format',
+      'xliff',
+      '--source-pattern',
+      '**',
+      '--export-pattern',
+      'all-flags.xliff',
+      '--ignore-pattern',
+      '**/ignored.json',
+      '--include-source-language',
+      '--no-include-pseudo-language',
+      '--multilingual',
+    ]);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+
+    flaggedBundleId = result.stdout.match(/#(\d+)/)?.[1] ?? '';
+
+    const bundle = await apiBundle(flaggedBundleId);
+
+    expect(bundle.includeProjectSourceLanguage).toBe(true);
+    expect(bundle.includeInContextPseudoLanguage).toBe(false);
+    expect(bundle.isMultilingual).toBe(true);
+    expect(bundle.ignorePatterns).toEqual(['**/ignored.json']);
+  });
+
+  test('inherits every flag on a clone', async () => {
+    const result = await ctx.runner.run(['bundle', 'clone', flaggedBundleId, '--name', 'InheritedFlags']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+
+    const bundle = await apiBundle(result.stdout.match(/#(\d+)/)?.[1] ?? '');
+
+    expect(bundle.includeProjectSourceLanguage).toBe(true);
+    expect(bundle.includeInContextPseudoLanguage).toBe(false);
+    expect(bundle.isMultilingual).toBe(true);
+    expect(bundle.ignorePatterns).toEqual(['**/ignored.json']);
+  });
+
+  // The reason clone declares a negation for every flag: without one, an inherited `true` could
+  // never be turned back off.
+  test('turns an inherited flag back off on a clone', async () => {
+    const result = await ctx.runner.run([
+      'bundle',
+      'clone',
+      flaggedBundleId,
+      '--name',
+      'NegatedFlags',
+      '--no-include-source-language',
+      '--include-pseudo-language',
+      '--no-multilingual',
+    ]);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+
+    const bundle = await apiBundle(result.stdout.match(/#(\d+)/)?.[1] ?? '');
+
+    expect(bundle.includeProjectSourceLanguage).toBe(false);
+    expect(bundle.includeInContextPseudoLanguage).toBe(true);
+    expect(bundle.isMultilingual).toBe(false);
+  });
+
+  test('overrides the inherited ignore patterns on a clone', async () => {
+    const result = await ctx.runner.run([
+      'bundle',
+      'clone',
+      flaggedBundleId,
+      '--name',
+      'OverriddenPatterns',
+      '--ignore-pattern',
+      '**/other.json',
+    ]);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect((await apiBundle(result.stdout.match(/#(\d+)/)?.[1] ?? '')).ignorePatterns).toEqual(['**/other.json']);
+  });
+});
+
+async function sortedLines(path: string): Promise<string[]> {
+  const content = await Bun.file(path).text();
+  return content
+    .split('\n')
+    .filter((line) => line.length > 0)
+    .sort();
+}

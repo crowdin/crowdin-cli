@@ -143,7 +143,6 @@ export default class UploadTranslationsCommand {
       try {
         output.info(this.importingMessage(entry.translationPath));
 
-        // importProjectTranslation returns only once the server-side import has finished.
         await translationService.importProjectTranslation(
           storage.data.id,
           entry.fileId as number,

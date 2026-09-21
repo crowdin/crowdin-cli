@@ -1,0 +1,182 @@
+import { expect } from 'bun:test';
+import { join } from 'node:path';
+import type { Client } from '@crowdin/crowdin-api-client';
+import { CliRunner, type CliRunOptions } from './cli.ts';
+import { renderConfig, writeConfig } from './config.ts';
+import type { E2eEnv } from './env.ts';
+import { resolveEnv } from './env.ts';
+import {
+  type CreateProjectOptions,
+  createApiClient,
+  createTestProject,
+  deleteTestProject,
+  SYNTHETIC_PROJECT,
+  SYNTHETIC_PROJECT_ID,
+  type TestProject,
+} from './project.ts';
+import { copyFixtures, createWorkspace, removeWorkspace } from './workspace.ts';
+
+/** Fixtures live at `tests/e2e/fixtures/<suite>`, resolved relative to this helper. */
+const FIXTURES_ROOT = join(import.meta.dir, '..', 'fixtures');
+
+export interface SuiteContext {
+  /** Fixture directory name, so helpers can re-read the suite's own `config/crowdin.yml`. */
+  suite: string;
+  env: E2eEnv;
+  client: Client;
+  workspace: string;
+  project: TestProject;
+  runner: CliRunner;
+  /** Projects created with {@link createExtraProject}, deleted by `teardownSuite` along with `project`. */
+  extraProjects: TestProject[];
+}
+
+export interface SetupSuiteOptions {
+  sourceLanguageId?: string;
+  targetLanguageIds?: string[];
+  /** Create a strings-based project - `branch clone`/`merge` refuse to run against any other type. */
+  stringsBased?: boolean;
+  /**
+   * Skip creating a real Crowdin project. Only for suites whose commands never address one - `app`
+   * is the case this exists for: it sits in the project option tier, so `project_id` has to be
+   * *present* in the config, but none of `app list`/`install`/`uninstall` sends it to the API
+   * (`cli/services/AppService.ts`). The config gets {@link SYNTHETIC_PROJECT_ID} and teardown has
+   * nothing to delete, so the suite costs the account no project churn.
+   */
+  withoutProject?: boolean;
+}
+
+/**
+ * Compose the per-suite lifecycle: temp workspace, fixtures copied from
+ * `tests/e2e/fixtures/<suite>`, a fresh Crowdin project, and a rendered `crowdin.yml`
+ * wired into a `CliRunner`. Call from `beforeAll` with the suite name.
+ */
+export async function setupSuite(suite: string, opts: SetupSuiteOptions = {}): Promise<SuiteContext> {
+  const env = resolveEnv();
+  const token = env.token;
+
+  if (!token) {
+    throw new Error('CROWDIN_E2E_TOKEN is not set. E2E suites require a dedicated test-account token.');
+  }
+
+  const client = createApiClient(env);
+  const fixturesDir = join(FIXTURES_ROOT, suite);
+  const workspace = await createWorkspace(suite);
+  await copyFixtures(fixturesDir, workspace);
+
+  const project = opts.withoutProject
+    ? SYNTHETIC_PROJECT
+    : await createTestProject(client, {
+        suite,
+        sourceLanguageId: opts.sourceLanguageId,
+        targetLanguageIds: opts.targetLanguageIds,
+        ...(opts.stringsBased !== undefined ? { stringsBased: opts.stringsBased } : {}),
+      });
+
+  // Everything past project creation can fail; if it does, tear down what we
+  // already provisioned so a partial setup doesn't orphan the project (or
+  // workspace) on the real account.
+  try {
+    const template = await Bun.file(join(fixturesDir, 'config', 'crowdin.yml')).text();
+    const configPath = await writeConfig(workspace, template, { projectId: project.id, token });
+
+    const runner = new CliRunner({ workspace, configPath });
+    return { suite, env, client, workspace, project, runner, extraProjects: [] };
+  } catch (error) {
+    await teardownSuite({ env, client, workspace, project });
+    throw error;
+  }
+}
+
+/**
+ * Render the workspace file `from` with the suite's project id and token, plus any extra `vars`,
+ * and write it to `to` (in place by default). Returns the written path.
+ */
+export async function renderFixture(
+  ctx: SuiteContext,
+  from: string,
+  to = from,
+  vars: Record<string, unknown> = {},
+): Promise<string> {
+  const template = await Bun.file(join(ctx.workspace, from)).text();
+  const path = join(ctx.workspace, to);
+  await Bun.write(path, renderConfig(template, { ...vars, projectId: ctx.project.id, token: ctx.env.token as string }));
+  return path;
+}
+
+/** Restore the suite's own `crowdin.yml`, rendered exactly as `setupSuite` wrote it. */
+export async function restoreConfig(ctx: SuiteContext): Promise<void> {
+  const template = await Bun.file(join(FIXTURES_ROOT, ctx.suite, 'config', 'crowdin.yml')).text();
+  await writeConfig(ctx.workspace, template, { projectId: ctx.project.id, token: ctx.env.token as string });
+}
+
+/**
+ * Swap the suite's `crowdin.yml` for `<workspace>/alt-configs/<name>.yml`, rendered with the same
+ * project id and token plus any extra `vars`. The runner keeps pointing at the same config path, so
+ * every later `ctx.runner.run(...)` picks the new config up.
+ */
+export async function switchConfig(ctx: SuiteContext, name: string, vars: Record<string, unknown> = {}): Promise<void> {
+  await renderFixture(ctx, `alt-configs/${name}.yml`, 'crowdin.yml', vars);
+}
+
+/** Run the CLI with `--output json`, assert it exits 0, and return the parsed stdout. */
+export async function runJson<T = unknown>(
+  ctx: SuiteContext,
+  args: string[],
+  runOpts?: CliRunOptions,
+): Promise<NoInfer<T>> {
+  const result = await ctx.runner.run([...args, '--output', 'json'], runOpts);
+
+  expect(result).toMatchObject({ exitCode: 0 });
+
+  return JSON.parse(result.stdout) as T;
+}
+
+/**
+ * Create a second project for a suite that needs one of another kind (e.g. strings-based), and
+ * register it so `teardownSuite` deletes it too. Returns its id.
+ */
+export async function createExtraProject(ctx: SuiteContext, opts: CreateProjectOptions): Promise<number> {
+  const project = await createTestProject(ctx.client, opts);
+  ctx.extraProjects.push(project);
+  return project.id;
+}
+
+/**
+ * Tear down a suite: delete the project and remove the workspace (which holds
+ * everything the suite produced, including downloaded files). Honors
+ * `CROWDIN_E2E_KEEP=1`. Cleanup failures are logged, never thrown, so one failed
+ * deletion can't mask a real test result. Call from `afterAll`.
+ */
+export async function teardownSuite(
+  ctx:
+    | (Pick<SuiteContext, 'env' | 'client' | 'project' | 'workspace'> & Partial<Pick<SuiteContext, 'extraProjects'>>)
+    | undefined,
+): Promise<void> {
+  if (!ctx) {
+    return;
+  }
+
+  if (ctx.env.keep) {
+    console.log(`CROWDIN_E2E_KEEP=1 - keeping project #${ctx.project.id} (${ctx.project.name}) and ${ctx.workspace}`);
+    return;
+  }
+
+  // A `withoutProject` suite never created one, so there is nothing to delete - and the synthetic
+  // id must never be sent to deleteProject, which would address someone else's project.
+  const projects = [ctx.project, ...(ctx.extraProjects ?? [])].filter(({ id }) => id !== SYNTHETIC_PROJECT_ID);
+
+  for (const project of projects) {
+    try {
+      await deleteTestProject(ctx.client, project.id);
+    } catch (error) {
+      console.error(`Failed to delete project #${project.id}: ${error instanceof Error ? error.message : error}`);
+    }
+  }
+
+  try {
+    await removeWorkspace(ctx.workspace);
+  } catch (error) {
+    console.error(`Failed to remove workspace ${ctx.workspace}: ${error instanceof Error ? error.message : error}`);
+  }
+}

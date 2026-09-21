@@ -1,0 +1,198 @@
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { decode } from '@toon-format/toon';
+import { expectFailure } from '../helpers/cli.ts';
+import { normalize } from '../helpers/normalize.ts';
+import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+
+/**
+ * Covers `label list` / `label add` / `label delete` (`cli/commands/label/LabelCommand.ts`).
+ *
+ * Server label ids are neither contiguous nor stable between runs, so nothing asserts one: json
+ * matches titles, and the text listings go through `normalize`, which masks `#123` to `#id`.
+ *
+ * The last test covers how labels are really created - `LabelService.resolveLabelIds` with
+ * `createMissing`, reached from `upload sources --label`.
+ */
+
+interface ListedLabel {
+  id: number;
+  title: string;
+}
+
+describe('label', () => {
+  let ctx: SuiteContext;
+
+  async function listTitles(): Promise<string[]> {
+    return (await runJson<ListedLabel[]>(ctx, ['label', 'list'])).map((label) => label.title).sort();
+  }
+
+  beforeAll(async () => {
+    ctx = await setupSuite('label', { targetLanguageIds: ['uk'] });
+  });
+
+  afterAll(async () => {
+    await teardownSuite(ctx);
+  });
+
+  test('prints help when invoked without a subcommand', async () => {
+    const result = await ctx.runner.run(['label']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stdout).toContain('Manage labels');
+    expect(result.stdout).toContain('add <title>');
+    expect(result.stdout).toContain('delete <title>');
+  });
+
+  test('colors help unless --no-colors is passed', async () => {
+    const result = await ctx.runner.run(['label'], { colors: true });
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    // Bold title, cyan program name.
+    expect(result.stdout).toContain('\u001b[1mUsage:\u001b[22m \u001b[36mcrowdin\u001b[39m');
+  });
+
+  test('rejects an unknown subcommand', async () => {
+    const result = await ctx.runner.run(['label', 'bogus']);
+
+    expectFailure(result, 2, "unknown command 'bogus'");
+  });
+
+  test.each(['json', 'toon'] as const)(
+    'reports a usage error as a %s record carrying the exit code',
+    async (format) => {
+      const result = await ctx.runner.run(['label', 'bogus', '--output', format]);
+      const parse = format === 'json' ? JSON.parse : decode;
+
+      expectFailure(result, 2);
+      // commander's own prose is suppressed; the top-level handler re-emits it as a record instead.
+      expect(parse(result.stderr)).toEqual({ level: 'error', message: "unknown command 'bogus'", code: 2 });
+    },
+  );
+
+  test('reports an empty project', async () => {
+    const result = await ctx.runner.run(['label', 'list']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stdout).toContain('No labels found');
+    expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test.each(['json', 'toon'] as const)('reports an empty project as an empty %s list', async (format) => {
+    const result = await ctx.runner.run(['label', 'list', '--output', format]);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(format === 'json' ? JSON.parse(result.stdout) : decode(result.stdout)).toEqual([]);
+  });
+
+  test('requires a title to add', async () => {
+    const result = await ctx.runner.run(['label', 'add']);
+
+    expectFailure(result, 2, "missing required argument 'title'");
+  });
+
+  test('requires a title to delete', async () => {
+    const result = await ctx.runner.run(['label', 'delete']);
+
+    expectFailure(result, 2, "missing required argument 'title'");
+  });
+
+  test('adds a label and echoes it back', async () => {
+    // Out of alphabetical order on purpose, so a listing that depends on insertion order fails.
+    const result = await ctx.runner.run(['label', 'add', 'zebra-label']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stdout).toContain('zebra-label');
+    expect(normalize(result.stdout)).toMatchSnapshot();
+
+    expect(await listTitles()).toEqual(['zebra-label']);
+  });
+
+  test('warns instead of duplicating when the title already exists', async () => {
+    const result = await ctx.runner.run(['label', 'add', 'zebra-label']);
+
+    // `addAction` returns after warning rather than throwing, hence the success exit.
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stderr).toContain("Label 'zebra-label' already exists in the project");
+    expect(await listTitles()).toEqual(['zebra-label']);
+  });
+
+  test('adds a second label', async () => {
+    const result = await ctx.runner.run(['label', 'add', 'alpha-label']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(await listTitles()).toEqual(['alpha-label', 'zebra-label']);
+  });
+
+  test('lists both labels with their ids', async () => {
+    const result = await ctx.runner.run(['label', 'list']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test('lists the titles alone with --output plain', async () => {
+    const result = await ctx.runner.run(['label', 'list', '--output', 'plain']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(
+      result.stdout
+        .split('\n')
+        .filter((line) => line.length > 0)
+        .sort(),
+    ).toEqual(['alpha-label', 'zebra-label']);
+  });
+
+  test('carries the ids into a verbose plain listing', async () => {
+    // `labelVerboseView` points `plain` at the text renderer.
+    const result = await ctx.runner.run(['label', 'list', '--output', 'plain', '--verbose']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+
+    const lines = result.stdout.split('\n').filter((line) => line.length > 0);
+
+    // Sorted by title, not whole line: the id comes first, so `#27 zebra` sorts before `#29 alpha`.
+    expect(lines.map((line) => line.replace(/^#\d+ /, '')).sort()).toEqual(['alpha-label', 'zebra-label']);
+
+    for (const line of lines) {
+      expect(line).toMatch(/^#\d+ \S+$/);
+    }
+  });
+
+  test('serializes id and title in a structured format', async () => {
+    const labels = (await runJson<ListedLabel[]>(ctx, ['label', 'list'])).sort((left, right) =>
+      left.title < right.title ? -1 : 1,
+    );
+
+    expect(labels).toEqual([
+      { id: expect.any(Number), title: 'alpha-label' },
+      { id: expect.any(Number), title: 'zebra-label' },
+    ]);
+  });
+
+  test('rejects deleting a title the project does not have', async () => {
+    const result = await ctx.runner.run(['label', 'delete', 'nope']);
+
+    expectFailure(result, 1, "Couldn't find label by the specified title");
+    expect(normalize(result.stderr)).toMatchSnapshot();
+  });
+
+  test('deletes a label by title', async () => {
+    const result = await ctx.runner.run(['label', 'delete', 'zebra-label']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stdout).toContain("Label 'zebra-label' deleted successfully");
+    expect(normalize(result.stdout)).toMatchSnapshot();
+
+    expect(await listTitles()).toEqual(['alpha-label']);
+  });
+
+  test('shows a label created on the fly by `upload sources --label`', async () => {
+    // resolveLabelIds creates any title the project lacks, so the upload mints 'from-upload'.
+    const upload = await ctx.runner.run(['upload', 'sources', '--label', 'from-upload']);
+
+    expect(upload).toMatchObject({ exitCode: 0 });
+    expect(upload.stdout).toContain("File 'sources/1_android.xml'");
+
+    expect(await listTitles()).toEqual(['alpha-label', 'from-upload']);
+  });
+});

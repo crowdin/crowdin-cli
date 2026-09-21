@@ -1,0 +1,121 @@
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { copyFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { clearDir, expectFilesMatch } from '../helpers/files.ts';
+import { normalize } from '../helpers/normalize.ts';
+import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
+
+describe('branches', () => {
+  let ctx: SuiteContext;
+
+  beforeAll(async () => {
+    ctx = await setupSuite('branches', { targetLanguageIds: ['it', 'uk'] });
+  });
+
+  afterAll(async () => {
+    await teardownSuite(ctx);
+  });
+
+  test('uploads a single source file to a brand-new branch', async () => {
+    const result = await ctx.runner.run(['upload', 'sources', '-b', 'test_list_string']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    // Success echoes the PROJECT path, and every config in this fixture sets `preserve_hierarchy: false`,
+    // so `/sources_one_file/1_android.xml` lands as `1_android.xml`. The dry runs below print the local path.
+    expect(result.stdout).toContain("File '1_android.xml'");
+    expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test('previews uploading two more source files to a not-yet-existing branch (dry run)', async () => {
+    await switchConfig(ctx, 'sources');
+
+    const result = await ctx.runner.run(['upload', 'sources', '--dryrun', '-b', 'test-branch']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test('previews the source upload dry run as a tree', async () => {
+    const result = await ctx.runner.run(['upload', 'sources', '--dryrun', '--tree', '-b', 'test-branch']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test('uploads the two source files for real, creating the branch', async () => {
+    const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stdout).toContain("File '1_android.xml'");
+    expect(result.stdout).toContain("File '2_android.xml'");
+    expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test('updates the existing sources after local changes', async () => {
+    await copyFile(
+      join(ctx.workspace, 'sources_rev2', '1_android.xml'),
+      join(ctx.workspace, 'sources', '1_android.xml'),
+    );
+    await copyFile(
+      join(ctx.workspace, 'sources_rev2', '2_android.xml'),
+      join(ctx.workspace, 'sources', '2_android.xml'),
+    );
+
+    const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stdout).toContain("File '1_android.xml'");
+    expect(result.stdout).toContain("File '2_android.xml'");
+    expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test('previews the translation upload as a dry run', async () => {
+    const result = await ctx.runner.run(['upload', 'translations', '--dryrun', '-b', 'test-branch']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test('previews the translation dry run as a tree', async () => {
+    const result = await ctx.runner.run(['upload', 'translations', '--dryrun', '--tree', '-b', 'test-branch']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test('uploads translations for the updated sources', async () => {
+    await switchConfig(ctx, 'sources-rev2');
+
+    const result = await ctx.runner.run(['upload', 'translations', '-b', 'test-branch']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stdout).toContain("Importing translations for file 'translations/it/1_android.xml'");
+    expect(result.stdout).toContain("Importing translations for file 'translations/it/2_android.xml'");
+    expect(result.stdout).toContain("Importing translations for file 'translations/uk/1_android.xml'");
+    expect(result.stdout).toContain("Importing translations for file 'translations/uk/2_android.xml'");
+    expect(result.stdout).toContain("File 'translations/it/1_android.xml'");
+    expect(result.stdout).toContain("File 'translations/it/2_android.xml'");
+    expect(result.stdout).toContain("File 'translations/uk/1_android.xml'");
+    expect(result.stdout).toContain("File 'translations/uk/2_android.xml'");
+    expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test('downloads translations for the branch', async () => {
+    await clearDir(ctx.workspace, 'translations');
+
+    const result = await ctx.runner.run(['download', 'translations', '-b', 'test-branch']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(normalize(result.stdout)).toMatchSnapshot();
+
+    await expectFilesMatch(
+      ctx.workspace,
+      'translations',
+      'expected',
+      'it/1_android.xml',
+      'it/2_android.xml',
+      'uk/1_android.xml',
+      'uk/2_android.xml',
+    );
+  });
+});

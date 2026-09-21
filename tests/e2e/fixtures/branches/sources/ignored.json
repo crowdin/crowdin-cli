@@ -1,0 +1,11 @@
+{
+   "apply": {
+      "message": "Apply"
+   },
+   "cancel": {
+      "message": "Cancel"
+   },
+   "reset": {
+      "message": "Rest"
+   }
+}
