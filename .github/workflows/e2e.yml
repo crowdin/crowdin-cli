@@ -1,13 +1,15 @@
 name: E2E Tests
 
 on:
+  schedule:
+    - cron: "0 6 * * 1" # https://crontab.guru/#0_6_*_*_1
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: e2e-next
+  group: e2e-tests
   cancel-in-progress: false
 
 jobs:
