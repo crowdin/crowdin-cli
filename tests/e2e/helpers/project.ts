@@ -28,7 +28,7 @@ export function createApiClient(env: E2eEnv): Client {
     throw new Error('Cannot create an API client without CROWDIN_E2E_TOKEN');
   }
 
-  return new Client({ token: env.token });
+  return new Client({ token: env.token, ...(env.organization ? { organization: env.organization } : {}) });
 }
 
 export interface CreateProjectOptions {
@@ -41,9 +41,10 @@ export interface CreateProjectOptions {
 
 export async function createTestProject(client: Client, opts: CreateProjectOptions): Promise<TestProject> {
   const name = buildProjectName(opts.suite, Math.floor(Date.now() / 1000));
-  const request: ProjectsGroupsModel.CreateProjectRequest = {
+  // Enterprise projects have no `identifier`; the field is crowdin.com-only.
+  const request: ProjectsGroupsModel.CreateProjectRequest | ProjectsGroupsModel.CreateProjectEnterpriseRequest = {
     name,
-    identifier: name,
+    ...(client.organization ? {} : { identifier: name }),
     sourceLanguageId: opts.sourceLanguageId ?? 'en',
     targetLanguageIds: opts.targetLanguageIds ?? ['it', 'uk'],
     // The API takes the project type as a BooleanInt, 1 being strings-based (same as

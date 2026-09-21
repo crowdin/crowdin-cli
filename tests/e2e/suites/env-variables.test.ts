@@ -16,7 +16,7 @@ async function writeEnvFile(ctx: SuiteContext, apiToken: string): Promise<void> 
       `TEST_PROJECT_ID_ENV=${ctx.project.id}`,
       `TEST_API_TOKEN_ENV=${apiToken}`,
       `TEST_BASE_PATH_ENV=${ctx.workspace}`,
-      `TEST_BASE_URL_ENV=https://api.crowdin.com`,
+      `TEST_BASE_URL_ENV=${ctx.env.baseUrl}`,
     ].join('\n'),
   );
 }

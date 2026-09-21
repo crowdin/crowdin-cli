@@ -2,7 +2,7 @@ project_id: "{{projectId}}"
 api_token: "{{token}}"
 
 base_path: "."
-base_url: "https://api.crowdin.com"
+base_url: "{{baseUrl}}"
 preserve_hierarchy: true
 
 # '/sources/*.pot' never matches anything, on purpose. An empty group is reported and the run keeps

@@ -1,7 +1,7 @@
 project_id: "{{projectId}}"
 api_token: "{{token}}"
 base_path: "."
-base_url: "https://api.crowdin.com"
+base_url: "{{baseUrl}}"
 preserve_hierarchy: true
 
 # Only exercised by the one test that runs `upload sources` with no `-s`/`-t` override (the

@@ -78,7 +78,7 @@ export async function setupSuite(suite: string, opts: SetupSuiteOptions = {}): P
   // workspace) on the real account.
   try {
     const template = await Bun.file(join(fixturesDir, 'config', 'crowdin.yml')).text();
-    const configPath = await writeConfig(workspace, template, { projectId: project.id, token });
+    const configPath = await writeConfig(workspace, template, { projectId: project.id, token, baseUrl: env.baseUrl });
 
     const runner = new CliRunner({ workspace, configPath });
     return { suite, env, client, workspace, project, runner, extraProjects: [] };
@@ -89,7 +89,7 @@ export async function setupSuite(suite: string, opts: SetupSuiteOptions = {}): P
 }
 
 /**
- * Render the workspace file `from` with the suite's project id and token, plus any extra `vars`,
+ * Render the workspace file `from` with the suite's project id, token and base URL, plus any extra `vars`,
  * and write it to `to` (in place by default). Returns the written path.
  */
 export async function renderFixture(
@@ -100,19 +100,31 @@ export async function renderFixture(
 ): Promise<string> {
   const template = await Bun.file(join(ctx.workspace, from)).text();
   const path = join(ctx.workspace, to);
-  await Bun.write(path, renderConfig(template, { ...vars, projectId: ctx.project.id, token: ctx.env.token as string }));
+  await Bun.write(
+    path,
+    renderConfig(template, {
+      ...vars,
+      projectId: ctx.project.id,
+      token: ctx.env.token as string,
+      baseUrl: ctx.env.baseUrl,
+    }),
+  );
   return path;
 }
 
 /** Restore the suite's own `crowdin.yml`, rendered exactly as `setupSuite` wrote it. */
 export async function restoreConfig(ctx: SuiteContext): Promise<void> {
   const template = await Bun.file(join(FIXTURES_ROOT, ctx.suite, 'config', 'crowdin.yml')).text();
-  await writeConfig(ctx.workspace, template, { projectId: ctx.project.id, token: ctx.env.token as string });
+  await writeConfig(ctx.workspace, template, {
+    projectId: ctx.project.id,
+    token: ctx.env.token as string,
+    baseUrl: ctx.env.baseUrl,
+  });
 }
 
 /**
  * Swap the suite's `crowdin.yml` for `<workspace>/alt-configs/<name>.yml`, rendered with the same
- * project id and token plus any extra `vars`. The runner keeps pointing at the same config path, so
+ * project id, token and base URL plus any extra `vars`. The runner keeps pointing at the same config path, so
  * every later `ctx.runner.run(...)` picks the new config up.
  */
 export async function switchConfig(ctx: SuiteContext, name: string, vars: Record<string, unknown> = {}): Promise<void> {

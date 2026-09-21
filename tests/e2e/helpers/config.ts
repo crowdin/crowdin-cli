@@ -3,6 +3,7 @@ import { join } from 'node:path';
 export interface ConfigValues {
   projectId: number | string;
   token: string;
+  baseUrl: string;
   [placeholder: string]: unknown;
 }
 

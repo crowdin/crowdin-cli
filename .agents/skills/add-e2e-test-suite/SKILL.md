@@ -24,13 +24,13 @@ Same for any server behavior (locale folder names, file layout): **observe it, d
 
 ## Steps
 
-**1. Fixtures** — `tests/e2e/fixtures/<suite>/config/crowdin.yml` (template) + input files (e.g. `sources/*.md`). `{{projectId}}` / `{{token}}` are always available; any other `{{name}}` must be supplied by the caller (see `switchConfig` below) or `renderConfig` throws. Everything except the top-level `config/` dir is copied into the workspace, so `alt-configs/` and `expected/` land there too.
+**1. Fixtures** — `tests/e2e/fixtures/<suite>/config/crowdin.yml` (template) + input files (e.g. `sources/*.md`). `{{projectId}}` / `{{token}}` / `{{baseUrl}}` are always available (`{{baseUrl}}` follows `CROWDIN_E2E_ORGANIZATION`, so never hardcode `api.crowdin.com`); any other `{{name}}` must be supplied by the caller (see `switchConfig` below) or `renderConfig` throws. Everything except the top-level `config/` dir is copied into the workspace, so `alt-configs/` and `expected/` land there too.
 
 ```yaml
 project_id: "{{projectId}}"
 api_token: "{{token}}"
 base_path: "."
-base_url: "https://api.crowdin.com"
+base_url: "{{baseUrl}}"
 preserve_hierarchy: true
 files:
   - source: "sources/*.md"

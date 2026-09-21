@@ -183,7 +183,7 @@ describe('dest', () => {
         '--dest',
         'SingleDest/%file_extension%/%file_name%/%original_file_name%',
         '--base-url',
-        'https://api.crowdin.com',
+        ctx.env.baseUrl,
         '--no-progress',
         '--no-colors',
       ],

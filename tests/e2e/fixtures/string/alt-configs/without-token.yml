@@ -1,6 +1,6 @@
 # No `api_token` (and no `project_id`) - the suite supplies both via `-T`/`-i` instead.
 base_path: "."
-base_url: "https://api.crowdin.com"
+base_url: "{{baseUrl}}"
 preserve_hierarchy: false
 files:
   - source: "/sources/*.xml"

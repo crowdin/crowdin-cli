@@ -39,7 +39,7 @@ async function writeTokenlessConfig(ctx: SuiteContext): Promise<string> {
     configPath,
     [
       'base_path: "."',
-      'base_url: "https://api.crowdin.com"',
+      `base_url: "${ctx.env.baseUrl}"`,
       'preserve_hierarchy: false',
       '',
       'files:',

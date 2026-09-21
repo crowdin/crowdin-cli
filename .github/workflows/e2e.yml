@@ -18,6 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CROWDIN_E2E_TOKEN: ${{ secrets.CROWDIN_E2E_TOKEN }}
+      # Enterprise organization name; leave the variable unset to run against crowdin.com.
+      CROWDIN_E2E_ORGANIZATION: ${{ vars.CROWDIN_E2E_ORGANIZATION }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
