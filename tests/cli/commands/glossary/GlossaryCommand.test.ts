@@ -15,6 +15,7 @@ describe('GlossaryCommand', () => {
   let tempDir: string;
   let output: Output;
   let organization: string | undefined;
+  let configuredProjectId: number | undefined;
   let glossaryService: {
     list: ReturnType<typeof mock<GlossaryService['list']>>;
     get: ReturnType<typeof mock<GlossaryService['get']>>;
@@ -52,6 +53,7 @@ describe('GlossaryCommand', () => {
       async () => glossaryService as unknown as GlossaryService,
       async () => storageService as unknown as StorageService,
       async () => ({ organization }) as unknown as Client,
+      async () => ({ projectId: configuredProjectId }) as never,
     );
   };
 
@@ -59,6 +61,7 @@ describe('GlossaryCommand', () => {
     tempDir = await mkdtemp(join(tmpdir(), 'crowdin-glossary-command-'));
     output = createOutput(globalOptions);
     organization = undefined;
+    configuredProjectId = 1;
     glossaryService = {
       list: mock(async () => [] as GlossariesModel.Glossary[]),
       get: mock(async () => createGlossary()),
@@ -130,6 +133,42 @@ describe('GlossaryCommand', () => {
           2,
         ),
       );
+    });
+
+    test('passes the configured project id to the service with --assigned', async () => {
+      const glossaryCommand = createGlossaryCommand();
+      glossaryService.list.mockResolvedValue([createGlossary()]);
+
+      await glossaryCommand.listAction(createCommandContext({ assigned: true }));
+
+      expect(glossaryService.list).toHaveBeenCalledWith(1);
+    });
+
+    test('lists account-wide without --assigned', async () => {
+      const glossaryCommand = createGlossaryCommand();
+
+      await glossaryCommand.listAction(createCommandContext({}));
+
+      expect(glossaryService.list).toHaveBeenCalledWith(undefined);
+    });
+
+    test('fails when --assigned has no project id to filter by', async () => {
+      const glossaryCommand = createGlossaryCommand();
+      configuredProjectId = undefined;
+
+      expect(glossaryCommand.listAction(createCommandContext({ assigned: true }))).rejects.toThrow(
+        "Required option 'project_id' is missing",
+      );
+    });
+
+    test('reports an empty assigned listing as project-scoped', async () => {
+      const glossaryCommand = createGlossaryCommand();
+      output = createOutput({ ...globalOptions, output: 'text' });
+      const info = spyOn(output, 'info');
+
+      await glossaryCommand.listAction(createCommandContext({ assigned: true, output: 'text' }));
+
+      expect(info).toHaveBeenCalledWith('No glossaries assigned to the project');
     });
 
     test('lists glossaries with their terms indented underneath in verbose mode', async () => {

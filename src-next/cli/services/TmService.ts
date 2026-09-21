@@ -10,10 +10,18 @@ export class TmService {
     private output: Output,
   ) {}
 
-  async list(): Promise<TranslationMemoryModel.TranslationMemory[]> {
+  async list(projectId?: number): Promise<TranslationMemoryModel.TranslationMemory[]> {
     try {
       const response = await this.apiClient.translationMemoryApi.withFetchAll().listTm();
-      return response.data.map((entry) => entry.data);
+      const tms = response.data.map((entry) => entry.data);
+
+      if (projectId === undefined) {
+        return tms;
+      }
+
+      return tms.filter(
+        ({ projectIds, defaultProjectIds }) => projectIds.includes(projectId) || defaultProjectIds.includes(projectId),
+      );
     } catch (error) {
       throw toCliError(error, 'Failed to list translation memories');
     }

@@ -10,10 +10,18 @@ export class GlossaryService {
     private output: Output,
   ) {}
 
-  async list(): Promise<GlossariesModel.Glossary[]> {
+  async list(projectId?: number): Promise<GlossariesModel.Glossary[]> {
     try {
       const response = await this.apiClient.glossariesApi.withFetchAll().listGlossaries();
-      return response.data.map((entry) => entry.data);
+      const glossaries = response.data.map((entry) => entry.data);
+
+      if (projectId === undefined) {
+        return glossaries;
+      }
+
+      return glossaries.filter(
+        ({ projectIds, defaultProjectIds }) => projectIds.includes(projectId) || defaultProjectIds.includes(projectId),
+      );
     } catch (error) {
       throw toCliError(error, 'Failed to list glossaries');
     }

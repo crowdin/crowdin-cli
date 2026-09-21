@@ -78,6 +78,12 @@ export const tree: OptionDef = {
   description: 'List contents of directories in a tree-like format',
 };
 
+export const assigned: OptionDef = {
+  name: 'assigned',
+  type: 'boolean',
+  description: 'Show only the resources assigned to the current project',
+};
+
 export const branch: OptionDef = {
   name: 'branch',
   short: 'b',
@@ -98,7 +104,8 @@ const filesConfigOptions = [
   noPreserveHierarchy,
 ];
 
-// Commands that talk to the API without a project context (tm, glossary).
+// Commands that talk to the API without a project context (tm, glossary). `--assigned` reads
+// project_id straight from the config, so those commands stay on this tier.
 export const baseConfigGroup: OptionGroupDef = { group: 'Config options:', options: baseConfigOptions };
 
 // Project-scoped commands (branch, file, string, task, ...).

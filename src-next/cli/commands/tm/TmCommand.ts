@@ -2,17 +2,18 @@ import { stat } from 'node:fs/promises';
 import path from 'node:path';
 import type { TranslationMemoryModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import { baseConfigGroup } from '@/cli/commands/common/options.ts';
+import { assigned as assignedOption, baseConfigGroup } from '@/cli/commands/common/options.ts';
 import { downloadedPathView } from '@/cli/commands/common/views.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { GetApiClient, GetOutput, GetStorageService, GetTmService } from '@/cli/services.ts';
+import type { GetApiClient, GetConfig, GetOutput, GetStorageService, GetTmService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { colors } from '@/cli/utils/colors.ts';
 import { downloadToFile } from '@/cli/utils/downloadToFile.ts';
 import type { View } from '@/cli/utils/output.ts';
 import { parseNumericId, parseScheme, toArray } from '@/cli/utils/parsing.ts';
+import { assertProjectConfigured } from '@/lib/config.ts';
 import {
   firstLineContainsHeader as firstLineContainsHeaderOption,
   format as formatOption,
@@ -24,6 +25,10 @@ import {
   targetLanguageId as targetLanguageIdOption,
   to as toOption,
 } from './options.ts';
+
+interface ListOptions extends GlobalOptions {
+  assigned?: boolean;
+}
 
 interface DownloadOptions extends GlobalOptions {
   sourceLanguageId?: string;
@@ -55,6 +60,7 @@ export default class TmCommand {
     private getTmService: GetTmService,
     private getStorageService: GetStorageService,
     private getApiClient: GetApiClient,
+    private getConfig: GetConfig,
   ) {}
 
   getDefinition(): CommandDef {
@@ -65,7 +71,7 @@ export default class TmCommand {
         {
           name: 'list',
           description: 'Show a list of translation memories',
-          options: [baseConfigGroup],
+          options: [assignedOption, baseConfigGroup],
           action: this.listAction,
         },
         {
@@ -102,12 +108,29 @@ export default class TmCommand {
   };
 
   listAction = async (command: Command) => {
+    const options = command.optsWithGlobals() as ListOptions;
     const output = this.getOutput(command);
     const tmService = await this.getTmService(command);
-    const tms = await tmService.list();
+    const tms = await tmService.list(await this.assignedProjectId(command, options));
 
-    output.list(tms, tmView, { empty: 'No translation memories found' });
+    output.list(tms, tmView, {
+      empty: options.assigned ? 'No translation memories assigned to the project' : 'No translation memories found',
+    });
   };
+
+  // Only --assigned needs a project: every other tm subcommand works account-wide, so the config is
+  // read here instead of the service factory.
+  private async assignedProjectId(command: Command, options: ListOptions): Promise<number | undefined> {
+    if (!options.assigned) {
+      return undefined;
+    }
+
+    const config = await this.getConfig(command);
+
+    assertProjectConfigured(config);
+
+    return config.projectId;
+  }
 
   downloadAction = async (command: Command) => {
     const [idArg] = command.args;

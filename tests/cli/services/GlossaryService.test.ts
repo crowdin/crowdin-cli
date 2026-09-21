@@ -31,6 +31,21 @@ describe('GlossaryService', () => {
   });
 
   describe('list', () => {
+    test('keeps only the glossaries assigned to the given project', async () => {
+      const listGlossaries = mock(async () => ({
+        data: [
+          { data: { id: 42, name: 'forty-two', projectIds: [1], defaultProjectIds: [] } },
+          { data: { id: 43, name: 'forty-three', projectIds: [2], defaultProjectIds: [] } },
+          { data: { id: 44, name: 'forty-four', projectIds: [], defaultProjectIds: [1] } },
+        ],
+      }));
+      spyOn(apiClient.glossariesApi, 'withFetchAll').mockReturnValue({ listGlossaries } as never);
+
+      const glossaries = await glossaryService.list(1);
+
+      expect(glossaries.map(({ id }) => id)).toEqual([42, 44]);
+    });
+
     test('returns unwrapped glossaries', async () => {
       const listGlossaries = mock(async () => ({
         data: [{ data: { id: 42, name: 'forty-two', terms: 2 } }],
