@@ -1,5 +1,12 @@
 # Changelog
 
+# [5.2.0](https://github.com/crowdin/crowdin-cli/compare/5.1.0...5.2.0) (2026-09-21)
+
+
+### Features
+
+* add --assigned filter to tm and glossary list ([#1118](https://github.com/crowdin/crowdin-cli/issues/1118)) ([2f5f65d](https://github.com/crowdin/crowdin-cli/commit/2f5f65de40b0212dd26ecf5b8383d49b54095693))
+
 # [5.1.0](https://github.com/crowdin/crowdin-cli/compare/5.0.2...5.1.0) (2026-09-17)
 
 
