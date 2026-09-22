@@ -1,4 +1,5 @@
 import { Client, type ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
+import { buildCredentials } from '@/lib/organization/credentials.ts';
 import type { E2eEnv } from './env.ts';
 
 export interface TestProject {
@@ -28,7 +29,8 @@ export function createApiClient(env: E2eEnv): Client {
     throw new Error('Cannot create an API client without CROWDIN_E2E_TOKEN');
   }
 
-  return new Client({ token: env.token, ...(env.organization ? { organization: env.organization } : {}) });
+  // The same base-URL-to-credentials mapping the CLI applies to `base_url`.
+  return new Client(buildCredentials(env.token, env.baseUrl));
 }
 
 export interface CreateProjectOptions {

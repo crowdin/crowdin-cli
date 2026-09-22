@@ -6,7 +6,7 @@ End-to-end tests that run the CLI against a real, freshly-created Crowdin projec
 
 ```bash
 export CROWDIN_E2E_TOKEN=xxxxxxxx...
-export CROWDIN_E2E_ORGANIZATION=acme # Crowdin Enterprise only
+export CROWDIN_E2E_BASE_URL=https://acme.api.crowdin.com # Crowdin Enterprise only
 bun run test:e2e
 bun test tests/e2e/suites/ --update-snapshots
 ```
@@ -16,7 +16,7 @@ bun test tests/e2e/suites/ --update-snapshots
 | Variable | Required | Meaning |
 |---|---|---|
 | `CROWDIN_E2E_TOKEN` | true | Personal access token of the test account |
-| `CROWDIN_E2E_ORGANIZATION` | false | Crowdin Enterprise organization name; unset runs against crowdin.com |
+| `CROWDIN_E2E_BASE_URL` | false | API base URL, e.g. `https://<org>.api.crowdin.com`; defaults to `https://api.crowdin.com` |
 | `CROWDIN_E2E_KEEP` | false | `1` keeps the project + workspace |
 
 The suites always run the CLI via `bun src-next/cli.ts` - locally and in CI.
