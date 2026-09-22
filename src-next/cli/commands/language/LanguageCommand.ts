@@ -40,8 +40,6 @@ const languageView: View<ResolvedLanguage> = {
   keys: ['code', 'name'],
 };
 
-// Verbose adds the text direction and the plural categories as detail lines under the headline.
-// Plain keeps the bare code; a script that wants either field reads json.
 const languageVerboseView: View<ResolvedLanguage> = {
   text: (language) =>
     [
