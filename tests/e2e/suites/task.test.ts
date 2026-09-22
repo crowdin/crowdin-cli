@@ -7,7 +7,7 @@ import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helper
  * Covers `task list` / `task add` (`cli/commands/task/TaskCommand.ts`).
  *
  * Written for crowdin.com, where `addAction` takes its non-Enterprise branch: `--type` is required
- * and `--workflow-step` never applies. With `CROWDIN_E2E_ORGANIZATION` set the Enterprise branch runs
+ * and `--workflow-step` never applies. With an Enterprise `CROWDIN_E2E_BASE_URL` the Enterprise branch runs
  * instead, and `task add` needs a `--workflow-step` this suite does not pass.
  *
  * Two server rules dictate the fixture and the test order: a `translate` task needs UNtranslated
