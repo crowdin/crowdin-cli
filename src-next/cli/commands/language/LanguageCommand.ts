@@ -27,12 +27,30 @@ interface LanguageCommandOptions extends GlobalOptions {
 
 // `code` is resolved from --code plus the project's language mapping, so it rides along with the
 // language: json consumers have no way to reproduce the mapping overrides on their own.
-type ResolvedLanguage = LanguagesModel.Language & { code: string };
+// `pluralCategoryNames` travels as one comma-joined string: a nested array would push the toon
+// listing out of its one-row-per-language tabular form.
+type ResolvedLanguage = Omit<LanguagesModel.Language, 'pluralCategoryNames'> & {
+  code: string;
+  pluralCategoryNames: string;
+};
 
 const languageView: View<ResolvedLanguage> = {
   text: (language) => `${colors.yellow(language.code)} ${colors.green(language.name ?? '')}`,
   plain: (language) => language.code,
   keys: ['code', 'name'],
+};
+
+// Verbose adds the text direction and the plural categories as detail lines under the headline.
+// Plain keeps the bare code; a script that wants either field reads json.
+const languageVerboseView: View<ResolvedLanguage> = {
+  text: (language) =>
+    [
+      languageView.text(language),
+      `\t- direction: ${colors.blue(language.textDirection ?? '')}`,
+      `\t- plurals: ${colors.blue(language.pluralCategoryNames.replaceAll(',', ', '))}`,
+    ].join('\n'),
+  plain: languageView.plain,
+  keys: ['code', 'name', 'textDirection', 'pluralCategoryNames'],
 };
 
 export default class LanguageCommand {
@@ -67,6 +85,7 @@ export default class LanguageCommand {
     const options = command.optsWithGlobals() as LanguageCommandOptions;
     const output = this.getOutput(command);
     const codeFormat = options.code ?? 'id';
+    const view = options.verbose ? languageVerboseView : languageView;
     const config = await this.tryGetConfig(command);
 
     // Supported languages are project-independent, and with no project there is no language mapping
@@ -76,7 +95,7 @@ export default class LanguageCommand {
       if (config.apiToken) {
         const languageService = await this.getLanguageService(command);
 
-        this.printLanguages(output, await languageService.listSupportedLanguages(), undefined, codeFormat);
+        this.printLanguages(output, await languageService.listSupportedLanguages(), undefined, codeFormat, view);
         return;
       }
 
@@ -85,6 +104,7 @@ export default class LanguageCommand {
         await LanguageService.listPublicSupportedLanguages(config.baseUrl),
         undefined,
         codeFormat,
+        view,
       );
       return;
     }
@@ -103,7 +123,7 @@ export default class LanguageCommand {
       ? await languageService.listSupportedLanguages()
       : (project.data.targetLanguages ?? []);
 
-    this.printLanguages(output, languages, project.data.languageMapping, codeFormat);
+    this.printLanguages(output, languages, project.data.languageMapping, codeFormat, view);
   };
 
   private printLanguages(
@@ -111,13 +131,15 @@ export default class LanguageCommand {
     languages: LanguagesModel.Language[],
     languageMapping: ProjectsGroupsModel.LanguageMapping | undefined,
     codeFormat: LanguageCodeFormat,
+    view: View<ResolvedLanguage>,
   ): void {
     output.list(
       languages.map((language) => ({
         ...language,
         code: this.getCode(languageMapping, language, codeFormat),
+        pluralCategoryNames: (language.pluralCategoryNames ?? []).join(','),
       })),
-      languageView,
+      view,
       { empty: 'No languages found' },
     );
   }
