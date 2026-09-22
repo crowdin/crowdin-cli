@@ -6,9 +6,9 @@ import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helper
 /**
  * Covers `task list` / `task add` (`cli/commands/task/TaskCommand.ts`).
  *
- * Runs against crowdin.com, so `addAction` takes its non-Enterprise branch: `--type` is required
- * and `--workflow-step` never applies. The Enterprise branch is unreachable here - the harness has
- * no notion of an organization, the same limit `invalid-credentials.test.ts` records.
+ * Written for crowdin.com, where `addAction` takes its non-Enterprise branch: `--type` is required
+ * and `--workflow-step` never applies. With `CROWDIN_E2E_ORGANIZATION` set the Enterprise branch runs
+ * instead, and `task add` needs a `--workflow-step` this suite does not pass.
  *
  * Two server rules dictate the fixture and the test order: a `translate` task needs UNtranslated
  * words, a `proofread` task needs translated-but-unapproved ones. So the fixture ships Italian

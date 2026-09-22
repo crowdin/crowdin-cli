@@ -3,8 +3,8 @@ import { expectFailure } from '../helpers/cli.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
-// One config broken in one place per test. A non-existent organization is not covered - it only
-// applies to Enterprise, and this harness only ever talks to plain crowdin.com.
+// One config broken in one place per test. A non-existent organization is not covered: the base URL
+// comes from the harness (`CROWDIN_E2E_ORGANIZATION`), and a wrong one fails the same way on every command.
 describe('invalid credentials', () => {
   let ctx: SuiteContext;
 

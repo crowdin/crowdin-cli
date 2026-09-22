@@ -1,7 +1,7 @@
 project_id: "{{projectId}}"
 api_token: "{{token}}"
 base_path: "sources/rev1/branch"
-base_url: "https://api.crowdin.com"
+base_url: "{{baseUrl}}"
 preserve_hierarchy: true
 files:
   - source: "/*.csv"

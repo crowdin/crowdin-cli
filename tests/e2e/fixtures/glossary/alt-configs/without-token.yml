@@ -1,5 +1,5 @@
 base_path: "."
-base_url: "https://api.crowdin.com"
+base_url: "{{baseUrl}}"
 
 preserve_hierarchy: false
 

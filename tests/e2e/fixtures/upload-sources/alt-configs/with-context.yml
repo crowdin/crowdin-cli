@@ -1,7 +1,7 @@
 project_id: "{{projectId}}"
 api_token: "{{token}}"
 base_path: "."
-base_url: "https://api.crowdin.com"
+base_url: "{{baseUrl}}"
 preserve_hierarchy: true
 files:
   # One file on purpose: a strings-based import locks the branch, so a second file uploaded
