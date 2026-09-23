@@ -74,7 +74,7 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           # Baseline build, so the win32-x64-baseline compile target matches the host and bun doesn't download the target executable - that download is broken on Windows hosts (oven-sh/bun#11198). Keep the version in sync with .bun-version
-          bun-download-url: https://github.com/oven-sh/bun/releases/download/bun-v1.4.0/bun-windows-x64-baseline.zip
+          bun-download-url: https://github.com/oven-sh/bun/releases/download/bun-v1.4.2/bun-windows-x64-baseline.zip
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
