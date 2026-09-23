@@ -16,6 +16,7 @@ import { ProjectService } from '@/cli/services/ProjectService.ts';
 import { ScreenshotService } from '@/cli/services/ScreenshotService.ts';
 import { StorageService } from '@/cli/services/StorageService.ts';
 import { StringService } from '@/cli/services/StringService.ts';
+import { StyleGuideService } from '@/cli/services/StyleGuideService.ts';
 import { TaskService } from '@/cli/services/TaskService.ts';
 import { TmService } from '@/cli/services/TmService.ts';
 import { TranslationService } from '@/cli/services/TranslationService.ts';
@@ -47,6 +48,7 @@ export type GetTranslationService = (command: Command) => Promise<TranslationSer
 export type GetLanguageService = (command: Command) => Promise<LanguageService>;
 export type GetTmService = (command: Command) => Promise<TmService>;
 export type GetGlossaryService = (command: Command) => Promise<GlossaryService>;
+export type GetStyleGuideService = (command: Command) => Promise<StyleGuideService>;
 
 export function createGetApiClient(getConfig: GetConfig) {
   let cachedClient: Client | undefined;
@@ -366,6 +368,20 @@ export function createGetGlossaryService(getApiClient: GetApiClient, getOutput: 
     const apiClient = await getApiClient(command);
     const output = getOutput(command);
     cachedService = new GlossaryService(apiClient, output);
+
+    return cachedService;
+  };
+}
+
+export function createGetStyleGuideService(getApiClient: GetApiClient) {
+  let cachedService: StyleGuideService | undefined;
+
+  return async (command: Command): Promise<StyleGuideService> => {
+    if (cachedService) {
+      return cachedService;
+    }
+
+    cachedService = new StyleGuideService(await getApiClient(command));
 
     return cachedService;
   };

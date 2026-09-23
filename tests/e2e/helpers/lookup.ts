@@ -54,6 +54,11 @@ export async function findTmId(ctx: SuiteContext, name: string): Promise<number>
   return requireMatch(response.data, (tm) => tm.name === name, `Translation memory '${name}'`).id;
 }
 
+export async function findStyleGuideId(ctx: SuiteContext, name: string): Promise<number> {
+  const response = await ctx.client.styleGuidesApi.withFetchAll().listStyleGuides();
+  return requireMatch(response.data, (guide) => guide.name === name, `Style guide '${name}'`).id;
+}
+
 export async function translationCount(ctx: SuiteContext, stringId: number, languageId: string): Promise<number> {
   const response = await ctx.client.stringTranslationsApi.listStringTranslations(ctx.project.id, stringId, languageId);
   return response.data.length;

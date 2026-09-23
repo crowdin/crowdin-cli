@@ -1,0 +1,15 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`style-guide creates a style guide assigned to the project and a language 1`] = `
+"◆  Created #id 'e2e-<run>-style-guide-assigned' style guide
+#id e2e-<run>-style-guide-assigned (projects: 1)"
+`;
+
+exports[`style-guide downloads a style guide named after it, keeping the uploaded extension 1`] = `"◆  'e2e-<run>-style-guide-assigned.md' downloaded successfully"`;
+
+exports[`style-guide replaces the file of an existing style guide with --id, keeping its name and assignments 1`] = `
+"◆  Updated #id 'e2e-<run>-style-guide-assigned' style guide
+#id e2e-<run>-style-guide-assigned (projects: 1)"
+`;
+
+exports[`style-guide deletes a style guide 1`] = `"◆  Style guide #id deleted successfully"`;
