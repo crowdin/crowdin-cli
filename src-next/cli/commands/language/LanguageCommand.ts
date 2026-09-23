@@ -27,8 +27,7 @@ interface LanguageCommandOptions extends GlobalOptions {
 
 // `code` is resolved from --code plus the project's language mapping, so it rides along with the
 // language: json consumers have no way to reproduce the mapping overrides on their own.
-// `pluralCategoryNames` travels as one comma-joined string: a nested array would push the toon
-// listing out of its one-row-per-language tabular form.
+// `pluralCategoryNames` travels as one comma-joined string
 type ResolvedLanguage = Omit<LanguagesModel.Language, 'pluralCategoryNames'> & {
   code: string;
   pluralCategoryNames: string;
