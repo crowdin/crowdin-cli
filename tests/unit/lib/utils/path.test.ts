@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { stripBranchPrefix, toPosixPath } from '@/lib/utils/path.ts';
+import { stripBranchPrefix, toPosixPath, toSafeFileName } from '@/lib/utils/path.ts';
 
 describe('stripBranchPrefix', () => {
   test('drops the branch segment', () => {
@@ -54,5 +54,22 @@ describe('toPosixPath', () => {
 
   test('handles consecutive backslashes', () => {
     expect(toPosixPath('src\\\\file.ts')).toBe('src//file.ts');
+  });
+});
+
+describe('toSafeFileName', () => {
+  test('keeps an ordinary name', () => {
+    expect(toSafeFileName("Bun CLI's Glossary")).toBe("Bun CLI's Glossary");
+  });
+
+  test('replaces path separators so the name cannot leave the directory', () => {
+    expect(toSafeFileName('../outside')).toBe('.._outside');
+    expect(toSafeFileName('..\\outside')).toBe('.._outside');
+    expect(toSafeFileName('/etc/passwd')).toBe('_etc_passwd');
+    expect(toSafeFileName('UI/UX Guide')).toBe('UI_UX Guide');
+  });
+
+  test('replaces characters Windows rejects in file names', () => {
+    expect(toSafeFileName('a:b*c?d"e<f>g|h\tI')).toBe('a_b_c_d_e_f_g_h_I');
   });
 });

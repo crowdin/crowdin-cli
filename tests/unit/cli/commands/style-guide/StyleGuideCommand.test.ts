@@ -12,11 +12,9 @@ import type { StorageService } from '@/cli/services/StorageService.ts';
 import type { StyleGuideService } from '@/cli/services/StyleGuideService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
 
-const signedLink = (fileName?: string) =>
+const signedLink = (disposition?: string) =>
   `https://crowdin-style-guides.cf-downloads.crowdin.com/1/uuid-file?${
-    fileName === undefined
-      ? ''
-      : `response-content-disposition=${encodeURIComponent(`attachment; filename="${fileName}"`)}&`
+    disposition === undefined ? '' : `response-content-disposition=${encodeURIComponent(disposition)}&`
   }X-Amz-Signature=abc`;
 
 describe('StyleGuideCommand', () => {
@@ -54,7 +52,7 @@ describe('StyleGuideCommand', () => {
       languageIds: null,
       aiInstructions: null,
       updatedAt: '2026-09-23T00:00:00+00:00',
-      downloadLink: signedLink('guide.pdf'),
+      downloadLink: signedLink('attachment; filename="guide.pdf"'),
       ...overrides,
     }) as StyleGuidesModel.StyleGuide;
 
@@ -88,6 +86,14 @@ describe('StyleGuideCommand', () => {
   afterEach(async () => {
     await rm(tempDir, { recursive: true, force: true });
     mock.restore();
+  });
+
+  test('delegates default action to command help', async () => {
+    const help = mock(() => {});
+
+    await createStyleGuideCommand().defaultAction({ help } as unknown as Command);
+
+    expect(help).toHaveBeenCalledTimes(1);
   });
 
   describe('list', () => {
@@ -181,16 +187,28 @@ describe('StyleGuideCommand', () => {
     });
 
     test.each([
-      ['AGENTS.md', 'forty-two.md'],
-      ['probe guide.PDF', 'forty-two.pdf'],
+      ['attachment; filename="AGENTS.md"', 'forty-two.md'],
+      ['attachment; filename="probe guide.PDF"', 'forty-two.pdf'],
+      ['attachment; filename="guide;v2.pdf"', 'forty-two.pdf'],
+      ['attachment; filename=guide.docx; size=10', 'forty-two.docx'],
+      ['attachment; filename="README"', 'forty-two.md'],
+      ['attachment', 'forty-two.md'],
       [undefined, 'forty-two.md'],
-      ['README', 'forty-two.md'],
-    ])('takes the default extension from uploaded file name %p', async (fileName, expected) => {
-      styleGuideService.get.mockResolvedValue(createGuide({ downloadLink: signedLink(fileName) }));
+    ])('takes the default extension from the disposition %p', async (disposition, expected) => {
+      styleGuideService.get.mockResolvedValue(createGuide({ downloadLink: signedLink(disposition) }));
 
       await createStyleGuideCommand().downloadAction(createCommandContext({}, ['42']));
 
       expect(await Bun.file(join(tempDir, expected)).exists()).toBe(true);
+    });
+
+    test('keeps a name with path separators inside the working directory', async () => {
+      styleGuideService.get.mockResolvedValue(createGuide({ name: '../outside' }));
+
+      await createStyleGuideCommand().downloadAction(createCommandContext({}, ['42']));
+
+      expect(await Bun.file(join(tempDir, '.._outside.pdf')).exists()).toBe(true);
+      expect(await Bun.file(join(tempDir, '..', 'outside.pdf')).exists()).toBe(false);
     });
 
     test('downloads to --to', async () => {

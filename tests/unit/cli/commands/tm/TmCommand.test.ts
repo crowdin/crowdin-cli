@@ -225,6 +225,15 @@ describe('TmCommand', () => {
       expect(console.log).toHaveBeenCalledWith(expect.stringContaining("'42.tmx' downloaded successfully"));
     });
 
+    test('keeps a name with path separators inside the working directory', async () => {
+      tmService.get.mockResolvedValue(createTm({ name: '../outside' }));
+
+      await createTmCommand().downloadAction(createCommandContext({}, ['42']));
+
+      expect(await Bun.file(join(tempDir, '.._outside.tmx')).exists()).toBe(true);
+      expect(await Bun.file(join(tempDir, '..', 'outside.tmx')).exists()).toBe(false);
+    });
+
     // The default target is derived from the memory's name, so without this line a script has no
     // way to learn where the file landed — the message used to be text-only.
     test('prints the written path alone in plain', async () => {

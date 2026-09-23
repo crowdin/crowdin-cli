@@ -14,6 +14,7 @@ import { downloadToFile } from '@/cli/utils/downloadToFile.ts';
 import type { View } from '@/cli/utils/output.ts';
 import { parseNumericId, parseScheme, toArray } from '@/cli/utils/parsing.ts';
 import { assertProjectConfigured } from '@/lib/config.ts';
+import { toSafeFileName } from '@/lib/utils/path.ts';
 import {
   firstLineContainsHeader as firstLineContainsHeaderOption,
   format as formatOption,
@@ -159,7 +160,7 @@ export default class TmCommand {
     const output = this.getOutput(command);
     const tmService = await this.getTmService(command);
     const tm = await tmService.get(id);
-    const to = options.to ?? `${tm.name}.${format ?? 'tmx'}`;
+    const to = options.to ?? `${toSafeFileName(tm.name)}.${format ?? 'tmx'}`;
 
     const exportId = await tmService.export(tm.id, options.sourceLanguageId, options.targetLanguageId, format);
     const downloadUrl = await tmService.getDownloadUrl(tm.id, exportId);

@@ -269,6 +269,15 @@ describe('GlossaryCommand', () => {
       expect(console.log).toHaveBeenCalledWith(expect.stringContaining("'forty-two.tbx' downloaded successfully"));
     });
 
+    test('keeps a name with path separators inside the working directory', async () => {
+      glossaryService.get.mockResolvedValue(createGlossary({ name: '../outside' }));
+
+      await createGlossaryCommand().downloadAction(createCommandContext({}, ['42']));
+
+      expect(await Bun.file(join(tempDir, '.._outside.tbx')).exists()).toBe(true);
+      expect(await Bun.file(join(tempDir, '..', 'outside.tbx')).exists()).toBe(false);
+    });
+
     // The default target is derived from the glossary name, so without this line a script has no
     // way to learn where the file landed — the message used to be text-only.
     test('prints the written path alone in plain', async () => {

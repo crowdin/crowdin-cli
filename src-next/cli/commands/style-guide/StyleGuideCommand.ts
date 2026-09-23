@@ -12,6 +12,7 @@ import type { CommandDef } from '@/cli/types.ts';
 import { downloadToFile } from '@/cli/utils/downloadToFile.ts';
 import { parseNumericId, toArray, toNumberArray } from '@/cli/utils/parsing.ts';
 import { assertProjectConfigured } from '@/lib/config.ts';
+import { toSafeFileName } from '@/lib/utils/path.ts';
 import {
   id as idOption,
   language as languageOption,
@@ -137,7 +138,7 @@ export default class StyleGuideCommand {
     const output = this.getOutput(command);
     const styleGuideService = await this.getStyleGuideService(command);
     const guide = await styleGuideService.get(id);
-    const to = options.to ?? `${guide.name}.${this.extensionFromDownloadLink(guide.downloadLink)}`;
+    const to = options.to ?? `${toSafeFileName(guide.name)}.${this.extensionFromDownloadLink(guide.downloadLink)}`;
 
     try {
       await downloadToFile(guide.downloadLink, to);
@@ -152,7 +153,9 @@ export default class StyleGuideCommand {
   // in its `response-content-disposition` parameter instead.
   private extensionFromDownloadLink(downloadLink: string): string {
     const disposition = new URL(downloadLink).searchParams.get('response-content-disposition') ?? '';
-    const fileName = disposition.match(/filename="?([^";]+)"?/i)?.[1] ?? '';
+    // A quoted name runs to the closing quote and may itself hold ';'; an unquoted one ends at ';'.
+    const quoted = /filename="((?:[^"\\]|\\.)*)"/i.exec(disposition);
+    const fileName = quoted?.[1] ?? /filename=([^";]+)/i.exec(disposition)?.[1] ?? '';
 
     return path.extname(fileName).replace(/^\./, '').toLowerCase() || DEFAULT_EXTENSION;
   }

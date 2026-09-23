@@ -58,3 +58,13 @@ export function stripTrailingSlashes(path: string): string {
 export function toSortedRelativePaths(paths: string[]): string[] {
   return paths.map(stripLeadingSlashes).sort();
 }
+
+/**
+ * Turns an entity name from the API (a glossary, TM or style guide) into a single file name for the
+ * current directory. Separators become '_' so a name like '../outside' or 'UI/UX' can't point the
+ * write anywhere else, and so do the characters Windows rejects in file names.
+ */
+export function toSafeFileName(name: string): string {
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: control characters are not valid in file names
+  return name.replace(/[/\\:*?"<>|\x00-\x1f]/g, '_');
+}
