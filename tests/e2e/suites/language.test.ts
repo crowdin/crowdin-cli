@@ -5,9 +5,10 @@ import { normalize } from '../helpers/normalize.ts';
 import { runJson, type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Covers `language list` (`cli/commands/language/LanguageCommand.ts`): the `--code` matrix and the
- * three credential paths `--all` takes - a project's languages, the account's supported languages with a token but no project, and
- * the public list with no credentials at all - the only unauthenticated call the CLI makes.
+ * Covers `language list` (`cli/commands/language/LanguageCommand.ts`): the `--code` matrix, the
+ * `--verbose` detail lines, and the three credential paths `--all` takes - a project's languages, the
+ * account's supported languages with a token but no project, and the public list with no credentials
+ * at all - the only unauthenticated call the CLI makes.
  *
  * The mapping precedence in `getCode` belongs to `language-mapping.test.ts`, which sets a project
  * mapping up; this suite reads the plain language codes the API hands back.
@@ -95,6 +96,46 @@ describe('language', () => {
 
     expect(toon).toMatchObject({ exitCode: 0 });
     expect(await runJson(ctx, ['language', 'list'])).toEqual(decode(toon.stdout));
+  });
+
+  test('adds the text direction and plural categories as detail lines with --verbose', async () => {
+    const { data: uk } = await ctx.client.languagesApi.getLanguage('uk');
+    const result = await ctx.runner.run(['language', 'list', '--verbose']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stdout).toContain(
+      `uk Ukrainian\n\t- direction: ${uk.textDirection}\n\t- plurals: ${uk.pluralCategoryNames.join(', ')}`,
+    );
+  });
+
+  test('carries the text direction and plural categories in the json output with --verbose', async () => {
+    const { data: uk } = await ctx.client.languagesApi.getLanguage('uk');
+    const languages = await runJson<
+      { code: string; name: string; textDirection: string; pluralCategoryNames: string }[]
+    >(ctx, ['language', 'list', '--verbose']);
+
+    // Plural categories arrive comma-joined, which keeps the toon listing tabular (next test).
+    expect(languages.find((language) => language.code === 'uk')).toEqual({
+      code: 'uk',
+      name: 'Ukrainian',
+      textDirection: uk.textDirection,
+      pluralCategoryNames: uk.pluralCategoryNames.join(','),
+    });
+  });
+
+  test('keeps the toon output tabular and equal to the json one with --verbose', async () => {
+    const toon = await ctx.runner.run(['language', 'list', '--verbose', '--output', 'toon']);
+
+    expect(toon).toMatchObject({ exitCode: 0 });
+    expect(toon.stdout).toStartWith(`[${TARGET_LANGUAGES.length}]{code,name,textDirection,pluralCategoryNames}:`);
+    expect(await runJson(ctx, ['language', 'list', '--verbose'])).toEqual(decode(toon.stdout));
+  });
+
+  test('keeps bare codes in the plain output with --verbose', async () => {
+    const result = await ctx.runner.run(['language', 'list', '--verbose', '--output', 'plain']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stdout.trim().split('\n').sort()).toEqual(TARGET_LANGUAGES);
   });
 
   test('renders every supported --code format', async () => {

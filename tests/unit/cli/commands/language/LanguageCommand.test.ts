@@ -282,6 +282,111 @@ describe('LanguageCommand', () => {
     expect(console.log).toHaveBeenCalledWith(expect.stringContaining('uk_UA Ukrainian'));
   });
 
+  test('prints text direction and plural categories as detail lines when verbose', async () => {
+    output = createOutput({ ...globalOptions, output: 'text' });
+    commandContext = createCommandContext({ ...globalOptions, output: 'text', verbose: true });
+
+    spyOn(projectService, 'loadProject').mockResolvedValue({
+      data: {
+        languageMapping: {},
+        targetLanguages: [
+          {
+            id: 'uk',
+            name: 'Ukrainian',
+            textDirection: 'ltr',
+            pluralCategoryNames: ['one', 'few', 'many', 'other'],
+          },
+        ],
+      },
+    } as never);
+
+    await createLanguageCommand().listAction(commandContext);
+
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining('uk Ukrainian\n\t- direction: ltr\n\t- plurals: one, few, many, other'),
+    );
+  });
+
+  test('carries text direction and plural categories in json when verbose', async () => {
+    commandContext = createCommandContext({ ...globalOptions, verbose: true });
+
+    spyOn(projectService, 'loadProject').mockResolvedValue({
+      data: {
+        languageMapping: {},
+        targetLanguages: [
+          {
+            id: 'ar',
+            name: 'Arabic',
+            textDirection: 'rtl',
+            pluralCategoryNames: ['zero', 'one', 'two', 'few', 'many', 'other'],
+          },
+        ],
+      },
+    } as never);
+
+    await createLanguageCommand().listAction(commandContext);
+
+    expect(console.log).toHaveBeenCalledWith(
+      JSON.stringify(
+        [
+          {
+            code: 'ar',
+            name: 'Arabic',
+            textDirection: 'rtl',
+            pluralCategoryNames: 'zero,one,two,few,many,other',
+          },
+        ],
+        null,
+        2,
+      ),
+    );
+  });
+
+  test('keeps the toon listing tabular when verbose', async () => {
+    output = createOutput({ ...globalOptions, output: 'toon' });
+    commandContext = createCommandContext({ ...globalOptions, output: 'toon', verbose: true });
+
+    spyOn(projectService, 'loadProject').mockResolvedValue({
+      data: {
+        languageMapping: {},
+        targetLanguages: [
+          { id: 'uk', name: 'Ukrainian', textDirection: 'ltr', pluralCategoryNames: ['one', 'few', 'many', 'other'] },
+          { id: 'ja', name: 'Japanese', textDirection: 'ltr', pluralCategoryNames: ['other'] },
+        ],
+      },
+    } as never);
+
+    await createLanguageCommand().listAction(commandContext);
+
+    // A nested array would push toon out of its one-row-per-language form, so plurals travel joined.
+    expect(console.log).toHaveBeenCalledWith(
+      [
+        '[2]{code,name,textDirection,pluralCategoryNames}:',
+        '  uk,Ukrainian,ltr,"one,few,many,other"',
+        '  ja,Japanese,ltr,other',
+      ].join('\n'),
+    );
+  });
+
+  test('keeps the plain line to the bare code when verbose', async () => {
+    output = createOutput({ ...globalOptions, output: 'plain' });
+    commandContext = createCommandContext({ ...globalOptions, output: 'plain', verbose: true });
+
+    spyOn(projectService, 'loadProject').mockResolvedValue({
+      data: {
+        languageMapping: {},
+        targetLanguages: [
+          { id: 'uk', name: 'Ukrainian', textDirection: 'ltr', pluralCategoryNames: ['one', 'few', 'many', 'other'] },
+        ],
+      },
+    } as never);
+
+    await createLanguageCommand().listAction(commandContext);
+
+    expect(console.log).toHaveBeenCalledTimes(1);
+    expect(console.log).toHaveBeenCalledWith('uk');
+  });
+
   test('wraps supported languages API errors into CliError', async () => {
     const languageCommand = createLanguageCommand();
     commandContext = createCommandContext({
