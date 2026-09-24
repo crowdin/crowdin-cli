@@ -13,6 +13,7 @@ import type { CommandDef } from '@/cli/types.ts';
 import { downloadToFile } from '@/cli/utils/downloadToFile.ts';
 import { parseNumericId, parseScheme, toArray } from '@/cli/utils/parsing.ts';
 import { assertProjectConfigured } from '@/lib/config.ts';
+import { toSafeFileName } from '@/lib/utils/path.ts';
 import {
   firstLineContainsHeader as firstLineContainsHeaderOption,
   format as formatOption,
@@ -148,7 +149,7 @@ export default class GlossaryCommand {
     const output = this.getOutput(command);
     const glossaryService = await this.getGlossaryService(command);
     const glossary = await glossaryService.get(id);
-    const to = options.to ?? `${glossary.name}.${format ?? 'tbx'}`;
+    const to = options.to ?? `${toSafeFileName(glossary.name)}.${format ?? 'tbx'}`;
 
     const exportId = await glossaryService.export(glossary.id, format);
     const downloadUrl = await glossaryService.getDownloadUrl(glossary.id, exportId);

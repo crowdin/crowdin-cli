@@ -202,6 +202,22 @@ const sidebars: SidebarsConfig = {
         },
         {
           type: 'category',
+          label: 'crowdin style-guide',
+          link: {
+            type: 'doc',
+            id: 'commands/crowdin-style-guide'
+          },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'commands/crowdin-style-guide-list',
+            'commands/crowdin-style-guide-upload',
+            'commands/crowdin-style-guide-download',
+            'commands/crowdin-style-guide-delete',
+          ]
+        },
+        {
+          type: 'category',
           label: 'crowdin comment',
           link: {
             type: 'doc',

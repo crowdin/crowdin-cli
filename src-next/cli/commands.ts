@@ -17,6 +17,7 @@ import ProjectCommand from './commands/project/ProjectCommand.ts';
 import ScreenshotCommand from './commands/screenshot/ScreenshotCommand.ts';
 import StatusCommand from './commands/status/StatusCommand.ts';
 import StringCommand from './commands/string/StringCommand.ts';
+import StyleGuideCommand from './commands/style-guide/StyleGuideCommand.ts';
 import TaskCommand from './commands/task/TaskCommand.ts';
 import TmCommand from './commands/tm/TmCommand.ts';
 import UploadCommand from './commands/upload/UploadCommand.ts';
@@ -39,6 +40,7 @@ import {
   createGetScreenshotService,
   createGetStorageService,
   createGetStringService,
+  createGetStyleGuideService,
   createGetTaskService,
   createGetTmService,
   createGetTranslationService,
@@ -72,6 +74,7 @@ const getTranslationService = createGetTranslationService(getApiClient, getOutpu
 const getLanguageService = createGetLanguageService(createGetApiClient(tryGetConfig));
 const getTmService = createGetTmService(getApiClient, getOutput);
 const getGlossaryService = createGetGlossaryService(getApiClient, getOutput);
+const getStyleGuideService = createGetStyleGuideService(getApiClient);
 
 const commentCommand = new CommentCommand(getOutput, getCommentService);
 const appCommand = new AppCommand(getOutput, getAppService);
@@ -147,6 +150,7 @@ const taskCommand = new TaskCommand(
 );
 const tmCommand = new TmCommand(getOutput, getTmService, getStorageService, getApiClient, getConfig);
 const glossaryCommand = new GlossaryCommand(getOutput, getGlossaryService, getStorageService, getApiClient, getConfig);
+const styleGuideCommand = new StyleGuideCommand(getOutput, getStyleGuideService, getStorageService, getConfig);
 const contextCommand = new ContextCommand(
   getOutput,
   getProjectService,
@@ -178,6 +182,7 @@ export const commands: CommandDef[] = [
   stringCommand.getDefinition(),
   glossaryCommand.getDefinition(),
   tmCommand.getDefinition(),
+  styleGuideCommand.getDefinition(),
   taskCommand.getDefinition(),
   bundleCommand.getDefinition(),
   branchCommand.getDefinition(),

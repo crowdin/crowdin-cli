@@ -40,6 +40,7 @@ const COMMAND_TIER: Record<string, 'base' | 'project' | 'files'> = {
   label: 'project',
   glossary: 'base',
   tm: 'base',
+  'style-guide': 'base',
 };
 
 const COMMANDS_WITHOUT_CONFIG = new Set(['init', 'login']);
@@ -86,6 +87,7 @@ describe('command registry', () => {
       'string',
       'glossary',
       'tm',
+      'style-guide',
       'task',
       'bundle',
       'branch',
@@ -117,6 +119,7 @@ describe('command registry', () => {
     const context = commands.find((command) => command.name === 'context');
     const tm = commands.find((command) => command.name === 'tm');
     const glossary = commands.find((command) => command.name === 'glossary');
+    const styleGuide = commands.find((command) => command.name === 'style-guide');
 
     expect(upload?.alias).toBe('push');
     expect(upload?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['sources', 'translations']);
@@ -147,6 +150,12 @@ describe('command registry', () => {
     ]);
     expect(tm?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['list', 'download', 'upload']);
     expect(glossary?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['list', 'download', 'upload']);
+    expect(styleGuide?.subcommands?.map((subcommand) => subcommand.name)).toEqual([
+      'list',
+      'download',
+      'upload',
+      'delete',
+    ]);
   });
 });
 
