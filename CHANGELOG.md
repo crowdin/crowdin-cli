@@ -1,5 +1,18 @@
 # Changelog
 
+# [5.3.0](https://github.com/crowdin/crowdin-cli/compare/5.2.0...5.3.0) (2026-09-24)
+
+
+### Bug Fixes
+
+* **build:** compile with Bun 1.4.2 so macOS 27 doesn't SIGKILL the binaries ([#1125](https://github.com/crowdin/crowdin-cli/issues/1125)) ([61933bb](https://github.com/crowdin/crowdin-cli/commit/61933bb42c605937b48ba04c9897fab8596485b0))
+
+
+### Features
+
+* add style-guide command ([#1126](https://github.com/crowdin/crowdin-cli/issues/1126)) ([089b414](https://github.com/crowdin/crowdin-cli/commit/089b4145d34b3900966c3703cc34720ae98119aa))
+* **language:** show text direction and plural categories with --verbose ([#1124](https://github.com/crowdin/crowdin-cli/issues/1124)) ([3bf7586](https://github.com/crowdin/crowdin-cli/commit/3bf7586a8e7ee84fc0e816c8ebab21641bba0eb1))
+
 # [5.2.0](https://github.com/crowdin/crowdin-cli/compare/5.1.0...5.2.0) (2026-09-21)
 
 
