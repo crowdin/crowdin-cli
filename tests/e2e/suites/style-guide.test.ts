@@ -186,15 +186,15 @@ describe('style-guide', () => {
     expect(listed.every((guide) => Object.keys(guide).join() === 'id,name,isShared,updatedAt')).toBe(true);
   });
 
-  test('adds project and language ids to the verbose json listing', async () => {
-    const listed = await runJson<(ListedGuide & { projectIds: number[] | null; languageIds: string[] | null })[]>(ctx, [
+  test('adds comma-joined project and language ids to the verbose json listing', async () => {
+    const listed = await runJson<(ListedGuide & { projectIds: string; languageIds: string })[]>(ctx, [
       'style-guide',
       'list',
       '--verbose',
     ]);
     const assigned = listed.find((guide) => guide.id === assignedId);
 
-    expect(assigned).toMatchObject({ projectIds: [ctx.project.id], languageIds: ['uk'] });
+    expect(assigned).toMatchObject({ projectIds: String(ctx.project.id), languageIds: 'uk' });
   });
 
   test('carries the same listing in the toon output', async () => {

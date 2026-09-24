@@ -2,33 +2,35 @@ import type { StyleGuidesModel } from '@crowdin/crowdin-api-client';
 import { colors } from '@/cli/utils/colors.ts';
 import type { View } from '@/cli/utils/output.ts';
 
-const scope = (guide: StyleGuidesModel.StyleGuide): string =>
-  guide.isShared ? 'shared' : `projects: ${guide.projectIds?.length ?? 0}`;
+// `projectIds` and `languageIds` travel as comma-joined strings, so the verbose listing stays a toon table too.
+export type FlatStyleGuide = Omit<StyleGuidesModel.StyleGuide, 'projectIds' | 'languageIds'> & {
+  projectIds: string;
+  languageIds: string;
+};
 
-/**
- * One line per style guide and, when verbose, its assignments indented underneath. Plain prints the
- * name alone.
- */
-export function createStyleGuideView({
-  verbose = false,
-}: {
-  verbose?: boolean;
-} = {}): View<StyleGuidesModel.StyleGuide> {
+export const flattenStyleGuide = (guide: StyleGuidesModel.StyleGuide): FlatStyleGuide => ({
+  ...guide,
+  projectIds: (guide.projectIds ?? []).join(','),
+  languageIds: (guide.languageIds ?? []).join(','),
+});
+
+const scope = (guide: FlatStyleGuide): string =>
+  guide.isShared ? 'shared' : `projects: ${guide.projectIds ? guide.projectIds.split(',').length : 0}`;
+
+export function createStyleGuideView({ verbose = false }: { verbose?: boolean } = {}): View<FlatStyleGuide> {
   return {
     text: (guide) =>
       [
         `${colors.yellow(`#${guide.id}`)} ${guide.name} (${colors.green(scope(guide))})`,
         ...(verbose
           ? [
-              `\tlanguages: ${guide.languageIds?.join(', ') || 'all'}`,
-              `\tprojects: ${guide.projectIds?.join(', ') || '-'}`,
+              `\tlanguages: ${guide.languageIds.replaceAll(',', ', ') || 'all'}`,
+              `\tprojects: ${guide.projectIds.replaceAll(',', ', ') || '-'}`,
               `\tAI instructions: ${guide.aiInstructions ? 'yes' : 'no'}`,
             ]
           : []),
       ].join('\n'),
     plain: (guide) => guide.name,
-    // The array keys only come with --verbose, so the default listing stays a toon table. The AI
-    // instructions stay out: the text line only says whether they are set, and the body can run to kilobytes.
     keys: verbose
       ? ['id', 'name', 'isShared', 'updatedAt', 'projectIds', 'languageIds']
       : ['id', 'name', 'isShared', 'updatedAt'],

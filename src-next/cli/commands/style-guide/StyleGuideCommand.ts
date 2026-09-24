@@ -21,7 +21,7 @@ import {
   shared as sharedOption,
   to as toOption,
 } from './options.ts';
-import { createStyleGuideView } from './views.ts';
+import { createStyleGuideView, flattenStyleGuide } from './views.ts';
 
 interface ListOptions extends GlobalOptions {
   assigned?: boolean;
@@ -112,7 +112,7 @@ export default class StyleGuideCommand {
     const styleGuideService = await this.getStyleGuideService(command);
     const guides = await styleGuideService.list(await this.assignedProjectId(command, options));
 
-    output.list(guides, createStyleGuideView({ verbose: options.verbose }), {
+    output.list(guides.map(flattenStyleGuide), createStyleGuideView({ verbose: options.verbose }), {
       empty: options.assigned ? 'No style guides assigned to the project' : 'No style guides found',
     });
   };
@@ -215,7 +215,7 @@ export default class StyleGuideCommand {
           });
 
     output.success(`${id !== undefined ? 'Updated' : 'Created'} #${guide.id} '${guide.name}' style guide`);
-    output.item(await styleGuideService.get(guide.id), createStyleGuideView(), { mark: false });
+    output.item(flattenStyleGuide(await styleGuideService.get(guide.id)), createStyleGuideView(), { mark: false });
   };
 
   deleteAction = async (command: Command) => {

@@ -1,10 +1,10 @@
 import { describe, expect, test } from 'bun:test';
 import type { StyleGuidesModel } from '@crowdin/crowdin-api-client';
-import { createStyleGuideView } from '@/cli/commands/style-guide/views.ts';
+import { createStyleGuideView, flattenStyleGuide } from '@/cli/commands/style-guide/views.ts';
 
 describe('style guide views', () => {
-  const createGuide = (overrides: Partial<StyleGuidesModel.StyleGuide> = {}): StyleGuidesModel.StyleGuide =>
-    ({
+  const createGuide = (overrides: Partial<StyleGuidesModel.StyleGuide> = {}) =>
+    flattenStyleGuide({
       id: 42,
       name: 'forty-two',
       isShared: false,
@@ -12,7 +12,12 @@ describe('style guide views', () => {
       languageIds: null,
       aiInstructions: null,
       ...overrides,
-    }) as StyleGuidesModel.StyleGuide;
+    } as StyleGuidesModel.StyleGuide);
+
+  test('joins project and language ids into comma-separated strings', () => {
+    expect(createGuide({ languageIds: ['uk', 'de'] })).toMatchObject({ projectIds: '1,2', languageIds: 'uk,de' });
+    expect(createGuide({ projectIds: null })).toMatchObject({ projectIds: '', languageIds: '' });
+  });
 
   test('renders id, name and project count', () => {
     expect(createStyleGuideView().text(createGuide())).toBe('#42 forty-two (projects: 2)');
