@@ -108,7 +108,7 @@ describe('DownloadCommand', () => {
 
   const createDownloadCommand = (configOverrides: Partial<Config> = {}) => {
     return new DownloadCommand(
-      async (command: Command) => ({
+      async () => ({
         ...config,
         basePath: tempDir,
         ...configOverrides,
