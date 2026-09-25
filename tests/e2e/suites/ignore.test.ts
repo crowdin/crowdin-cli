@@ -210,6 +210,32 @@ describe('ignore', () => {
     expect(await projectFilePaths(ctx)).toEqual(expectedFiles);
   });
 
+  test('ignores a folder given with a trailing slash (/folder/sub/)', async () => {
+    await resetProject(ctx);
+    await switchConfig(ctx, 'ignore', { ignore: ['/folder/sub/'] });
+
+    const result = await ctx.runner.run(['upload', 'sources']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+
+    const ignoredFiles = ['/folder/sub/1.txt', '/folder/sub/1.xml'];
+    const expectedFiles = ALL_FILES.filter((file) => !ignoredFiles.includes(file)).sort();
+    expect(await projectFilePaths(ctx)).toEqual(expectedFiles);
+  });
+
+  test('ignores a folder glob given with a trailing slash (/**/sub/**/)', async () => {
+    await resetProject(ctx);
+    await switchConfig(ctx, 'ignore', { ignore: ['/**/sub/**/'] });
+
+    const result = await ctx.runner.run(['upload', 'sources']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+
+    const ignoredFiles = ['/folder/sub/1.txt', '/folder/sub/1.xml'];
+    const expectedFiles = ALL_FILES.filter((file) => !ignoredFiles.includes(file)).sort();
+    expect(await projectFilePaths(ctx)).toEqual(expectedFiles);
+  });
+
   test('uploads hidden dotfiles when ignore_hidden_files is false', async () => {
     await resetProject(ctx);
     await switchConfig(ctx, 'ignore-hidden-files', { ignoreHiddenFiles: false });

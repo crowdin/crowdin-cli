@@ -90,6 +90,14 @@ describe('ConfigSchema files[] path normalization', () => {
     expect(file?.dest).toBe('/out/%original_file_name%');
   });
 
+  test('expands a trailing slash in ignore to match everything under the folder', () => {
+    const file = parseFile({
+      ignore: ['/**/*.Models/**/', '**/x.Models/', 'foo/', 'foo/*/', 'bar\\', 'keep/**'],
+    });
+
+    expect(file?.ignore).toEqual(['/**/*.Models/**/**', '**/x.Models/**', 'foo/**', 'foo/*/**', 'bar/**', 'keep/**']);
+  });
+
   test('leaves the leading slash of source, ignore and dest as written', () => {
     const hierarchy = { preserveHierarchy: true };
     const withSlash = parseFile(
