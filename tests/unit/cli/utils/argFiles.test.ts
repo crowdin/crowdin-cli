@@ -76,6 +76,6 @@ describe('expandArgFiles', () => {
     writeFileSync(b, `y\n@${a}\n`);
 
     // a -> x, then b -> y, then @a is already on the stack so kept literal.
-    expect(expandArgFiles([`@${a}`])).toEqual(['x', 'y', '@' + a]);
+    expect(expandArgFiles([`@${a}`])).toEqual(['x', 'y', `@${a}`]);
   });
 });

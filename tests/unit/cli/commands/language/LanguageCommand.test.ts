@@ -232,7 +232,6 @@ describe('LanguageCommand', () => {
   });
 
   test('lists project target languages with plain format outputs only codes', async () => {
-    const languageCommand = createLanguageCommand();
     commandContext = createCommandContext({
       ...globalOptions,
       output: 'plain',
