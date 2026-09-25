@@ -941,7 +941,7 @@ describe('FileCommand', () => {
       deleteProjectFile,
     };
     const fileCommand = new FileCommand(
-      async (command: Command) => ({ ...config, basePath: tempDir }),
+      async () => ({ ...config, basePath: tempDir }),
       () => output,
       async () => projectService as never,
       async () => storageService,

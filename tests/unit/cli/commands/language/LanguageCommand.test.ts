@@ -249,12 +249,7 @@ describe('LanguageCommand', () => {
       },
     } as never);
 
-    await new LanguageCommand(
-      () => output,
-      async () => projectService,
-      async () => languageService,
-      async () => config,
-    ).listAction(commandContext);
+    await languageCommand.listAction(commandContext);
 
     // list() writes a line per item, where the old formatter joined them into a single write.
     expect(console.log).toHaveBeenCalledWith('fr');
