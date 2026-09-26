@@ -225,7 +225,7 @@ describe('LanguageCommand', () => {
     spyOn(projectService, 'loadProject').mockResolvedValue({ data: {} } as never);
 
     // globalOptions is json, so this takes the machine-format branch.
-    await expect(languageCommand.listAction(commandContext)).rejects.toMatchObject({ exitCode: 103 });
+    expect(languageCommand.listAction(commandContext)).rejects.toMatchObject({ exitCode: 103 });
     expect(errorSpy).toHaveBeenCalledWith(
       'You must have manager or developer role in the project to perform this action',
     );
@@ -248,7 +248,12 @@ describe('LanguageCommand', () => {
       },
     } as never);
 
-    await languageCommand.listAction(commandContext);
+    await new LanguageCommand(
+      () => output,
+      async () => projectService,
+      async () => languageService,
+      async () => config,
+    ).listAction(commandContext);
 
     // list() writes a line per item, where the old formatter joined them into a single write.
     expect(console.log).toHaveBeenCalledWith('fr');
