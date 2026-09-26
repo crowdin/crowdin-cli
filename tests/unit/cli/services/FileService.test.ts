@@ -45,7 +45,7 @@ describe('FileService', () => {
       const result = await fileService.loadProjectFiles();
 
       expect(result.data).toHaveLength(2);
-      expect(result.data[0]!.data.path).toBe('/docs/readme.md');
+      expect(result.data[0]?.data.path).toBe('/docs/readme.md');
     });
 
     test('passes branchId when provided', async () => {

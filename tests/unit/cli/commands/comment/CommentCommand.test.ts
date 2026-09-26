@@ -159,7 +159,7 @@ describe('CommentCommand', () => {
         stringId: 42,
         type: 'comment',
       });
-      expect(addSpy.mock.calls[0]![0]).not.toHaveProperty('targetLanguageId');
+      expect(addSpy.mock.calls[0]?.[0]).not.toHaveProperty('targetLanguageId');
     });
 
     test('throws when --language is missing for --type=issue', async () => {
@@ -208,7 +208,7 @@ describe('CommentCommand', () => {
 
       await cmd.addAction(commandContext);
 
-      const payload = addSpy.mock.calls[0]![1];
+      const payload = addSpy.mock.calls[0]?.[1];
       expect(payload).not.toHaveProperty('targetLanguageId');
     });
   });
