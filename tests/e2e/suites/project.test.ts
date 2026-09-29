@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import { expectFailure } from '../helpers/cli.ts';
+import { resolveEnv } from '../helpers/env.ts';
 import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
@@ -15,6 +16,8 @@ import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helper
  * creates projects `teardownSuite` knows nothing about, so each id is recorded and removed in
  * `afterAll`.
  */
+
+const { isEnterprise } = resolveEnv();
 
 describe('project', () => {
   let ctx: SuiteContext;
@@ -149,7 +152,8 @@ describe('project', () => {
     expect(created.data.type).toBe(ProjectsGroupsModel.Type.STRINGS_BASED);
   });
 
-  test('adds a public project, private being the default', async () => {
+  // Enterprise projects have no visibility; the CLI drops --public there.
+  test.skipIf(isEnterprise)('adds a public project, private being the default', async () => {
     const publicId = await addProject(projectName('public'), ['-l', 'uk', '--public']);
     const privateId = await addProject(projectName('private'), ['-l', 'uk']);
 

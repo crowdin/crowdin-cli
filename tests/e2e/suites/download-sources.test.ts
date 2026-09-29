@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
 import { expectFailure } from '../helpers/cli.ts';
+import { resolveEnv } from '../helpers/env.ts';
 import { capturedContent, clearDir, expectFilesExist } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import {
@@ -11,6 +12,8 @@ import {
   switchConfig,
   teardownSuite,
 } from '../helpers/suite.ts';
+
+const { isEnterprise } = resolveEnv();
 
 // Local paths the nested source patterns resolve to (see fixtures/download-sources/config/crowdin.yml).
 // `download sources` reconstructs these exact local paths from the `source` pattern regardless of the
@@ -161,15 +164,24 @@ describe('download sources', () => {
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
-  test('rejects --reviewed on a non-Enterprise (SaaS) account', async () => {
+  test.skipIf(isEnterprise)('rejects --reviewed on a non-Enterprise (SaaS) account', async () => {
     await restoreConfig(ctx);
 
     const result = await ctx.runner.run(['download', 'sources', '--reviewed']);
 
     expect(result).toMatchObject({ exitCode: 0 });
-    // The test account is SaaS, not Enterprise.
     expect(result.stderr).toContain('Operation is available only for Crowdin Enterprise');
     expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  // No stock workflow template has a review step, so the API rejects the build - which still proves
+  // the Enterprise branch sent the request.
+  test.if(isEnterprise)('requests a reviewed-sources build on Enterprise', async () => {
+    await restoreConfig(ctx);
+
+    const result = await ctx.runner.run(['download', 'sources', '--reviewed']);
+
+    expectFailure(result, 1, 'Failed to build reviewed sources', 'Project workflow does not include a review step');
   });
 
   test('previews the download without writing anything with --dryrun', async () => {

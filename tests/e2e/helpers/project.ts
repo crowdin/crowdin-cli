@@ -39,6 +39,25 @@ export interface CreateProjectOptions {
   targetLanguageIds?: string[];
   /** Create a strings-based project instead of the file-based default. */
   stringsBased?: boolean;
+  /**
+   * Enterprise only: assign a workflow template with Translate and Proofread steps. Without one the
+   * project has no workflow, so tasks and `export_strings_that_passed_workflow` are rejected.
+   */
+  withWorkflow?: boolean;
+}
+
+async function findWorkflowTemplateId(client: Client): Promise<number> {
+  const templates = await client.workflowsApi.withFetchAll().listWorkflowTemplates();
+  const template = templates.data.find(({ data }) =>
+    // The client types template steps without `type`, though the API returns it.
+    ['Translate', 'Proofread'].every((type) => data.steps.some((step) => 'type' in step && step.type === type)),
+  );
+
+  if (!template) {
+    throw new Error('The organization has no workflow template with Translate and Proofread steps');
+  }
+
+  return template.data.id;
 }
 
 export async function createTestProject(client: Client, opts: CreateProjectOptions): Promise<TestProject> {
@@ -52,6 +71,7 @@ export async function createTestProject(client: Client, opts: CreateProjectOptio
     // The API takes the project type as a BooleanInt, 1 being strings-based (same as
     // `project add --string-based`).
     ...(opts.stringsBased ? { type: 1 as const } : {}),
+    ...(opts.withWorkflow && client.organization ? { templateId: await findWorkflowTemplateId(client) } : {}),
   };
 
   const response = await client.projectsGroupsApi.addProject(request);

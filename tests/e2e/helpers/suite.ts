@@ -36,6 +36,8 @@ export interface SetupSuiteOptions {
   targetLanguageIds?: string[];
   /** Create a strings-based project - `branch clone`/`merge` refuse to run against any other type. */
   stringsBased?: boolean;
+  /** Enterprise only: give the project a workflow (see {@link CreateProjectOptions.withWorkflow}). */
+  withWorkflow?: boolean;
   /**
    * Skip creating a real Crowdin project. Only for suites whose commands never address one - `app`
    * is the case this exists for: it sits in the project option tier, so `project_id` has to be
@@ -71,6 +73,7 @@ export async function setupSuite(suite: string, opts: SetupSuiteOptions = {}): P
         sourceLanguageId: opts.sourceLanguageId,
         targetLanguageIds: opts.targetLanguageIds,
         ...(opts.stringsBased !== undefined ? { stringsBased: opts.stringsBased } : {}),
+        ...(opts.withWorkflow ? { withWorkflow: true } : {}),
       });
 
   // Everything past project creation can fail; if it does, tear down what we
