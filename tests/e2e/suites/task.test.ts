@@ -1,14 +1,15 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { expectFailure } from '../helpers/cli.ts';
+import { resolveEnv } from '../helpers/env.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Covers `task list` / `task add` (`cli/commands/task/TaskCommand.ts`).
  *
- * Written for crowdin.com, where `addAction` takes its non-Enterprise branch: `--type` is required
- * and `--workflow-step` never applies. With an Enterprise `CROWDIN_E2E_BASE_URL` the Enterprise branch runs
- * instead, and `task add` needs a `--workflow-step` this suite does not pass.
+ * Runs on both crowdin.com and Enterprise. crowdin.com requires `--type`; Enterprise requires
+ * `--workflow-step` and never validates `--type`. `taskType` passes the step id of the project's
+ * matching workflow step on Enterprise, and keeps `--type` so the pre-translated check still fires.
  *
  * Two server rules dictate the fixture and the test order: a `translate` task needs UNtranslated
  * words, a `proofread` task needs translated-but-unapproved ones. So the fixture ships Italian
@@ -24,6 +25,10 @@ import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helper
 
 const LABEL = 'task-label';
 
+const { isEnterprise } = resolveEnv();
+
+type TaskType = 'translate' | 'proofread';
+
 interface ListedTask {
   id: number;
   targetLanguageId: string;
@@ -32,13 +37,32 @@ interface ListedTask {
 
 describe('task', () => {
   let ctx: SuiteContext;
+  const workflowSteps = new Map<TaskType, number>();
+
+  function taskType(type: TaskType): string[] {
+    return isEnterprise ? ['--type', type, '--workflow-step', String(workflowSteps.get(type))] : ['--type', type];
+  }
 
   async function listTitles(args: string[] = []): Promise<string[]> {
     return (await runJson<ListedTask[]>(ctx, ['task', 'list', ...args])).map((task) => task.title).sort();
   }
 
   beforeAll(async () => {
-    ctx = await setupSuite('task', { targetLanguageIds: ['uk', 'it'] });
+    ctx = await setupSuite('task', { targetLanguageIds: ['uk', 'it'], withWorkflow: true });
+
+    if (isEnterprise) {
+      const steps = await ctx.client.workflowsApi.withFetchAll().listWorkflowSteps(ctx.project.id);
+
+      for (const type of ['translate', 'proofread'] as const) {
+        const step = steps.data.find(({ data }) => data.type.toLowerCase() === type);
+
+        if (!step) {
+          throw new Error(`The project's workflow has no '${type}' step`);
+        }
+
+        workflowSteps.set(type, step.data.id);
+      }
+    }
   });
 
   afterAll(async () => {
@@ -100,13 +124,19 @@ describe('task', () => {
     expectFailure(result, 1, "The '--file' value can not be empty");
   });
 
-  test('requires a type outside Enterprise', async () => {
+  test.skipIf(isEnterprise)('requires a type outside Enterprise', async () => {
     const result = await ctx.runner.run(['task', 'add', 'T1', '--language', 'uk', '--file', 'sources/1_android.xml']);
 
     expectFailure(result, 1, 'Task type can not be empty. Possible values: translate, proofread');
   });
 
-  test('rejects an unsupported type', async () => {
+  test.if(isEnterprise)('requires a workflow step on Enterprise', async () => {
+    const result = await ctx.runner.run(['task', 'add', 'T1', '--language', 'uk', '--file', 'sources/1_android.xml']);
+
+    expectFailure(result, 1, 'Workflow step id can not be empty');
+  });
+
+  test.skipIf(isEnterprise)('rejects an unsupported type', async () => {
     const result = await ctx.runner.run([
       'task',
       'add',
@@ -131,8 +161,7 @@ describe('task', () => {
       'uk',
       '--file',
       'sources/1_android.xml',
-      '--type',
-      'translate',
+      ...taskType('translate'),
       '--include-pre-translated-strings-only',
     ]);
 
@@ -153,8 +182,7 @@ describe('task', () => {
       'uk',
       '--file',
       'nope.xml',
-      '--type',
-      'translate',
+      ...taskType('translate'),
     ]);
 
     expectFailure(
@@ -175,8 +203,7 @@ describe('task', () => {
       'uk',
       '--file',
       'sources/1_android.xml',
-      '--type',
-      'translate',
+      ...taskType('translate'),
       '--label',
       'no-such-label',
     ]);
@@ -193,8 +220,7 @@ describe('task', () => {
       'uk',
       '--file',
       'sources/1_android.xml',
-      '--type',
-      'translate',
+      ...taskType('translate'),
     ]);
 
     expect(result).toMatchObject({ exitCode: 0 });
@@ -212,8 +238,7 @@ describe('task', () => {
       'uk',
       '--file',
       'sources/2_android.xml',
-      '--type',
-      'translate',
+      ...taskType('translate'),
       '--label',
       LABEL,
     ]);
@@ -232,8 +257,7 @@ describe('task', () => {
       'it',
       '--file',
       'sources/2_android.xml',
-      '--type',
-      'proofread',
+      ...taskType('proofread'),
       '--description',
       'Please proofread the second file',
     ]);

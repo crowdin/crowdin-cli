@@ -2,15 +2,18 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { copyFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { expectFailure } from '../helpers/cli.ts';
+import { resolveEnv } from '../helpers/env.ts';
 import { clearDir, expectFilesMatch } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { restoreConfig, type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
+
+const { isEnterprise } = resolveEnv();
 
 describe('export options', () => {
   let ctx: SuiteContext;
 
   beforeAll(async () => {
-    ctx = await setupSuite('export-options', { targetLanguageIds: ['it', 'uk'] });
+    ctx = await setupSuite('export-options', { targetLanguageIds: ['it', 'uk'], withWorkflow: true });
   });
 
   afterAll(async () => {
@@ -328,7 +331,7 @@ describe('export options', () => {
     await expectFilesMatch(ctx.workspace, 'translations', 'expected/skip-strings-approved', 'uk/1_android.xml');
   });
 
-  test('warns and ignores export_strings_that_passed_workflow outside Enterprise', async () => {
+  test.skipIf(isEnterprise)('warns and ignores export_strings_that_passed_workflow outside Enterprise', async () => {
     await switchConfig(ctx, 'passed-workflow');
 
     const result = await ctx.runner.run(['download', 'translations']);
@@ -340,6 +343,15 @@ describe('export options', () => {
     expect(result.stdout).toContain("File 'translations/uk/1_android.xml' extracted");
     expect(result.stdout).toContain("File 'translations/uk/2_android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
+  test.if(isEnterprise)('honours export_strings_that_passed_workflow on Enterprise', async () => {
+    await switchConfig(ctx, 'passed-workflow');
+
+    const result = await ctx.runner.run(['download', 'translations']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stderr).not.toContain('Exporting strings that passed workflow');
   });
 
   test('downloads translations across two file groups with different export options in config', async () => {
