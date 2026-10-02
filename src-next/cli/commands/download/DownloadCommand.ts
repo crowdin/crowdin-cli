@@ -453,12 +453,13 @@ export default class DownloadCommand {
         }
       }
 
-      // json/toon drop the log() lines this report is made of, leaving a header that promises a list
-      // and a --verbose hint that does nothing. Those formats already carry every omitted path in
-      // the result document as a skipped entry, so skip the report (and the file fetch it needs).
+      // The machine formats drop the log() lines this report is made of, leaving a header that
+      // promises a list and a --verbose hint that does nothing, so skip the report (and the file
+      // fetch it needs). json/toon already carry every omitted path in the result document as a
+      // skipped entry; plain lists only what was written.
       if (
         !options.ignoreMatch &&
-        !isStructuredFormat(options.output) &&
+        !isMachineFormat(options.output) &&
         perBuildOmitted.some((omitted) => omitted.length > 0)
       ) {
         const files =
