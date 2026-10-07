@@ -2,8 +2,16 @@ version: 2
 updates:
   - package-ecosystem: "npm"
     directory: "/"
+    target-branch: "main"
     schedule:
       interval: "monthly"
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    allow:
+      - dependency-name: "@crowdin/crowdin-api-client"
 
   - package-ecosystem: "npm"
     directory: "/website"
