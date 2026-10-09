@@ -263,6 +263,83 @@ describe('TranslationService', () => {
     });
   });
 
+  describe('startPreTranslation', () => {
+    test('submits the job and returns its initial status without polling', async () => {
+      const apply = spyOn(apiClient.translationsApi, 'applyPreTranslation').mockResolvedValue({
+        data: { identifier: '121', status: 'created', progress: 0 },
+      } as never);
+      const check = spyOn(apiClient.translationsApi, 'preTranslationStatus');
+
+      const request = { languageIds: ['ua'], fileIds: [101] };
+      const status = await translationService.startPreTranslation(request);
+
+      expect(apply).toHaveBeenCalledWith(PROJECT_ID, request);
+      expect(check).not.toHaveBeenCalled();
+      expect(status).toEqual({ identifier: '121', status: 'created', progress: 0 } as never);
+    });
+
+    test('wraps API error as CliError', async () => {
+      spyOn(apiClient.translationsApi, 'applyPreTranslation').mockRejectedValue(new Error('boom'));
+
+      expect(translationService.startPreTranslation({ languageIds: ['ua'], fileIds: [101] })).rejects.toThrow(CliError);
+    });
+  });
+
+  describe('getPreTranslationStatus', () => {
+    test('returns the status data', async () => {
+      const spy = spyOn(apiClient.translationsApi, 'preTranslationStatus').mockResolvedValue({
+        data: { identifier: '121', status: 'finished', progress: 100 },
+      } as never);
+
+      const status = await translationService.getPreTranslationStatus('121');
+
+      expect(spy).toHaveBeenCalledWith(PROJECT_ID, '121');
+      expect(status.status).toBe('finished');
+    });
+
+    test('wraps API error as CliError', async () => {
+      spyOn(apiClient.translationsApi, 'preTranslationStatus').mockRejectedValue(new Error('boom'));
+
+      expect(translationService.getPreTranslationStatus('121')).rejects.toThrow(CliError);
+    });
+  });
+
+  describe('listPreTranslations', () => {
+    test('fetches every page and unwraps the statuses', async () => {
+      const listPreTranslations = mock(async () => ({
+        data: [{ data: { identifier: '121' } }, { data: { identifier: '122' } }],
+      }));
+      spyOn(apiClient.translationsApi, 'withFetchAll').mockReturnValue({ listPreTranslations } as never);
+
+      const statuses = await translationService.listPreTranslations();
+
+      expect(listPreTranslations).toHaveBeenCalledWith(PROJECT_ID);
+      expect(statuses.map((status) => status.identifier)).toEqual(['121', '122']);
+    });
+  });
+
+  describe('waitForPreTranslation', () => {
+    test('polls an existing job until finished', async () => {
+      const check = spyOn(apiClient.translationsApi, 'preTranslationStatus')
+        .mockResolvedValueOnce({ data: { identifier: '121', status: 'inProgress', progress: 50 } } as never)
+        .mockResolvedValueOnce({ data: { identifier: '121', status: 'finished', progress: 100 } } as never);
+      spyOn(Bun, 'sleep').mockResolvedValue(undefined);
+
+      const status = await translationService.waitForPreTranslation('121', false);
+
+      expect(check).toHaveBeenCalledTimes(2);
+      expect(status.status).toBe('finished');
+    });
+
+    test('throws CliError for a canceled job', async () => {
+      spyOn(apiClient.translationsApi, 'preTranslationStatus').mockResolvedValue({
+        data: { identifier: '121', status: 'canceled', progress: 10 },
+      } as never);
+
+      expect(translationService.waitForPreTranslation('121', false)).rejects.toThrow(CliError);
+    });
+  });
+
   describe('getPreTranslationReport', () => {
     test('returns the report data', async () => {
       const report = { preTranslateType: 'tm', languages: [] };

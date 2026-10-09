@@ -323,6 +323,101 @@ describe('auto-translate', () => {
     expect(job.status).toBe('finished');
   });
 
+  describe('--async, status and list', () => {
+    let jobId: string;
+
+    test('starts the job and prints the identifier alone', async () => {
+      const result = await ctx.runner.run([
+        'auto-translate',
+        '--method',
+        'tm',
+        '--file',
+        SOURCE_FILE,
+        '--async',
+        '--output',
+        'plain',
+      ]);
+
+      expect(result).toMatchObject({ exitCode: 0 });
+      expect(result.stdout).toMatch(/^\S+\n$/);
+      jobId = result.stdout.trim();
+    });
+
+    test('reports the started job in the json output', async () => {
+      const job = await runJson<Record<string, unknown>>(ctx, [
+        'auto-translate',
+        '--method',
+        'tm',
+        '--file',
+        SOURCE_FILE,
+        '--async',
+        '--verbose',
+      ]);
+
+      expect(job).toEqual({ identifier: expect.any(String), status: 'created' });
+    });
+
+    test('waits for the job with status --wait', async () => {
+      const result = await ctx.runner.run(['auto-translate', 'status', jobId, '--wait']);
+
+      expect(result).toMatchObject({ exitCode: 0 });
+      expect(result.stdout).toEndWith('\nfinished (100%)\n');
+    });
+
+    test('prints identifier and status in plain', async () => {
+      const result = await ctx.runner.run(['auto-translate', 'status', jobId, '--output', 'plain']);
+
+      expect(result).toMatchObject({ exitCode: 0 });
+      expect(result.stdout).toBe(`${jobId} finished\n`);
+    });
+
+    test('adds the report totals to status under --verbose', async () => {
+      const job = await runJson<Record<string, unknown>>(ctx, ['auto-translate', 'status', jobId, '--verbose']);
+
+      expect(job).toEqual({
+        identifier: jobId,
+        status: 'finished',
+        progress: 100,
+        method: 'tm',
+        priority: 'normal',
+        files: expect.any(Number),
+        phrases: expect.any(Number),
+        words: expect.any(Number),
+        skipped: expect.any(Number),
+      });
+    });
+
+    test('lists the job', async () => {
+      const result = await ctx.runner.run(['auto-translate', 'list', '--output', 'plain']);
+
+      expect(result).toMatchObject({ exitCode: 0 });
+      expect(result.stdout.split('\n')).toContain(`${jobId} finished`);
+    });
+
+    test('lists the job attributes under --verbose', async () => {
+      const jobs = await runJson<Array<Record<string, unknown>>>(ctx, ['auto-translate', 'list', '--verbose']);
+
+      expect(jobs.find((job) => job.identifier === jobId)).toEqual({
+        identifier: jobId,
+        status: 'finished',
+        progress: 100,
+        method: 'tm',
+        priority: 'normal',
+        createdAt: expect.any(String),
+        finishedAt: expect.any(String),
+        languageIds: expect.arrayContaining(['it', 'uk']),
+        fileCount: 1,
+        branchCount: null,
+      });
+    });
+
+    test('fails on an unknown identifier', async () => {
+      const result = await ctx.runner.run(['auto-translate', 'status', 'no-such-job']);
+
+      expectFailure(result, 102, "Failed to get the auto-translation 'no-such-job'");
+    });
+  });
+
   test('rejects --file against a string-based project', async () => {
     const result = await ctx.runner.run([
       'auto-translate',

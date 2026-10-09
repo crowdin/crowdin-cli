@@ -43,11 +43,17 @@ const COMMAND_TIER: Record<string, 'base' | 'project' | 'files'> = {
   'style-guide': 'base',
 };
 
+// Subcommands that only read jobs by id, so they need the project but not the files config.
+const SUBCOMMAND_TIER: Record<string, 'base' | 'project' | 'files'> = {
+  'auto-translate status': 'project',
+  'auto-translate list': 'project',
+};
+
 const COMMANDS_WITHOUT_CONFIG = new Set(['init', 'login']);
 
 // Parents whose own action performs a real operation (not a `command.help()` shim), so they carry
 // the config group themselves in addition to their subcommands.
-const REAL_ACTION_PARENTS = new Set(['upload', 'download', 'status']);
+const REAL_ACTION_PARENTS = new Set(['upload', 'download', 'status', 'auto-translate']);
 
 function configGroupOptionNames(options: (OptionDef | OptionGroupDef)[] | undefined): string[] | undefined {
   const group = options?.find((option): option is OptionGroupDef => 'group' in option && option.group === CONFIG_GROUP);
@@ -118,6 +124,7 @@ describe('command registry', () => {
     const config = commands.find((command) => command.name === 'config');
     const context = commands.find((command) => command.name === 'context');
     const tm = commands.find((command) => command.name === 'tm');
+    const autoTranslate = commands.find((command) => command.name === 'auto-translate');
     const glossary = commands.find((command) => command.name === 'glossary');
     const styleGuide = commands.find((command) => command.name === 'style-guide');
 
@@ -137,6 +144,7 @@ describe('command registry', () => {
     ]);
     expect(screenshot?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['list', 'upload', 'delete']);
     expect(status?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['translation', 'proofreading']);
+    expect(autoTranslate?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['status', 'list']);
     expect(string?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['list', 'add', 'delete', 'edit']);
     expect(task?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['list', 'add']);
     expect(language?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['list']);
@@ -182,11 +190,9 @@ describe('config option groups', () => {
         throw new Error(`command '${command.name}' is missing a config tier`);
       }
 
-      const expected = TIER_OPTIONS[tier];
-
       for (const node of configBearingNodes(command)) {
         expect(configGroupOptionNames(node.options), `'${node.label}' is missing its config option group`).toEqual(
-          expected,
+          TIER_OPTIONS[SUBCOMMAND_TIER[node.label] ?? tier],
         );
       }
     }
