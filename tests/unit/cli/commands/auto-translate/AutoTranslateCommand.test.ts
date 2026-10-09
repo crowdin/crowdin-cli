@@ -32,6 +32,7 @@ type AutoTranslateTestOptions = GlobalOptions & {
   excludeLabel?: string[];
   sourceLanguage?: string;
   aiPrompt?: number;
+  async?: boolean;
 };
 
 const globalOptions: GlobalOptions = {
@@ -741,6 +742,149 @@ describe('AutoTranslateCommand', () => {
       const item = await runWith({ output: 'text', verbose: true });
 
       expect(item).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('--async', () => {
+    test('starts the job, prints it, and neither waits nor fetches the report', async () => {
+      const command = createCommand();
+      commandContext = createCommandContext({
+        ...globalOptions,
+        method: 'tm',
+        branch: 'main',
+        async: true,
+        verbose: true,
+      });
+
+      spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
+      spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
+      spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
+      const start = spyOn(translationService, 'startPreTranslation').mockResolvedValue({
+        identifier: '121',
+        status: 'created',
+        progress: 0,
+      } as never);
+      const preTranslate = spyOn(translationService, 'preTranslate');
+      const report = spyOn(translationService, 'getPreTranslationReport');
+      const item = spyOn(output, 'item').mockImplementation(() => {});
+
+      await command.defaultAction(commandContext);
+
+      expect(start).toHaveBeenCalledTimes(1);
+      expect(preTranslate).not.toHaveBeenCalled();
+      expect(report).not.toHaveBeenCalled();
+      expect(item.mock.calls[0]?.[0]).toEqual({ identifier: '121', status: 'created' });
+    });
+  });
+
+  const job = (status: string, progress: number) => ({
+    identifier: '121',
+    status,
+    progress,
+    attributes: { method: 'tm', priority: 'normal', languageIds: ['ua', 'fr'], fileIds: [101, 102], branchIds: [] },
+    createdAt: '2026-10-08T00:00:00+00:00',
+    finishedAt: null,
+  });
+
+  const statusContext = (options: Record<string, unknown>) =>
+    ({ optsWithGlobals: () => ({ ...globalOptions, ...options }), args: ['121'] }) as unknown as Command;
+
+  describe('status', () => {
+    test('prints the job', async () => {
+      spyOn(translationService, 'getPreTranslationStatus').mockResolvedValue(job('inProgress', 40) as never);
+      const item = spyOn(output, 'item').mockImplementation(() => {});
+
+      await createCommand().statusAction(statusContext({}));
+
+      expect(item.mock.calls[0]?.[0]).toMatchObject({
+        identifier: '121',
+        status: 'inProgress',
+        progress: 40,
+        method: 'tm',
+        priority: 'normal',
+      });
+    });
+
+    test('adds the report totals under --verbose once the job finished', async () => {
+      spyOn(translationService, 'getPreTranslationStatus').mockResolvedValue(job('finished', 100) as never);
+      spyOn(translationService, 'getPreTranslationReport').mockResolvedValue({
+        languages: [{ id: 'ua', files: [{ id: 101, statistics: { phrases: 5, words: 12 } }], skipped: { a: 2 } }],
+      } as never);
+      const item = spyOn(output, 'item').mockImplementation(() => {});
+
+      await createCommand().statusAction(statusContext({ verbose: true }));
+
+      expect(item.mock.calls[0]?.[0]).toMatchObject({ files: 1, phrases: 5, words: 12, skipped: 2 });
+    });
+
+    test('skips the report under --verbose while the job is running', async () => {
+      spyOn(translationService, 'getPreTranslationStatus').mockResolvedValue(job('inProgress', 40) as never);
+      const report = spyOn(translationService, 'getPreTranslationReport');
+      spyOn(output, 'item').mockImplementation(() => {});
+
+      await createCommand().statusAction(statusContext({ verbose: true }));
+
+      expect(report).not.toHaveBeenCalled();
+    });
+
+    test('waits for the job with --wait', async () => {
+      const wait = spyOn(translationService, 'waitForPreTranslation').mockResolvedValue(job('finished', 100) as never);
+      const get = spyOn(translationService, 'getPreTranslationStatus');
+      spyOn(output, 'item').mockImplementation(() => {});
+
+      await createCommand().statusAction(statusContext({ wait: true }));
+
+      expect(wait).toHaveBeenCalledWith('121', false);
+      expect(get).not.toHaveBeenCalled();
+    });
+
+    test.each(['failed', 'canceled'])('prints the job and exits 1 when it is %s', async (status) => {
+      spyOn(translationService, 'getPreTranslationStatus').mockResolvedValue(job(status, 10) as never);
+      const item = spyOn(output, 'item').mockImplementation(() => {});
+
+      const error = await createCommand()
+        .statusAction(statusContext({}))
+        .catch((caught) => caught);
+
+      expect(item).toHaveBeenCalledTimes(1);
+      expect(error).toBeInstanceOf(CliError);
+      expect(error.exitCode).toBe(1);
+    });
+
+    test('reports a finished job at 100% even when the API still says 0%', async () => {
+      spyOn(translationService, 'getPreTranslationStatus').mockResolvedValue(job('finished', 0) as never);
+      const item = spyOn(output, 'item').mockImplementation(() => {});
+
+      await createCommand().statusAction(statusContext({}));
+
+      expect(item.mock.calls[0]?.[0]).toMatchObject({ status: 'finished', progress: 100 });
+    });
+  });
+
+  describe('list', () => {
+    test('lists the jobs with the language and file counts under --verbose', async () => {
+      spyOn(translationService, 'listPreTranslations').mockResolvedValue([job('finished', 100)] as never);
+      const list = spyOn(output, 'list').mockImplementation(() => {});
+
+      await createCommand().listAction(statusContext({ verbose: true }));
+
+      const [items, view, options] = list.mock.calls[0] ?? [];
+      expect(items).toEqual([
+        {
+          identifier: '121',
+          status: 'finished',
+          progress: 100,
+          method: 'tm',
+          priority: 'normal',
+          createdAt: '2026-10-08T00:00:00+00:00',
+          finishedAt: null,
+          languageIds: ['ua', 'fr'],
+          fileCount: 2,
+          branchCount: 0,
+        },
+      ]);
+      expect(view?.keys).toContain('languageIds' as never);
+      expect(options).toEqual({ empty: 'No auto-translations found' });
     });
   });
 });
