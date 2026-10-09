@@ -4,6 +4,20 @@ The command is an upsert, not a plain add. The screenshot's identity is the **ba
 
 If several screenshots share the same name, the oldest one is updated and a warning is printed.
 
+## Directory upload
+
+Pass a directory instead of a file to upload every `jpeg`, `jpg`, `png` and `gif` image under it, including subdirectories. Other files, and hidden files and directories, are skipped. Each image goes through the same upsert as a single file, and all options apply to every image.
+
+```bash
+crowdin screenshot upload screenshots/ --label release-2.0
+```
+
+Because the name is the identity, images under one directory must have unique file names: if `ui/login.png` and `mobile/login.png` are both found, nothing is uploaded and the command fails listing them.
+
+A failed image doesn't stop the others; the command reports each failure and exits with an error at the end. With `--output json` or `toon`, the uploaded screenshots are printed as one list once all uploads finish.
+
+Images are uploaded in parallel, except with `--auto-tag`: auto-tagging locks the whole project while it runs, so they are uploaded one at a time.
+
 ## Tags
 
 Without `--auto-tag`, existing tags are preserved when the image is replaced.
