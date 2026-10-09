@@ -138,3 +138,15 @@ export const aiPrompt: OptionDef = {
   type: 'number',
   description: "AI Prompt Identifier. Required for 'ai' method",
 };
+
+export const async: OptionDef = {
+  name: 'async',
+  type: 'boolean',
+  description: 'Start the auto-translation and exit without waiting for it to finish',
+};
+
+export const wait: OptionDef = {
+  name: 'wait',
+  type: 'boolean',
+  description: 'Wait for the auto-translation to finish',
+};

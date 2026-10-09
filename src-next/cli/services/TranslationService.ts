@@ -13,6 +13,10 @@ export type ImportProgress = (
   >,
 ) => void;
 
+const PRE_TRANSLATE_FAILURE = 'Failed to auto-translate the project. Please contact our support team for help';
+
+export type PreTranslationStatus = Status<TranslationsModel.PreTranslationStatusAttributes>;
+
 export class TranslationService {
   constructor(
     private apiClient: Client,
@@ -147,12 +151,47 @@ export class TranslationService {
     }
   }
 
+  async startPreTranslation(
+    request: TranslationsModel.PreTranslateRequest | TranslationsModel.PreTranslateStringsRequest,
+  ): Promise<PreTranslationStatus> {
+    try {
+      const response = await this.apiClient.translationsApi.applyPreTranslation(this.projectId, request);
+      return response.data;
+    } catch (error) {
+      throw toCliError(error, PRE_TRANSLATE_FAILURE);
+    }
+  }
+
+  async getPreTranslationStatus(preTranslationId: string): Promise<PreTranslationStatus> {
+    try {
+      const response = await this.apiClient.translationsApi.preTranslationStatus(this.projectId, preTranslationId);
+      return response.data;
+    } catch (error) {
+      throw toCliError(error, `Failed to get the auto-translation '${preTranslationId}'`);
+    }
+  }
+
+  async listPreTranslations(): Promise<PreTranslationStatus[]> {
+    try {
+      const response = await this.apiClient.translationsApi.withFetchAll().listPreTranslations(this.projectId);
+      return response.data.map((entry) => entry.data);
+    } catch (error) {
+      throw toCliError(error, 'Failed to list auto-translations');
+    }
+  }
+
   async preTranslate(
     request: TranslationsModel.PreTranslateRequest | TranslationsModel.PreTranslateStringsRequest,
     verbose: boolean,
   ) {
-    const failureMessage = 'Failed to auto-translate the project. Please contact our support team for help';
+    return await this.pollPreTranslation(() => this.startPreTranslation(request), verbose);
+  }
 
+  async waitForPreTranslation(preTranslationId: string, verbose: boolean) {
+    return await this.pollPreTranslation(() => this.getPreTranslationStatus(preTranslationId), verbose);
+  }
+
+  private async pollPreTranslation(initial: () => Promise<PreTranslationStatus>, verbose: boolean) {
     return await withSpinner(
       this.output,
       'preTranslate',
@@ -162,14 +201,13 @@ export class TranslationService {
           verbose
             ? `Auto-translation is finished (100%) (${status.identifier})`
             : 'Auto-translation is finished (100%)',
-        fail: failureMessage,
+        fail: PRE_TRANSLATE_FAILURE,
       },
       async () => {
-        const applied = await this.apiClient.translationsApi.applyPreTranslation(this.projectId, request);
         const { data: status } = await pollUntilFinished(
-          applied,
+          { data: await initial() },
           ({ identifier }) => this.apiClient.translationsApi.preTranslationStatus(this.projectId, identifier),
-          failureMessage,
+          PRE_TRANSLATE_FAILURE,
           (current) =>
             this.output.spinner(
               'preTranslate',

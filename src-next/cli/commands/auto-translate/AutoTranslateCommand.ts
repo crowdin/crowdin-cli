@@ -1,9 +1,10 @@
 import type { ProjectsGroupsModel, ResponseObject, TranslationsModel } from '@crowdin/crowdin-api-client';
 import { ProjectsGroupsModel as ProjectsGroups } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import { branch, filesConfigGroup } from '@/cli/commands/common/options.ts';
+import { branch, filesConfigGroup, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import type { PreTranslationStatus } from '@/cli/services/TranslationService.ts';
 import type {
   GetBranchService,
   GetFileService,
@@ -18,6 +19,7 @@ import { normalizePath } from '@/cli/utils/parsing.ts';
 import { stripBranchPrefix } from '@/lib/utils/path.ts';
 import {
   aiPrompt,
+  async,
   autoApproveOption,
   directory,
   duplicateTranslations,
@@ -38,8 +40,17 @@ import {
   sourceLanguage,
   translateWithPerfectMatchOnly,
   translationModifiedBefore,
+  wait,
 } from './options.ts';
-import { autoTranslateVerboseView, autoTranslateView } from './views.ts';
+import {
+  type AutoTranslationJob,
+  autoTranslationVerboseView,
+  autoTranslationView,
+  jobStatusVerboseView,
+  jobStatusView,
+  jobVerboseView,
+  jobView,
+} from './views.ts';
 
 type Method = TranslationsModel.Method;
 type AutoApproveOption = TranslationsModel.AutoApproveOption;
@@ -66,6 +77,7 @@ interface AutoTranslateCommandOptions extends GlobalOptions {
   excludeLabel?: string[];
   sourceLanguage?: string;
   aiPrompt?: number;
+  async?: boolean;
 }
 
 const SUPPORTED_METHODS: Method[] = ['tm', 'mt', 'ai'];
@@ -121,7 +133,23 @@ export default class AutoTranslateCommand {
         excludeLabel,
         sourceLanguage,
         aiPrompt,
+        async,
         filesConfigGroup,
+      ],
+      subcommands: [
+        {
+          name: 'status',
+          description: 'Show the status of an auto-translation',
+          arguments: [{ name: 'id', description: 'Auto-translation identifier' }],
+          options: [wait, projectConfigGroup],
+          action: this.statusAction,
+        },
+        {
+          name: 'list',
+          description: 'List auto-translations',
+          options: [projectConfigGroup],
+          action: this.listAction,
+        },
       ],
     };
   }
@@ -135,7 +163,6 @@ export default class AutoTranslateCommand {
     const labelService = await this.getLabelService(command);
     const translationService = await this.getTranslationService(command);
 
-    const verbose = Boolean(options.verbose);
     const translateMethod = this.resolveMethod(options.method);
     const engineIdValue = this.toNumber(options.engineId);
     const aiPromptId = this.toNumber(options.aiPrompt);
@@ -174,7 +201,6 @@ export default class AutoTranslateCommand {
 
     const project = await projectService.loadProject();
     const isStringsBasedProject = project.data.type === ProjectsGroups.Type.STRINGS_BASED;
-
     const languages = await this.prepareLanguageIds(
       project,
       languageIds,
@@ -186,7 +212,6 @@ export default class AutoTranslateCommand {
     );
     const labelIds = await this.prepareLabelIds(options.label, labelService, output);
     const excludeLabelIds = await this.prepareLabelIds(options.excludeLabel, labelService, output);
-
     const branchName = this.normalizeBranch(options.branch);
 
     if (isStringsBasedProject) {
@@ -220,8 +245,7 @@ export default class AutoTranslateCommand {
         aiPromptId,
       };
 
-      const status = await translationService.preTranslate(request, verbose);
-      await this.reportResult(translationService, status, output, verbose, options.output);
+      await this.run(translationService, request, output, options);
       return;
     }
 
@@ -305,13 +329,67 @@ export default class AutoTranslateCommand {
       aiPromptId,
     };
 
-    const status = await translationService.preTranslate(request, verbose);
-    await this.reportResult(translationService, status, output, verbose, options.output);
+    await this.run(translationService, request, output, options);
 
     if (containsError) {
       throw new CliError('Some of the specified files were not found in the project');
     }
   };
+
+  statusAction = async (command: Command) => {
+    const [id] = command.args;
+    const options = command.optsWithGlobals() as GlobalOptions & { wait?: boolean };
+    const output = this.getOutput(command);
+    const translationService = await this.getTranslationService(command);
+    const verbose = Boolean(options.verbose);
+
+    if (!id) {
+      throw new CliError('Auto-translation identifier is required');
+    }
+
+    const status = options.wait
+      ? await translationService.waitForPreTranslation(id, verbose)
+      : await translationService.getPreTranslationStatus(id);
+    const job = this.toAutoTranslationJob(status);
+
+    if (verbose && status.status === 'finished') {
+      Object.assign(job, this.summarizeReport(await translationService.getPreTranslationReport(id)));
+    }
+
+    output.item(job, verbose ? jobStatusVerboseView : jobStatusView, { mark: false });
+
+    if (status.status === 'failed' || status.status === 'canceled') {
+      throw new CliError(`Auto-translation '${id}' is ${status.status}`);
+    }
+  };
+
+  listAction = async (command: Command) => {
+    const options = command.optsWithGlobals() as GlobalOptions;
+    const output = this.getOutput(command);
+    const translationService = await this.getTranslationService(command);
+    const jobs = (await translationService.listPreTranslations()).map((status) => this.toAutoTranslationJob(status));
+
+    output.list(jobs, options.verbose ? jobVerboseView : jobView, { empty: 'No auto-translations found' });
+  };
+
+  private async run(
+    translationService: Awaited<ReturnType<GetTranslationService>>,
+    request: TranslationsModel.PreTranslateRequest | TranslationsModel.PreTranslateStringsRequest,
+    output: ReturnType<GetOutput>,
+    options: AutoTranslateCommandOptions,
+  ): Promise<void> {
+    if (options.async) {
+      const status = await translationService.startPreTranslation(request);
+
+      output.item({ identifier: status.identifier, status: status.status }, autoTranslationView, { mark: false });
+      return;
+    }
+
+    const verbose = Boolean(options.verbose);
+    const status = await translationService.preTranslate(request, verbose);
+
+    await this.reportResult(translationService, status, output, verbose, options.output);
+  }
 
   private resolveMethod(value?: string): Method {
     if (!value) {
@@ -473,56 +551,37 @@ export default class AutoTranslateCommand {
   ): Promise<void> {
     if (!verbose || format === 'plain') {
       if (isMachineFormat(format)) {
-        output.item({ identifier: status.identifier, status: status.status ?? 'finished' }, autoTranslateView, {
-          mark: false,
-        });
+        // biome-ignore format: one argument per line
+        output.item(
+          { identifier: status.identifier, status: status.status ?? 'finished' },
+          autoTranslationView,
+          { mark: false },
+        );
       }
 
       return;
     }
 
-    const report = await translationService.getPreTranslationReport(status.identifier);
-
-    let filesCount = 0;
-    let phrasesCount = 0;
-    let wordsCount = 0;
-    let skippedCount = 0;
-
-    for (const targetLanguage of report.languages ?? []) {
-      const targetFiles = targetLanguage.files ?? [];
-      filesCount += targetFiles.length;
-
-      for (const targetFile of targetFiles) {
-        phrasesCount += targetFile.statistics?.phrases ?? 0;
-        wordsCount += targetFile.statistics?.words ?? 0;
-      }
-
-      for (const skipped of Object.values(targetLanguage.skipped ?? {})) {
-        skippedCount += Number(skipped) || 0;
-      }
-    }
+    const totals = this.summarizeReport(await translationService.getPreTranslationReport(status.identifier));
 
     if (isMachineFormat(format)) {
       output.item(
         {
           identifier: status.identifier,
           status: status.status ?? 'finished',
-          files: filesCount,
-          phrases: phrasesCount,
-          words: wordsCount,
-          skipped: skippedCount,
+          ...totals,
         },
-        autoTranslateVerboseView,
+        autoTranslationVerboseView,
         { mark: false },
       );
 
       return;
     }
 
-    output.log(`\t- files: ${filesCount}`);
-    output.log(`\t- phrases: ${phrasesCount}`);
-    output.log(`\t- words: ${wordsCount}`);
-    output.log(`\t- skipped: ${skippedCount}`);
+    output.log(`\t- files: ${totals.files}`);
+    output.log(`\t- phrases: ${totals.phrases}`);
+    output.log(`\t- words: ${totals.words}`);
+    output.log(`\t- skipped: ${totals.skipped}`);
   }
 
   private isAllLanguages(languages: string[]): boolean {
@@ -545,5 +604,46 @@ export default class AutoTranslateCommand {
     const parsed = Number(value);
 
     return Number.isNaN(parsed) ? undefined : parsed;
+  }
+
+  private toAutoTranslationJob(status: PreTranslationStatus): AutoTranslationJob {
+    const { attributes } = status;
+
+    return {
+      identifier: status.identifier,
+      status: status.status,
+      // The API can report a just-finished job at 0% for a moment.
+      progress: status.status === 'finished' ? 100 : status.progress,
+      method: attributes.method,
+      priority: attributes.priority,
+      createdAt: status.createdAt,
+      finishedAt: status.finishedAt ?? null,
+      languageIds: attributes.languageIds ?? [],
+      fileCount: attributes.fileIds?.length,
+      branchCount: attributes.branchIds?.length,
+    };
+  }
+
+  private summarizeReport(report: TranslationsModel.PreTranslationReport) {
+    let files = 0;
+    let phrases = 0;
+    let words = 0;
+    let skipped = 0;
+
+    for (const targetLanguage of report.languages ?? []) {
+      const targetFiles = targetLanguage.files ?? [];
+      files += targetFiles.length;
+
+      for (const targetFile of targetFiles) {
+        phrases += targetFile.statistics?.phrases ?? 0;
+        words += targetFile.statistics?.words ?? 0;
+      }
+
+      for (const count of Object.values(targetLanguage.skipped ?? {})) {
+        skipped += Number(count) || 0;
+      }
+    }
+
+    return { files, phrases, words, skipped };
   }
 }
