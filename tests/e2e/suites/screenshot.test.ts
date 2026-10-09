@@ -8,8 +8,8 @@ import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helper
  * (`cli/commands/screenshot/ScreenshotCommand.ts`).
  *
  * The image fixtures are real 32x32 PNGs because `upload` streams the file to storage and the API
- * rejects anything undecodable. `images/not-an-image.txt` exists to reach the extension check; the
- * directory check is reached by passing `images` itself.
+ * rejects anything undecodable. `images/not-an-image.txt` exists to reach the extension check, and is
+ * skipped when `images` itself is uploaded as a directory.
  *
  * `--auto-tag` runs but tags nothing: flat-colour fixtures match no string, so `tagsCount` stays 0.
  * The round trip is the subject, not the OCR result.
@@ -55,7 +55,7 @@ describe('screenshot', () => {
 
     expect(result).toMatchObject({ exitCode: 0 });
     expect(result.stdout).toContain('Manage screenshots');
-    expect(result.stdout).toContain('upload <file>');
+    expect(result.stdout).toContain('upload <path>');
     expect(result.stdout).toContain('delete <id>');
   });
 
@@ -76,19 +76,13 @@ describe('screenshot', () => {
   test('requires a file path', async () => {
     const result = await ctx.runner.run(['screenshot', 'upload']);
 
-    expectFailure(result, 2, "missing required argument 'file'");
+    expectFailure(result, 2, "missing required argument 'path'");
   });
 
   test('rejects a path that does not exist locally', async () => {
     const result = await ctx.runner.run(['screenshot', 'upload', 'images/missing.png']);
 
     expectFailure(result, 1, "File 'images/missing.png' not found in the Crowdin project");
-  });
-
-  test('rejects a directory', async () => {
-    const result = await ctx.runner.run(['screenshot', 'upload', 'images']);
-
-    expectFailure(result, 1, 'The specified file is a directory');
   });
 
   test('rejects a file that is not an allowed image format', async () => {
@@ -251,9 +245,19 @@ describe('screenshot', () => {
     expect((await listScreenshots()).map((screenshot) => screenshot.name)).toEqual(['second.png']);
   });
 
+  test('uploads every image of a directory, updating the existing one in place', async () => {
+    const [before] = await listScreenshots();
+    const uploaded = await runJson<ListedScreenshot[]>(ctx, ['screenshot', 'upload', 'images']);
+
+    // not-an-image.txt is skipped; second.png already existed and keeps its id
+    expect(uploaded.map((screenshot) => screenshot.name)).toEqual(['screenshot.png', 'second.png']);
+    expect(uploaded.find((screenshot) => screenshot.name === 'second.png')?.id).toBe(before?.id);
+    expect(await listScreenshots()).toHaveLength(2);
+  });
+
   test('rejects an empty screenshot path', async () => {
     const result = await ctx.runner.run(['screenshot', 'upload', '']);
 
-    expectFailure(result, 1, 'Screenshot file path can not be empty');
+    expectFailure(result, 1, 'Screenshot path can not be empty');
   });
 });

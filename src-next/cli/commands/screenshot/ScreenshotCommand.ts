@@ -1,7 +1,9 @@
 import { stat } from 'node:fs/promises';
 import path from 'node:path';
 import type { ScreenshotsModel } from '@crowdin/crowdin-api-client';
+import { Glob } from 'bun';
 import type { Command } from 'commander';
+import { EXECUTION_FINISHED_WITH_ERRORS, reportFailures } from '@/cli/commands/common/failures.ts';
 import { projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
@@ -17,8 +19,10 @@ import type {
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { colors } from '@/cli/utils/colors.ts';
+import { isStructuredFormat } from '@/cli/utils/formatter.ts';
 import type { View } from '@/cli/utils/output.ts';
 import { parseNumericId, toArray, toNumberArray } from '@/cli/utils/parsing.ts';
+import { runConcurrently } from '@/lib/utils/concurrency.ts';
 import {
   autoTag,
   branch as branchOption,
@@ -46,7 +50,16 @@ interface UploadOptions extends GlobalOptions {
   directory?: string;
 }
 
+interface UploadTarget {
+  autoTag: boolean;
+  branchId?: number;
+  fileId?: number;
+  directoryId?: number;
+  labelIds?: number[];
+}
+
 const ALLOWED_IMAGE_EXTENSIONS = new Set(['jpeg', 'jpg', 'png', 'gif']);
+const SUPPORTED_FORMATS = [...ALLOWED_IMAGE_EXTENSIONS].join(', ');
 
 // Shared by list and the upload/update echoes, so the plain echo keeps the id addressable.
 const screenshotView: View<ScreenshotView> = {
@@ -83,8 +96,8 @@ export default class ScreenshotCommand {
           description: 'Add screenshot or update an existing one with the same name',
           arguments: [
             {
-              name: 'file',
-              description: 'File path to add',
+              name: 'path',
+              description: 'File or directory to upload',
             },
           ],
           options: [autoTag, file, branchOption, label, directory, projectConfigGroup],
@@ -126,7 +139,7 @@ export default class ScreenshotCommand {
     output.list(screenshots, screenshotView, { empty: 'No screenshot found' });
   };
 
-  private resolveFilterLabelIds = async (command: Command, options: ListOptions) => {
+  private async resolveFilterLabelIds(command: Command, options: ListOptions) {
     const titles = toArray(options.label);
     const excludedTitles = toArray(options.excludeLabel);
 
@@ -149,85 +162,128 @@ export default class ScreenshotCommand {
       });
 
     return { labelIds: toIds(titles), excludeLabelIds: toIds(excludedTitles) };
-  };
+  }
 
   uploadAction = async (command: Command) => {
-    const [filePath] = command.args;
+    const [inputPath] = command.args;
     const options = command.optsWithGlobals() as UploadOptions;
 
-    if (!filePath) {
-      throw new CliError('Screenshot file path can not be empty');
+    if (!inputPath) {
+      throw new CliError('Screenshot path can not be empty');
     }
 
     this.validateUploadOptions(options);
-    await this.validateFile(filePath);
 
+    if (await this.isDirectory(inputPath)) {
+      await this.uploadDirectory(await this.collectImagePaths(inputPath), options, command);
+    } else {
+      this.validateImageFormat(inputPath);
+      await this.uploadFile(inputPath, options, command);
+    }
+  };
+
+  private async uploadFile(imagePath: string, options: UploadOptions, command: Command): Promise<void> {
     const output = this.getOutput(command);
     const screenshotService = await this.getScreenshotService(command);
-    const storageService = await this.getStorageService(command);
+    const target = await this.resolveUploadTarget(command, options);
+    const existing = await screenshotService.findAllByName(path.basename(imagePath));
+    const screenshot = await this.upsertScreenshot(imagePath, existing, target, command);
+
+    if (screenshot) {
+      output.item(screenshot, screenshotView);
+    }
+  }
+
+  private async uploadDirectory(imagePaths: string[], options: UploadOptions, command: Command): Promise<void> {
+    const output = this.getOutput(command);
+    const screenshotService = await this.getScreenshotService(command);
+    const target = await this.resolveUploadTarget(command, options);
+    const existingByName = Map.groupBy(await screenshotService.list(), (screenshot) => screenshot.name);
+    const uploaded: ScreenshotView[] = [];
+    const tasks = imagePaths.map((imagePath) => async () => {
+      try {
+        const existing = (existingByName.get(path.basename(imagePath)) ?? []).sort((left, right) => left.id - right.id);
+        const screenshot = await this.upsertScreenshot(imagePath, existing, target, command);
+
+        if (!screenshot) {
+          return;
+        }
+
+        uploaded.push(screenshot);
+
+        // json/toon get one sorted list at the end; text and plain stream a line per screenshot
+        if (!isStructuredFormat(options.output)) {
+          output.item(screenshot, screenshotView);
+        }
+      } catch (error) {
+        throw new CliError(`Screenshot '${imagePath}': ${error instanceof Error ? error.message : String(error)}`);
+      }
+    });
+    // auto-tag holds a project-wide lock for the duration of the request, so parallel uploads would 409
+    const results = await runConcurrently(tasks, options.autoTag ? 1 : undefined);
+    const hasErrors = reportFailures(results, output);
+
+    if (isStructuredFormat(options.output)) {
+      output.list(
+        uploaded.sort((left, right) => left.name.localeCompare(right.name)),
+        screenshotView,
+      );
+    }
+
+    if (hasErrors) {
+      throw new CliError(EXECUTION_FINISHED_WITH_ERRORS);
+    }
+  }
+
+  private async resolveUploadTarget(command: Command, options: UploadOptions): Promise<UploadTarget> {
     const branchService = await this.getBranchService(command);
     const directoryService = await this.getDirectoryService(command);
     const fileService = await this.getFileService(command);
     const labelService = await this.getLabelService(command);
-    const image = Bun.file(filePath);
-    const imageName = path.basename(filePath);
     const branch = await branchService.resolveBranch(options.branch);
-    const branchId = branch?.id;
     const fileId = options.file
       ? await fileService.resolveFileIds([options.file], branch).then(this.takeFirstFileId(options.file))
       : undefined;
     const directoryId = await directoryService.resolveDirectoryId(options.directory, branch);
     const labelIds = await labelService.resolveLabelIds(toArray(options.label));
-    const [existingScreenshot, ...duplicates] = await screenshotService.findAllByName(imageName);
-    const storage = await storageService.addStorage(image);
 
-    if (existingScreenshot) {
-      if (duplicates.length > 0) {
-        output.warning(
-          `Found ${duplicates.length + 1} screenshots named '${imageName}', updating '#${existingScreenshot.id}'`,
-        );
-      }
+    return { autoTag: options.autoTag ?? false, branchId: branch?.id, fileId, directoryId, labelIds };
+  }
 
-      await screenshotService.update(existingScreenshot.id, {
-        name: imageName,
-        storageId: storage.data.id,
-        usePreviousTags: !options.autoTag,
-      });
+  private async upsertScreenshot(
+    imagePath: string,
+    [existingScreenshot, ...duplicates]: ScreenshotView[],
+    target: UploadTarget,
+    command: Command,
+  ): Promise<ScreenshotView | null> {
+    const storageService = await this.getStorageService(command);
+    const imageName = path.basename(imagePath);
+    const storage = await storageService.addStorage(Bun.file(imagePath));
 
-      if (labelIds !== undefined) {
-        await screenshotService.replaceLabels(existingScreenshot.id, labelIds);
-      }
-
-      if (options.autoTag) {
-        try {
-          await screenshotService.replaceTags(existingScreenshot.id, {
-            autoTag: true,
-            ...(branchId !== undefined ? { branchId } : {}),
-            ...(fileId !== undefined ? { fileId } : {}),
-            ...(directoryId !== undefined ? { directoryId } : {}),
-          });
-        } catch (error) {
-          if (!screenshotService.isAutoTagInProgressError(error)) {
-            throw error;
-          }
-
-          output.warning(`Tags were not applied for ${imageName} because auto tag is currently in progress`);
-        }
-      }
-
-      const updatedScreenshot = await screenshotService.get(existingScreenshot.id);
-
-      if (updatedScreenshot) {
-        output.item(updatedScreenshot, screenshotView);
-      }
-
-      return;
+    if (!existingScreenshot) {
+      return this.addScreenshot(imageName, storage.data.id, target, command);
     }
 
+    if (duplicates.length > 0) {
+      this.getOutput(command).warning(
+        `Found ${duplicates.length + 1} screenshots named '${imageName}', updating '#${existingScreenshot.id}'`,
+      );
+    }
+
+    return this.updateScreenshot(existingScreenshot.id, imageName, storage.data.id, target, command);
+  }
+
+  private async addScreenshot(
+    imageName: string,
+    storageId: number,
+    { autoTag, branchId, fileId, directoryId, labelIds }: UploadTarget,
+    command: Command,
+  ): Promise<ScreenshotView | null> {
+    const screenshotService = await this.getScreenshotService(command);
     const request: ScreenshotsModel.CreateScreenshotRequest = {
       name: imageName,
-      storageId: storage.data.id,
-      autoTag: options.autoTag ?? false,
+      storageId,
+      autoTag,
       ...(branchId !== undefined ? { branchId } : {}),
       ...(fileId !== undefined ? { fileId } : {}),
       ...(directoryId !== undefined ? { directoryId } : {}),
@@ -235,17 +291,55 @@ export default class ScreenshotCommand {
     };
 
     try {
-      const screenshot = await screenshotService.upload(request);
-      output.item(screenshot, screenshotView);
+      return await screenshotService.upload(request);
     } catch (error) {
       if (screenshotService.isAutoTagInProgressError(error)) {
-        output.warning(`Tags were not applied for ${imageName} because auto tag is currently in progress`);
-        return;
+        this.getOutput(command).warning(
+          `Tags were not applied for ${imageName} because auto tag is currently in progress`,
+        );
+        return null;
       }
 
       throw error;
     }
-  };
+  }
+
+  private async updateScreenshot(
+    id: number,
+    imageName: string,
+    storageId: number,
+    { autoTag, branchId, fileId, directoryId, labelIds }: UploadTarget,
+    command: Command,
+  ): Promise<ScreenshotView | null> {
+    const screenshotService = await this.getScreenshotService(command);
+
+    await screenshotService.update(id, { name: imageName, storageId, usePreviousTags: !autoTag });
+
+    if (labelIds !== undefined) {
+      await screenshotService.replaceLabels(id, labelIds);
+    }
+
+    if (autoTag) {
+      try {
+        await screenshotService.replaceTags(id, {
+          autoTag: true,
+          ...(branchId !== undefined ? { branchId } : {}),
+          ...(fileId !== undefined ? { fileId } : {}),
+          ...(directoryId !== undefined ? { directoryId } : {}),
+        });
+      } catch (error) {
+        if (!screenshotService.isAutoTagInProgressError(error)) {
+          throw error;
+        }
+
+        this.getOutput(command).warning(
+          `Tags were not applied for ${imageName} because auto tag is currently in progress`,
+        );
+      }
+    }
+
+    return screenshotService.get(id);
+  }
 
   deleteAction = async (command: Command) => {
     const [idArg] = command.args;
@@ -286,24 +380,46 @@ export default class ScreenshotCommand {
     }
   }
 
-  private async validateFile(filePath: string): Promise<void> {
-    let stats: Awaited<ReturnType<typeof stat>>;
-
+  private async isDirectory(inputPath: string): Promise<boolean> {
     try {
-      stats = await stat(filePath);
+      return (await stat(inputPath)).isDirectory();
     } catch {
-      throw new CliError(`File '${filePath}' not found in the Crowdin project`);
+      throw new CliError(`File '${inputPath}' not found in the Crowdin project`);
+    }
+  }
+
+  private validateImageFormat(imagePath: string): void {
+    if (!this.isAllowedImage(imagePath)) {
+      throw new CliError(`Wrong format of the file. Supported formats: ${SUPPORTED_FORMATS}`);
+    }
+  }
+
+  // every image under the directory, recursively, hidden entries skipped
+  private async collectImagePaths(directoryPath: string): Promise<string[]> {
+    const imagePaths = (await Array.fromAsync(new Glob('**/*').scan({ cwd: directoryPath })))
+      .filter((relativePath) => this.isAllowedImage(relativePath))
+      .sort()
+      .map((relativePath) => path.join(directoryPath, relativePath));
+
+    if (imagePaths.length === 0) {
+      throw new CliError(`No screenshots found in '${directoryPath}'. Supported formats: ${SUPPORTED_FORMATS}`);
     }
 
-    if (stats.isDirectory()) {
-      throw new CliError('The specified file is a directory');
+    // the name is what an upload upserts by, so same-named images would overwrite each other
+    const pathsByName = Map.groupBy(imagePaths, (imagePath) => path.basename(imagePath));
+    const clashes = [...pathsByName.values()].filter((paths) => paths.length > 1);
+
+    if (clashes.length > 0) {
+      throw new CliError(
+        `Screenshot names must be unique, found images with the same name: ${clashes.map((paths) => paths.join(', ')).join('; ')}`,
+      );
     }
 
-    const extension = path.extname(filePath).slice(1).toLowerCase();
+    return imagePaths;
+  }
 
-    if (!ALLOWED_IMAGE_EXTENSIONS.has(extension)) {
-      throw new CliError('Wrong format of the file. Supported formats: jpeg, jpg, png, gif');
-    }
+  private isAllowedImage(filePath: string): boolean {
+    return ALLOWED_IMAGE_EXTENSIONS.has(path.extname(filePath).slice(1).toLowerCase());
   }
 
   private takeFirstFileId(originalPath: string) {
