@@ -730,6 +730,13 @@ describe('AutoTranslateCommand', () => {
       });
     });
 
+    test('skips the report under --verbose in plain, which prints the identifier alone', async () => {
+      const item = await runWith({ output: 'plain', verbose: true });
+
+      expect(emitted(item)).toEqual({ identifier: '121', status: 'finished' });
+      expect(translationService.getPreTranslationReport).not.toHaveBeenCalled();
+    });
+
     test('stays quiet in text, which prints its own report lines', async () => {
       const item = await runWith({ output: 'text', verbose: true });
 

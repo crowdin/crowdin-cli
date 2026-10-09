@@ -100,11 +100,28 @@ export class TranslationService {
     }
   }
 
+  /**
+   * The export filters are switched off whatever the project settings say: the caller named one
+   * file, so it gets that file, untranslated and unapproved strings included. Left to the project,
+   * 'skip untranslated files' answers 204 with no body and 'skip untranslated strings' exports an
+   * empty file.
+   */
   async buildProjectFileTranslation(fileId: number, targetLanguageId: string): Promise<string> {
     try {
-      const response = await this.apiClient.translationsApi.buildProjectFileTranslation(this.projectId, fileId, {
-        targetLanguageId,
-      });
+      // biome-ignore format: one argument per line
+      const response = await this.apiClient.translationsApi.buildProjectFileTranslation(
+        this.projectId,
+        fileId,
+        {
+          targetLanguageId,
+          skipUntranslatedStrings: false,
+          skipUntranslatedFiles: false,
+          // Each API rejects the other's fields as unexpected.
+          ...(this.apiClient.organization
+            ? { exportWithMinApprovalsCount: 0, exportStringsThatPassedWorkflow: false }
+            : { exportApprovedOnly: false }),
+        },
+      );
 
       return response.data.url;
     } catch (error) {

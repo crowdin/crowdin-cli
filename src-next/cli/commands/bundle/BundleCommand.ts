@@ -58,11 +58,9 @@ const bundleView: View<BundleView> = {
   keys: ['id', 'format', 'exportPattern', 'name'],
 };
 
-// The kept archive is a file the command wrote, so it belongs in the result: plain prints the bare
-// path, json/toon serialize it, text keeps the sentence.
+// Text only: the machine formats carry the kept archive in the path list.
 const archiveView: View<string> = {
   text: (archivePath) => `Archive saved to '${archivePath}'`,
-  plain: (archivePath) => archivePath,
 };
 
 export default class BundleCommand {
@@ -312,22 +310,25 @@ export default class BundleCommand {
     }
 
     // One path per extracted file, for a dry run as much as for a real one. In json/toon/plain the
-    // path list is the whole result.
+    // path list is the whole result, so a kept archive joins it as its last entry: printed on its
+    // own, it would follow the list as a second json/toon document. POSIX on every OS, so
+    // path.join's separators are normalized.
     const extractedPaths = extractions.map(({ relativePath }) => relativePath);
+    const keptArchivePath = toPosixPath(archivePath);
 
     if (isMachineFormat(options.output)) {
-      output.list(extractedPaths, pathView);
+      output.list(options.keepArchive ? [...extractedPaths, keptArchivePath] : extractedPaths, pathView);
     } else {
       for (const relativePath of extractedPaths) {
         output.success(relativePath);
       }
+
+      if (options.keepArchive) {
+        output.item(keptArchivePath, archiveView);
+      }
     }
 
-    if (options.keepArchive) {
-      // item(), not log(), so every format gets the path — and the machine formats report POSIX
-      // paths on every OS, so path.join's separators are normalized.
-      output.item(toPosixPath(archivePath), archiveView);
-    } else {
+    if (!options.keepArchive) {
       try {
         await rm(archivePath, { force: true });
       } catch {

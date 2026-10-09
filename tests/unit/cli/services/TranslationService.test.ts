@@ -141,6 +141,50 @@ describe('TranslationService', () => {
     });
   });
 
+  describe('buildProjectFileTranslation', () => {
+    test('returns the download URL of the built file', async () => {
+      spyOn(apiClient.translationsApi, 'buildProjectFileTranslation').mockResolvedValue({
+        data: { url: 'https://example.test/uk.json' },
+      } as never);
+
+      expect(await translationService.buildProjectFileTranslation(40, 'uk')).toBe('https://example.test/uk.json');
+    });
+
+    // Left to the project settings, an untranslated file comes back as a 204 with no body.
+    test('overrides the project export settings so the file is always exported whole', async () => {
+      const spy = spyOn(apiClient.translationsApi, 'buildProjectFileTranslation').mockResolvedValue({
+        data: { url: 'https://example.test/uk.json' },
+      } as never);
+
+      await translationService.buildProjectFileTranslation(40, 'uk');
+
+      expect(spy).toHaveBeenCalledWith(PROJECT_ID, 40, {
+        targetLanguageId: 'uk',
+        skipUntranslatedStrings: false,
+        skipUntranslatedFiles: false,
+        exportApprovedOnly: false,
+      });
+    });
+
+    test('overrides the approval and workflow filters through their own fields on Enterprise', async () => {
+      apiClient = new Client({ token: 'a'.repeat(80), organization: 'acme' });
+      translationService = new TranslationService(apiClient, output, PROJECT_ID);
+      const spy = spyOn(apiClient.translationsApi, 'buildProjectFileTranslation').mockResolvedValue({
+        data: { url: 'https://example.test/uk.json' },
+      } as never);
+
+      await translationService.buildProjectFileTranslation(40, 'uk');
+
+      expect(spy).toHaveBeenCalledWith(PROJECT_ID, 40, {
+        targetLanguageId: 'uk',
+        skipUntranslatedStrings: false,
+        skipUntranslatedFiles: false,
+        exportWithMinApprovalsCount: 0,
+        exportStringsThatPassedWorkflow: false,
+      });
+    });
+  });
+
   describe('getTranslationDownloadUrl', () => {
     test('returns download URL for build', async () => {
       spyOn(apiClient.translationsApi, 'downloadTranslations').mockResolvedValue({

@@ -507,26 +507,34 @@ describe('BundleCommand', () => {
 
     // The path used to go through log(), which prints in text only: --plain printed nothing and
     // json/toon lost the archive from the result entirely.
-    test('prints the kept archive path alone in plain', async () => {
+    test('prints the kept archive path after the extracted files in plain', async () => {
       mockArchive();
       const options = { ...globalOptions, output: 'plain', keepArchive: true };
       const cmd = createBundleCommand(createOutput(options));
 
       await cmd.downloadAction(createCommandContext(options, ['5']));
 
-      expect(console.log).toHaveBeenCalledWith(toPosixPath(path.join(tempRoot, 'bundle-export-1.zip')));
+      expect(console.log).toHaveBeenNthCalledWith(1, 'messages/en.json');
+      expect(console.log).toHaveBeenNthCalledWith(2, toPosixPath(path.join(tempRoot, 'bundle-export-1.zip')));
+      expect(console.log).toHaveBeenCalledTimes(2);
     });
 
-    test('carries the kept archive path in a machine format', async () => {
+    // One document on stdout: the archive used to follow the list as a second json/toon value.
+    test('carries the kept archive path in the same list in a machine format', async () => {
       mockArchive();
       const options = { ...globalOptions, keepArchive: true };
       const jsonOutput = createOutput(options);
+      const listSpy = spyOn(jsonOutput, 'list');
       const itemSpy = spyOn(jsonOutput, 'item');
       const cmd = createBundleCommand(jsonOutput);
 
       await cmd.downloadAction(createCommandContext(options, ['5']));
 
-      expect(itemSpy).toHaveBeenCalledWith(toPosixPath(path.join(tempRoot, 'bundle-export-1.zip')), expect.anything());
+      expect(listSpy).toHaveBeenCalledWith(
+        ['messages/en.json', toPosixPath(path.join(tempRoot, 'bundle-export-1.zip'))],
+        expect.anything(),
+      );
+      expect(itemSpy).not.toHaveBeenCalled();
     });
   });
 });

@@ -847,7 +847,9 @@ describe('DownloadCommand', () => {
       expect(await Bun.file(join(tempDir, 'resources/fr-FR/other.json')).exists()).toBe(false);
     });
 
-    test('skips the omitted-file report in a machine format', async () => {
+    test.each(['json', 'toon', 'plain'])('skips the omitted-file report with --output %s', async (format) => {
+      output = createOutput({ ...globalOptions, output: format });
+      commandContext = createCommandContext({ ...globalOptions, output: format });
       await Bun.write(join(tempDir, 'resources/en/messages.json'), '{}');
       mockBuildAndDownload([language('fr', 'fr-FR')]);
       spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({

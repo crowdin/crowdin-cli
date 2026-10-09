@@ -461,7 +461,8 @@ export default class AutoTranslateCommand {
   /**
    * Text prints the report totals as indented lines under `--verbose` and nothing otherwise;
    * json and toon get the job either way, since stdout has to carry the result of a command
-   * that translated the project. The report costs a request, so `--verbose` still gates it.
+   * that translated the project. The report costs a request, so `--verbose` still gates it, and
+   * plain, which prints the identifier alone either way, never asks for it.
    */
   private async reportResult(
     translationService: Awaited<ReturnType<GetTranslationService>>,
@@ -470,7 +471,7 @@ export default class AutoTranslateCommand {
     verbose: boolean,
     format?: string,
   ): Promise<void> {
-    if (!verbose) {
+    if (!verbose || format === 'plain') {
       if (isMachineFormat(format)) {
         output.item({ identifier: status.identifier, status: status.status ?? 'finished' }, autoTranslateView, {
           mark: false,
