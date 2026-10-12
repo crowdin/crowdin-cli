@@ -240,7 +240,7 @@ describe('ScreenshotCommand', () => {
     const cmd = createScreenshotCommand();
 
     expect(cmd.uploadAction(createCommandContext(globalOptions))).rejects.toThrow(
-      new CliError('Screenshot file path can not be empty'),
+      new CliError('Screenshot path can not be empty'),
     );
   });
 
@@ -422,13 +422,110 @@ describe('ScreenshotCommand', () => {
     ).rejects.toThrow(new CliError("Project doesn't contain the '/missing' directory"));
   });
 
-  test('uploadAction rejects directories as file argument', async () => {
-    const cmd = createScreenshotCommand();
-    const folderPath = path.join(tempDirectory, 'images');
-    await mkdir(folderPath);
+  describe('uploadAction with a directory', () => {
+    let folderPath: string;
 
-    expect(cmd.uploadAction(createCommandContext(globalOptions, [folderPath]))).rejects.toThrow(
-      new CliError('The specified file is a directory'),
-    );
+    const writeImages = async (relativePaths: string[]) => {
+      for (const relativePath of relativePaths) {
+        await mkdir(path.dirname(path.join(folderPath, relativePath)), { recursive: true });
+        await writeFile(path.join(folderPath, relativePath), 'image');
+      }
+    };
+
+    beforeEach(async () => {
+      folderPath = path.join(tempDirectory, 'images');
+      await mkdir(folderPath);
+      let nextId = 100;
+      screenshotService.upload.mockImplementation(async (request) => createScreenshot(nextId++, request.name));
+    });
+
+    test('uploads every image recursively, skipping other and hidden files', async () => {
+      await writeImages(['b.png', 'nested/a.JPG', 'notes.txt', '.hidden.png', '.cache/c.png']);
+
+      await createScreenshotCommand().uploadAction(createCommandContext(globalOptions, [folderPath]));
+
+      expect(screenshotService.upload.mock.calls.map(([request]) => request.name).sort()).toEqual(['a.JPG', 'b.png']);
+      expect(screenshotService.list).toHaveBeenCalledTimes(1);
+      expect(screenshotService.findAllByName).not.toHaveBeenCalled();
+      // one sorted list, not an object per screenshot
+      expect(console.log).toHaveBeenCalledTimes(1);
+      expect(console.log).toHaveBeenCalledWith(
+        JSON.stringify([createScreenshot(101, 'a.JPG'), createScreenshot(100, 'b.png')].map(asJson), null, 2),
+      );
+    });
+
+    test('updates screenshots that already exist by name', async () => {
+      await writeImages(['welcome.png', 'new.png']);
+      screenshotService.list.mockResolvedValue([createScreenshot(55, 'welcome.png')]);
+      screenshotService.get.mockResolvedValue(createScreenshot(55, 'welcome.png'));
+
+      await createScreenshotCommand().uploadAction(createCommandContext(globalOptions, [folderPath]));
+
+      expect(screenshotService.update).toHaveBeenCalledWith(55, expect.objectContaining({ name: 'welcome.png' }));
+      expect(screenshotService.upload).toHaveBeenCalledTimes(1);
+      expect(screenshotService.upload).toHaveBeenCalledWith(expect.objectContaining({ name: 'new.png' }));
+    });
+
+    test('rejects a directory without images', async () => {
+      await writeImages(['notes.txt']);
+
+      expect(createScreenshotCommand().uploadAction(createCommandContext(globalOptions, [folderPath]))).rejects.toThrow(
+        new CliError(`No screenshots found in '${folderPath}'. Supported formats: jpeg, jpg, png, gif`),
+      );
+    });
+
+    test('rejects images sharing a name before uploading anything', async () => {
+      await writeImages(['login.png', 'mobile/login.png']);
+
+      expect(createScreenshotCommand().uploadAction(createCommandContext(globalOptions, [folderPath]))).rejects.toThrow(
+        new CliError(
+          `Screenshot names must be unique, found images with the same name: ${path.join(
+            folderPath,
+            'login.png',
+          )}, ${path.join(folderPath, 'mobile/login.png')}`,
+        ),
+      );
+      expect(storageService.addStorage).not.toHaveBeenCalled();
+    });
+
+    test('uploads the rest when one image fails, then fails the run', async () => {
+      await writeImages(['a.png', 'b.png', 'c.png']);
+      const errorSpy = spyOn(output, 'error').mockImplementation(() => {});
+      screenshotService.upload.mockImplementation(async (request) => {
+        if (request.name === 'b.png') {
+          throw new CliError('Screenshot was not uploaded. Boom');
+        }
+
+        return createScreenshot(1, request.name);
+      });
+
+      expect(createScreenshotCommand().uploadAction(createCommandContext(globalOptions, [folderPath]))).rejects.toThrow(
+        new CliError('Current execution finished with errors'),
+      );
+
+      expect(screenshotService.upload).toHaveBeenCalledTimes(3);
+      expect(errorSpy).toHaveBeenCalledWith(
+        `Screenshot '${path.join(folderPath, 'b.png')}': Screenshot was not uploaded. Boom`,
+      );
+    });
+
+    test('uploads one at a time with --auto-tag, since auto-tag locks the project', async () => {
+      await writeImages(['a.png', 'b.png', 'c.png']);
+      let inFlight = 0;
+      let maxInFlight = 0;
+      screenshotService.upload.mockImplementation(async (request) => {
+        maxInFlight = Math.max(maxInFlight, ++inFlight);
+        await Bun.sleep(1);
+        inFlight--;
+        return createScreenshot(1, request.name);
+      });
+
+      await createScreenshotCommand().uploadAction(
+        createCommandContext({ ...globalOptions, autoTag: true }, [folderPath]),
+      );
+
+      expect(screenshotService.upload).toHaveBeenCalledTimes(3);
+      expect(maxInFlight).toBe(1);
+    });
   });
 });
