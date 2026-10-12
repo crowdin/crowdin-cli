@@ -15,7 +15,20 @@ const sidebars: SidebarsConfig = {
         'commands/crowdin',
         'commands/crowdin-init',
         'commands/crowdin-login',
-        'commands/crowdin-auto-translate',
+        {
+          type: 'category',
+          label: 'crowdin auto-translate',
+          link: {
+            type: 'doc',
+            id: 'commands/crowdin-auto-translate'
+          },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'commands/crowdin-auto-translate-status',
+            'commands/crowdin-auto-translate-list',
+          ]
+        },
         {
           type: 'category',
           label: 'crowdin upload',
