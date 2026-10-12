@@ -45,7 +45,7 @@
     "zod": "^4.6.6"
   },
   "lint-staged": {
-    "*.ts": "biome check --write"
+    "*.ts": "biome check --write --no-errors-on-unmatched"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",
