@@ -157,6 +157,14 @@ Crowdin CLI is also distributed as a single self-contained binary for macOS, Lin
 - Add that folder to your `PATH` environment variable
 - Open a new Command Prompt and run `crowdin --version` to verify the installation
 
+### Verifying the download
+
+Every release binary comes with a build provenance attestation, so you can confirm it was built by the official Crowdin CLI release workflow and hasn't been modified. With the [GitHub CLI](https://cli.github.com/) installed, run:
+
+```bash
+gh attestation verify crowdin-linux-x64 --repo crowdin/crowdin-cli
+```
+
 ## Nix package manager
 
 ```bash
