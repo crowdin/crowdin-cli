@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { buildApiUrl } from '@/lib/organization/credentials.ts';
 import { expectFailure } from '../helpers/cli.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { runJson, type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
@@ -21,6 +22,9 @@ const UNKNOWN_IDENTIFIER = 'crowdin-cli-e2e-no-such-app-xyz';
 
 const INSTALLABLE_IDENTIFIER = 'batch-add-strings';
 const INSTALLABLE_NAME = 'Bulk Add Strings';
+
+// An installed app built on the apps framework (e.g. zendesk-guide); its cases are skipped without one.
+const FRAMEWORK_APP = process.env.CROWDIN_E2E_FRAMEWORK_APP;
 
 interface ListedApp {
   identifier: string;
@@ -155,6 +159,34 @@ describe('app', () => {
     });
   });
 
+  test.each([
+    ['json', '[]'],
+    ['toon', '[]'],
+    ['plain', ''],
+  ])('lists no API methods for an app without an api module in %s', async (format, expected) => {
+    const result = await ctx.runner.run(['app', 'methods', INSTALLABLE_IDENTIFIER, '--output', format]);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stdout.trim()).toBe(expected);
+  });
+
+  test('says so in text when an app declares no API methods', async () => {
+    const result = await ctx.runner.run(['app', 'methods', INSTALLABLE_IDENTIFIER]);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stdout).toContain(`Application '${INSTALLABLE_IDENTIFIER}' declares no API methods`);
+  });
+
+  test('maps the proxy 404 for an undeclared method', async () => {
+    const result = await ctx.runner.run(['app', 'api', INSTALLABLE_IDENTIFIER, 'anything', '-F', 'projectId=1']);
+
+    expectFailure(
+      result,
+      102,
+      `Application '${INSTALLABLE_IDENTIFIER}' is not installed or does not declare 'GET anything'`,
+    );
+  });
+
   test('uninstalls the application again', async () => {
     const result = await ctx.runner.run(['app', 'uninstall', INSTALLABLE_IDENTIFIER]);
 
@@ -170,14 +202,80 @@ describe('app', () => {
     });
   });
 
+  test('reports methods of an application that is not installed', async () => {
+    const result = await ctx.runner.run(['app', 'methods', UNKNOWN_IDENTIFIER]);
+
+    expectFailure(result, 102, `Application '${UNKNOWN_IDENTIFIER}' is not installed`);
+  });
+
+  test('reports a call to an application that is not installed', async () => {
+    const result = await ctx.runner.run(['app', 'api', UNKNOWN_IDENTIFIER, 'settings']);
+
+    expectFailure(
+      result,
+      102,
+      `Application '${UNKNOWN_IDENTIFIER}' is not installed or does not declare 'GET settings'`,
+    );
+  });
+
+  test('prints the resolved request on --dryrun without sending it', async () => {
+    const result = await ctx.runner.run([
+      'app',
+      'api',
+      UNKNOWN_IDENTIFIER,
+      'crowdin-update?x=1',
+      '-X',
+      'post',
+      '-F',
+      'projectId=12',
+      '-f',
+      'entryIds[]=cam_1',
+      '--dryrun',
+      '--output',
+      'json',
+    ]);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(JSON.parse(result.stdout)).toEqual({
+      method: 'POST',
+      url: `${buildApiUrl(ctx.env.baseUrl)}/applications/${UNKNOWN_IDENTIFIER}/api/crowdin-update?x=1`,
+      body: { entryIds: ['cam_1'], projectId: 12 },
+    });
+  });
+
+  describe.if(Boolean(FRAMEWORK_APP))('framework app', () => {
+    const app = FRAMEWORK_APP ?? '';
+
+    test('lists the standard integration methods', async () => {
+      const methods = await runJson<Array<{ method: string; path: string }>>(ctx, ['app', 'methods', app]);
+
+      expect(methods).toContainEqual(expect.objectContaining({ method: 'GET', path: 'crowdin-files' }));
+      expect(methods).toContainEqual(expect.objectContaining({ method: 'POST', path: 'crowdin-update' }));
+    });
+
+    test('describes a method with its parameters', async () => {
+      const described = await runJson<{ parameters: Array<{ name: string }> | null }>(ctx, [
+        'app',
+        'methods',
+        app,
+        'crowdin-files',
+      ]);
+
+      expect(described.parameters).toContainEqual(expect.objectContaining({ name: 'projectId', required: true }));
+    });
+
+    test("passes the app's own error through", async () => {
+      const result = await ctx.runner.run(['app', 'api', app, 'settings']);
+
+      expectFailure(result, 1, 'Missing required parameter: projectId');
+    });
+  });
+
   // Last: switchConfig replaces the config every later run would use.
-  test('requires project_id even though no subcommand sends one', async () => {
+  test('does not require project_id', async () => {
     await switchConfig(ctx, 'no-project-id');
 
-    const result = await ctx.runner.run(['app', 'list']);
-
-    expectFailure(result, 2, "Required option 'project_id' is missing");
-    expect(normalize(result.stderr)).toMatchSnapshot();
+    expect(Array.isArray(await listInstalled())).toBe(true);
   });
 
   test.each([['install'], ['uninstall']])('rejects an empty identifier on %s', async (subcommand) => {

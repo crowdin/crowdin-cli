@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { CrowdinError } from '@crowdin/crowdin-api-client';
-import CliError, { ExitCode, getExitCode } from '@/cli/errors/CliError.ts';
+import CliError, { ExitCode } from '@/cli/errors/CliError.ts';
 import { withSpinner } from '@/cli/utils/withSpinner.ts';
 
 function recorder() {
@@ -64,7 +64,7 @@ describe('withSpinner', () => {
       throw new CrowdinError('nope', 404, {});
     }).catch((thrown: unknown) => thrown);
 
-    expect(getExitCode(error)).toBe(ExitCode.NOT_FOUND);
+    expect(CliError.getExitCode(error)).toBe(ExitCode.NOT_FOUND);
   });
 
   test('passes an existing CliError through untouched', async () => {
@@ -76,6 +76,6 @@ describe('withSpinner', () => {
     }).catch((thrown: unknown) => thrown);
 
     expect(error).toBe(original);
-    expect(getExitCode(error)).toBe(ExitCode.VALIDATION);
+    expect(CliError.getExitCode(error)).toBe(ExitCode.VALIDATION);
   });
 });

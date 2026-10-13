@@ -1,7 +1,11 @@
 import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
-import { Client } from '@crowdin/crowdin-api-client';
-import CliError from '@/cli/errors/CliError.ts';
-import { AppService } from '@/cli/services/AppService.ts';
+import { Client, CrowdinError } from '@crowdin/crowdin-api-client';
+import AppApiError from '@/cli/errors/AppApiError.ts';
+import AuthorizationError from '@/cli/errors/AuthorizationError.ts';
+import CliError, { ExitCode } from '@/cli/errors/CliError.ts';
+import ForbiddenError from '@/cli/errors/ForbiddenError.ts';
+import NotFoundError from '@/cli/errors/NotFoundError.ts';
+import { type ApiRequest, AppService } from '@/cli/services/AppService.ts';
 
 describe('AppService', () => {
   let apiClient: Client;
@@ -121,5 +125,249 @@ describe('AppService', () => {
         new CliError("Failed to find application 'my-app' in Crowdin Store. offline"),
       );
     });
+  });
+
+  describe('listMethods', () => {
+    const manifest = { modules: { api: [{ key: 'k', name: 'Get Settings', url: '/settings', method: 'get' }] } };
+    const settings = {
+      method: 'GET',
+      path: 'settings',
+      name: 'Get Settings',
+      description: null,
+      key: 'k',
+      documentationUrl: null,
+    };
+
+    const installed = (overrides: Record<string, unknown>) =>
+      spyOn(apiClient.applicationsApi, 'getApplicationInstallation').mockResolvedValue({
+        data: {
+          identifier: 'app-1',
+          baseUrl: 'https://app.test',
+          manifestUrl: 'https://app.test/manifest.json',
+          ...overrides,
+        },
+      } as never);
+
+    test('reads the inline manifest without fetching', async () => {
+      installed({ manifest });
+      const fetchSpy = spyOn(globalThis, 'fetch');
+
+      expect(await appService.listMethods('app-1')).toEqual([settings]);
+      expect(fetchSpy).not.toHaveBeenCalled();
+    });
+
+    test('fetches the hosted manifest with the CLI user agent', async () => {
+      installed({ manifest: null });
+      const fetchSpy = spyOn(globalThis, 'fetch').mockResolvedValue(Response.json(manifest));
+
+      expect(await appService.listMethods('app-1')).toEqual([settings]);
+      expect(String(fetchSpy.mock.calls[0]?.[0])).toBe('https://app.test/manifest.json');
+      expect(fetchSpy.mock.calls[0]?.[1]?.headers).toMatchObject({
+        Accept: 'application/json',
+        'User-Agent': expect.stringMatching(/^crowdin-cli\//),
+      });
+    });
+
+    test('fails without any manifest', async () => {
+      installed({ manifest: 'oops', manifestUrl: null });
+
+      expect(appService.listMethods('app-1')).rejects.toThrow(
+        new CliError("Application 'app-1' has no manifest to read API methods from"),
+      );
+    });
+
+    test('maps 404 to the not-installed message', async () => {
+      spyOn(apiClient.applicationsApi, 'getApplicationInstallation').mockRejectedValue(
+        new CrowdinError('Not found', 404, { message: 'Not found', code: 404 }),
+      );
+
+      expect(appService.listMethods('app-1')).rejects.toThrow(
+        new NotFoundError("Application 'app-1' is not installed. Run 'crowdin app list' to see installed applications"),
+      );
+    });
+
+    test.each([
+      [new Response('nope', { status: 500 }), 'unexpected response status 500'],
+      [new Response('not json'), 'the response is not valid JSON'],
+      [Response.json([1, 2]), 'the response is not a JSON object'],
+    ])('reports a manifest fetch failure %#', async (response, reason) => {
+      installed({ manifest: null });
+      spyOn(globalThis, 'fetch').mockResolvedValue(response);
+
+      expect(appService.listMethods('app-1')).rejects.toThrow(
+        new CliError(`Failed to read the manifest of 'app-1' from https://app.test/manifest.json: ${reason}`),
+      );
+    });
+
+    test('reports a manifest fetch timeout', async () => {
+      installed({ manifest: null });
+      spyOn(globalThis, 'fetch').mockRejectedValue(new DOMException('The operation timed out.', 'TimeoutError'));
+
+      expect(appService.listMethods('app-1')).rejects.toThrow(
+        "Failed to read the manifest of 'app-1' from https://app.test/manifest.json: The operation timed out.",
+      );
+    });
+  });
+
+  describe('fetchOpenApi', () => {
+    test('returns an OpenAPI document', async () => {
+      spyOn(globalThis, 'fetch').mockResolvedValue(Response.json({ openapi: '3.0.0', paths: {} }));
+
+      expect(await appService.fetchOpenApi('https://app.test/swagger.json')).toEqual({ openapi: '3.0.0', paths: {} });
+    });
+
+    test('rejects other JSON', async () => {
+      spyOn(globalThis, 'fetch').mockResolvedValue(Response.json({ hello: 'world' }));
+
+      expect(appService.fetchOpenApi('https://app.test/swagger.json')).rejects.toThrow('is not an OpenAPI document');
+    });
+  });
+
+  describe('callApi', () => {
+    const get: ApiRequest = { method: 'GET', path: 'settings', query: 'projectId=12', body: undefined };
+
+    test.each([
+      ['GET', 'getApplicationData', undefined],
+      ['POST', 'addApplicationData', { a: 1 }],
+      ['PUT', 'updateOrRestoreApplicationData', { a: 1 }],
+      ['PATCH', 'editApplicationData', { a: 1 }],
+      ['DELETE', 'deleteApplicationData', undefined],
+    ] as const)('dispatches %s to %s', async (method, clientMethod, body) => {
+      const call = spyOn(apiClient.applicationsApi, clientMethod).mockResolvedValue({ data: 'ok' } as never);
+
+      expect(await appService.callApi('app-1', { method, path: 'x', query: 'q=1', body })).toBe('ok');
+      expect(call).toHaveBeenCalledWith('app-1', 'x?q=1', ...(body ? [body] : []));
+    });
+
+    test('sends a bare path when there is no query', async () => {
+      const call = spyOn(apiClient.applicationsApi, 'getApplicationData').mockResolvedValue({ data: 'ok' } as never);
+
+      await appService.callApi('app-1', { ...get, path: 'job-info', query: '' });
+
+      expect(call).toHaveBeenCalledWith('app-1', 'job-info');
+    });
+
+    test('returns a body without a data envelope as is', async () => {
+      spyOn(apiClient.applicationsApi, 'getApplicationData').mockResolvedValue({ files: [] } as never);
+
+      expect(await appService.callApi('app-1', get)).toEqual({ files: [] });
+    });
+
+    test.each([[undefined], ['']])('returns undefined for an empty body (%p)', async (response) => {
+      spyOn(apiClient.applicationsApi, 'deleteApplicationData').mockResolvedValue(response as never);
+
+      expect(await appService.callApi('app-1', { ...get, method: 'DELETE' })).toBeUndefined();
+    });
+
+    test('keeps a JSON null result', async () => {
+      spyOn(apiClient.applicationsApi, 'getApplicationData').mockResolvedValue(null as never);
+
+      expect(await appService.callApi('app-1', get)).toBeNull();
+    });
+
+    test('passes the app error message through', async () => {
+      const apiError = { data: { error: { message: 'Missing required parameter: projectId' } } };
+      spyOn(apiClient.applicationsApi, 'getApplicationData').mockRejectedValue(
+        new CrowdinError('Missing required parameter: projectId', 400, apiError),
+      );
+
+      const error = (await appService.callApi('app-1', get).catch((caught) => caught)) as AppApiError;
+
+      expect(error).toBeInstanceOf(AppApiError);
+      expect(error.message).toBe("'app-1' returned 400: Missing required parameter: projectId");
+      expect(error.exitCode).toBe(ExitCode.GENERIC);
+    });
+
+    test.each([
+      [403, ExitCode.FORBIDDEN],
+      [404, ExitCode.NOT_FOUND],
+    ])('maps an app %d to exit %d', async (status, exitCode) => {
+      spyOn(apiClient.applicationsApi, 'getApplicationData').mockRejectedValue(
+        new CrowdinError('nope', status, { data: { error: { message: 'nope' } } }),
+      );
+
+      expect(appService.callApi('app-1', get)).rejects.toMatchObject({
+        exitCode,
+        message: `'app-1' returned ${status}: nope`,
+      });
+    });
+
+    test('maps a Crowdin 401 to the curated message', async () => {
+      spyOn(apiClient.applicationsApi, 'getApplicationData').mockRejectedValue(
+        new CrowdinError('Unauthorized', 401, { message: 'Unauthorized', code: 401 }),
+      );
+
+      expect(appService.callApi('app-1', get)).rejects.toThrow(
+        new AuthorizationError("Couldn't authorize. Check your 'api_token'"),
+      );
+    });
+
+    test('maps a Crowdin 403 to the proxy scope hint', async () => {
+      spyOn(apiClient.applicationsApi, 'getApplicationData').mockRejectedValue(
+        new CrowdinError('Forbidden', 403, { message: 'Forbidden', code: 403 }),
+      );
+
+      expect(appService.callApi('app-1', get)).rejects.toThrow(
+        new ForbiddenError(
+          "Crowdin refused the call to 'app-1': Forbidden. The token needs the 'application.proxy' scope and your user needs access to the application",
+        ),
+      );
+    });
+
+    test('maps a Crowdin 404 to the not-declared message', async () => {
+      spyOn(apiClient.applicationsApi, 'addApplicationData').mockRejectedValue(
+        new CrowdinError('Not found', 404, { message: 'Not found', code: 404 }),
+      );
+
+      expect(appService.callApi('app-1', { ...get, method: 'POST', body: {} })).rejects.toThrow(
+        new NotFoundError(
+          "Application 'app-1' is not installed or does not declare 'POST settings'. Run 'crowdin app methods app-1' to list its methods, and pass --method for anything but GET",
+        ),
+      );
+    });
+
+    test('maps other Crowdin errors with the status', async () => {
+      spyOn(apiClient.applicationsApi, 'getApplicationData').mockRejectedValue(
+        new CrowdinError('Boom', 500, { message: 'Boom', code: 500 }),
+      );
+
+      expect(appService.callApi('app-1', get)).rejects.toThrow(new CliError("Crowdin returned 500 for 'app-1': Boom"));
+    });
+
+    test('reports an unrecognized error body without claiming an origin', async () => {
+      spyOn(apiClient.applicationsApi, 'getApplicationData').mockRejectedValue(
+        new CrowdinError('Request failed with status code 403', 403, null),
+      );
+
+      expect(appService.callApi('app-1', get)).rejects.toMatchObject({
+        message: "Request to 'app-1' failed with status 403",
+        exitCode: ExitCode.FORBIDDEN,
+      });
+    });
+
+    test('keeps the curated connection message', async () => {
+      spyOn(apiClient.applicationsApi, 'getApplicationData').mockRejectedValue(
+        new CrowdinError('getaddrinfo ENOTFOUND api.crowdin.com', 500, null),
+      );
+
+      expect(appService.callApi('app-1', get)).rejects.toMatchObject({
+        message: "Invalid url. check your 'base_url'",
+        exitCode: ExitCode.GENERIC,
+      });
+    });
+  });
+
+  test('requestUrl composes the URL the client calls', () => {
+    expect(appService.requestUrl('app-1', { method: 'GET', path: 'jobs', query: 'a=1', body: undefined })).toBe(
+      'https://api.crowdin.com/api/v2/applications/app-1/api/jobs?a=1',
+    );
+    expect(
+      new AppService(new Client({ token: 't', organization: 'acme' })).requestUrl('app-1', {
+        method: 'GET',
+        path: 'jobs',
+        query: '',
+        body: undefined,
+      }),
+    ).toBe('https://acme.api.crowdin.com/api/v2/applications/app-1/api/jobs');
   });
 });

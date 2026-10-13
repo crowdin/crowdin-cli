@@ -468,7 +468,7 @@ export default class AutoTranslateCommand {
           output.spinner('mtLanguages', 'stop', 'Validation was successful');
           languages = projectLanguages.filter((languageId) => supportedLanguageIds.has(languageId));
         } catch (error) {
-          const reason = error instanceof Error ? error.message : String(error);
+          const reason = CliError.getErrorMessage(error);
           output.spinner('mtLanguages', 'error', `Validation error: ${reason}`);
         }
       }

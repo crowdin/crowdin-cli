@@ -4,6 +4,7 @@ export interface ArgumentDef {
   name: string;
   description: string;
   default?: unknown;
+  optional?: boolean;
 }
 
 export interface OptionDef {
