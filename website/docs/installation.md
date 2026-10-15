@@ -66,22 +66,22 @@ choco install crowdin-cli
 
 ### Installer
 
-Download and run [installer for Windows](https://github.com/crowdin/crowdin-cli/releases/latest/download/crowdin.exe).
+Download and run [installer for Windows](https://github.com/crowdin/crowdin-cli/releases/latest/download/crowdin-installer.exe).
 
 ## Debian
 
 We sign all our packages with the Crowdin Signing Key.
 
-Download and install the public signing key:
+Download the public signing key:
 
 ```bash
-wget -qO - https://artifacts.crowdin.com/repo/GPG-KEY-crowdin | sudo apt-key add -
+wget -qO - https://artifacts.crowdin.com/repo/GPG-KEY-crowdin | sudo gpg --dearmor -o /usr/share/keyrings/crowdin.gpg
 ```
 
 Using the following command, create the `crowdin.list` file in the `/etc/apt/sources.list.d` directory:
 
 ```bash
-echo "deb https://artifacts.crowdin.com/repo/deb/ /" > /etc/apt/sources.list.d/crowdin.list
+echo "deb [signed-by=/usr/share/keyrings/crowdin.gpg] https://artifacts.crowdin.com/repo/deb/ /" | sudo tee /etc/apt/sources.list.d/crowdin.list
 ```
 
 And your repository is ready for use. You can install the Crowdin CLI Debian package with:
@@ -99,17 +99,13 @@ sudo dpkg -i crowdin.deb
 
 ## RPM
 
-We sign all our packages with the Crowdin Signing Key.
-
-Download and install the public signing key:
+We sign all our packages with the Crowdin Signing Key. Download and install the public signing key:
 
 ```bash
 sudo rpm --import https://artifacts.crowdin.com/repo/GPG-KEY-crowdin
 ```
 
-Installing from the RPM repository
-
-Create a file called `crowdin.repo` in the `/etc/yum.repos.d` directory containing:
+To install from the RPM repository, create a file called `crowdin.repo` in the `/etc/yum.repos.d` directory containing:
 
 ```ini
 [crowdin]
@@ -141,21 +137,23 @@ Visit the [Crowdin CLI package page](https://aur.archlinux.org/packages/crowdin-
 
 ## Standalone version
 
-Crowdin CLI is also distributed as a single self-contained binary for macOS, Linux, and Windows - with no runtime to install. Download the binary for your platform from the [latest GitHub release](https://github.com/crowdin/crowdin-cli/releases/latest).
+Crowdin CLI is also distributed as a single self-contained binary for macOS, Linux, and Windows - with no runtime to install.
+Download the binary for your platform from the [latest GitHub release](https://github.com/crowdin/crowdin-cli/releases/latest).
+The binary runs as-is, with nothing to install. To run it as `crowdin` from any directory, add it to your `PATH`:
 
-### Installation on Linux and macOS
+### Setup on Linux and macOS
 
-- Download the binary for your platform using the link above
-- Make it executable: `chmod +x crowdin`
-- Move it to a directory on your `PATH` (for example, `sudo mv crowdin /usr/local/bin/crowdin`)
-- Run `crowdin --version` to verify the installation
+- Download the binary for your platform using the link above (for example, `crowdin-linux-x64`)
+- Make it executable: `chmod +x crowdin-linux-x64`
+- Move it to a directory on your `PATH` (for example, `sudo mv crowdin-linux-x64 /usr/local/bin/crowdin`)
+- Run `crowdin --version` to check that it works
 
-### Installation on Windows
+### Setup on Windows
 
-- Download the `.exe` for Windows using the link above
+- Download [`crowdin.exe`](https://github.com/crowdin/crowdin-cli/releases/latest/download/crowdin.exe)
 - Move it to the folder where you want Crowdin CLI to be stored
 - Add that folder to your `PATH` environment variable
-- Open a new Command Prompt and run `crowdin --version` to verify the installation
+- Open a new Command Prompt and run `crowdin --version` to check that it works
 
 ### Verifying the download
 
