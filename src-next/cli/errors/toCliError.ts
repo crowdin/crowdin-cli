@@ -28,7 +28,7 @@ const UNREACHABLE_TOKENS = [
 
 // Returns the curated message for a connection-layer failure, or undefined when the error is
 // something else (an API status, a validation error, a bug).
-function connectionMessage(message: string): string | undefined {
+export function connectionMessage(message: string): string | undefined {
   if (UNKNOWN_HOST_TOKENS.some((token) => message.includes(token))) {
     return "Invalid url. check your 'base_url'";
   }

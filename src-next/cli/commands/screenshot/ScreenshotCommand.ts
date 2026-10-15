@@ -216,7 +216,7 @@ export default class ScreenshotCommand {
           output.item(screenshot, screenshotView);
         }
       } catch (error) {
-        throw new CliError(`Screenshot '${imagePath}': ${error instanceof Error ? error.message : String(error)}`);
+        throw new CliError(`Screenshot '${imagePath}': ${CliError.getErrorMessage(error)}`);
       }
     });
     // auto-tag holds a project-wide lock for the duration of the request, so parallel uploads would 409

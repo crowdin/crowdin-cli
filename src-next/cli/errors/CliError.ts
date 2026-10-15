@@ -17,23 +17,27 @@ export default class CliError extends Error {
     super(message);
     this.name = 'CliError';
   }
-}
 
-// Resolves the process exit code for any thrown value. CliError subclasses carry their own
-// code; lib errors (FileNotFoundError, InvalidConfigurationError) self-describe via a duck-typed
-// numeric `exitCode` property so lib/ needs no dependency on cli/. Everything else exits generic.
-export function getExitCode(error: unknown): number {
-  if (error instanceof CliError) {
-    return error.exitCode;
-  }
-
-  if (typeof error === 'object' && error !== null && 'exitCode' in error) {
-    const exitCode = (error as { exitCode?: unknown }).exitCode;
-
-    if (typeof exitCode === 'number') {
-      return exitCode;
+  // Resolves the process exit code for any thrown value. CliError subclasses carry their own
+  // code; lib errors (FileNotFoundError, InvalidConfigurationError) self-describe via a duck-typed
+  // numeric `exitCode` property so lib/ needs no dependency on cli/. Everything else exits generic.
+  static getExitCode(error: unknown): number {
+    if (error instanceof CliError) {
+      return error.exitCode;
     }
+
+    if (typeof error === 'object' && error !== null && 'exitCode' in error) {
+      const exitCode = (error as { exitCode?: unknown }).exitCode;
+
+      if (typeof exitCode === 'number') {
+        return exitCode;
+      }
+    }
+
+    return ExitCode.GENERIC;
   }
 
-  return ExitCode.GENERIC;
+  static getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
+  }
 }

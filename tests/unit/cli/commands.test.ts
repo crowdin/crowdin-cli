@@ -24,7 +24,7 @@ const COMMAND_TIER: Record<string, 'base' | 'project' | 'files'> = {
   download: 'files',
   'auto-translate': 'files',
   config: 'files',
-  app: 'project',
+  app: 'base',
   branch: 'project',
   bundle: 'project',
   comment: 'project',

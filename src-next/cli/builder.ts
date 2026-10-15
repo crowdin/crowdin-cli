@@ -1,6 +1,6 @@
 import { Command, Option } from 'commander';
 import getGlobalOptions from './options.ts';
-import type { CommandDef, OptionDef, OptionGroupDef } from './types.ts';
+import type { ArgumentDef, CommandDef, OptionDef, OptionGroupDef } from './types.ts';
 import { colors } from './utils/colors.ts';
 
 export function buildCommand(def: CommandDef): Command {
@@ -12,7 +12,7 @@ export function buildCommand(def: CommandDef): Command {
 
   const usage = [
     def.subcommands?.length ? '[command]' : '',
-    def.arguments?.map((arg) => `<${arg.name}>`).join(' ') ?? '',
+    def.arguments?.map(formatArgument).join(' ') ?? '',
     '[options]',
   ]
     .filter(Boolean)
@@ -43,7 +43,7 @@ export function buildCommand(def: CommandDef): Command {
   }
 
   def.arguments?.forEach((arg) => {
-    cmd.argument(`<${arg.name}>`, arg.description, arg?.default);
+    cmd.argument(formatArgument(arg), arg.description, arg?.default);
   });
 
   // A command group runs its default action (usually showing help) when invoked bare, so commander
@@ -109,12 +109,18 @@ export function getHelpConfig() {
     styleArgumentText: (str: string) => colors.yellow(str),
     styleSubcommandText: (str: string) => colors.cyan(str),
     subcommandTerm: (cmd: Command) => {
-      const args = cmd.registeredArguments.map((arg) => `<${arg.name()}>`).join(' ');
+      const args = cmd.registeredArguments
+        .map((arg) => (arg.required ? `<${arg.name()}>` : `[${arg.name()}]`))
+        .join(' ');
       const alias = cmd.alias();
 
       return cmd.name() + (alias ? `, ${alias}` : '') + (args ? ` ${args}` : '');
     },
   };
+}
+
+function formatArgument(arg: ArgumentDef): string {
+  return arg.optional ? `[${arg.name}]` : `<${arg.name}>`;
 }
 
 function isOptionGroup(item: OptionDef | OptionGroupDef): item is OptionGroupDef {

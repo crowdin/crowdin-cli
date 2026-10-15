@@ -317,6 +317,8 @@ const sidebars: SidebarsConfig = {
             'commands/crowdin-app-list',
             'commands/crowdin-app-install',
             'commands/crowdin-app-uninstall',
+            'commands/crowdin-app-methods',
+            'commands/crowdin-app-api',
           ]
         },
         {

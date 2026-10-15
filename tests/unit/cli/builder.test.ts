@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { Command } from 'commander';
-import { buildOption } from '@/cli/builder.ts';
+import { buildCommand, buildOption } from '@/cli/builder.ts';
 import type { OptionDef } from '@/cli/types.ts';
 
 const language: OptionDef = {
@@ -48,5 +48,30 @@ describe('buildOption', () => {
 
     expect(() => command.parse([], { from: 'user' })).toThrow(/required option .* not specified/);
     expect(() => command.parse(['-l', 'uk'], { from: 'user' })).not.toThrow();
+  });
+});
+
+describe('buildCommand arguments', () => {
+  const group = buildCommand({
+    name: 'app',
+    description: 'd',
+    subcommands: [
+      {
+        name: 'methods',
+        description: 'd',
+        arguments: [
+          { name: 'app', description: 'a' },
+          { name: 'path', description: 'p', optional: true },
+        ],
+        action: async () => {},
+      },
+    ],
+  });
+  const methods = group.commands[0] as Command;
+
+  test('renders an optional argument as [name] in usage and in the parent help', () => {
+    expect(methods.usage()).toBe('<app> [path] [options]');
+    expect(group.createHelp().subcommandTerm(methods)).toBe('methods <app> [path]');
+    expect(methods.registeredArguments.map((arg) => arg.required)).toEqual([true, false]);
   });
 });

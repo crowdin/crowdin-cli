@@ -71,9 +71,10 @@ function optionLines(opt: OptionDef): string[] {
   return [token + HB, description];
 }
 
-// The builder registers every argument as required (`<name>`), so the docs do too.
 function argumentLines(arg: ArgumentDef): string[] {
-  return [`*&lt;${arg.name}&gt;*${HB}`, arg.description];
+  const term = arg.optional ? `*[${arg.name}]*` : `*&lt;${arg.name}&gt;*`;
+
+  return [`${term}${HB}`, arg.description];
 }
 
 function groupTitle(group: string): string {
@@ -87,7 +88,7 @@ function groupTitle(group: string): string {
 function synopsis(path: string[], node: { arguments?: ArgumentDef[]; subcommands?: SubcommandDef[] }): string {
   const parts = [...path];
   for (const arg of node.arguments ?? []) {
-    parts.push(`<${arg.name}>`);
+    parts.push(arg.optional ? `[${arg.name}]` : `<${arg.name}>`);
   }
   if (node.subcommands?.length) {
     parts.push('[SUBCOMMAND]');

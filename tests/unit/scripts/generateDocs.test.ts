@@ -180,20 +180,20 @@ describe('buildPages', () => {
 
   // The builder registers every argument as required (`<name>`, builder.ts), so the
   // docs render them the same way regardless of the unused `required` field.
-  test('renders every argument as required, mirroring the builder', () => {
+  test('renders required arguments as <name> and optional ones as [name], mirroring the builder', () => {
     const demo: CommandDef = {
       name: 'demo',
       description: 'Demo command',
       arguments: [
         { name: 'file', description: 'The file' },
-        { name: 'rest', description: 'Extra files' },
+        { name: 'rest', description: 'Extra files', optional: true },
       ],
     };
 
     const content = build([demo]).get('crowdin-demo.md') ?? '';
-    expect(content).toContain('    crowdin demo <file> <rest> [OPTIONS]');
+    expect(content).toContain('    crowdin demo <file> [rest] [OPTIONS]');
     expect(content).toContain(`*&lt;file&gt;*${HB}\nThe file`);
-    expect(content).toContain(`*&lt;rest&gt;*${HB}\nExtra files`);
+    expect(content).toContain(`*[rest]*${HB}\nExtra files`);
   });
 
   test('throws when an extras snippet does not match any generated page', () => {

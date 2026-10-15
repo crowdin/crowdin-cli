@@ -4,7 +4,7 @@ import tab from '@bomb.sh/tab/commander';
 import { Command, CommanderError } from 'commander';
 import { buildCommand, buildOption, getHelpConfig } from './cli/builder.ts';
 import { commands } from './cli/commands.ts';
-import CliError, { getExitCode } from './cli/errors/CliError.ts';
+import CliError from './cli/errors/CliError.ts';
 import { description, name, version } from './cli/meta.ts';
 import getGlobalOptions from './cli/options.ts';
 import { expandArgFiles } from './cli/utils/argFiles.ts';
@@ -112,8 +112,8 @@ try {
     }
   } else {
     const output = createOutput(globalOptions);
-    const message = error instanceof Error ? error.message : String(error);
-    const exitCode = getExitCode(error);
+    const message = CliError.getErrorMessage(error);
+    const exitCode = CliError.getExitCode(error);
 
     if (globalOptions.debug && error instanceof Error && error.stack) {
       // ponytail: top-level only; per-file failures in upload/download still print just their message.

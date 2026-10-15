@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { ExitCode, getExitCode } from '@/cli/errors/CliError.ts';
+import CliError, { ExitCode } from '@/cli/errors/CliError.ts';
 import { normalizeBranchName, normalizePath, parseNumericId, parseScheme, toNumberArray } from '@/cli/utils/parsing.ts';
 
 // Ids must be plain integers; anything else is a usage error. Number() would accept all of the below and forward junk to the API as a real id.
@@ -19,7 +19,7 @@ describe('parseNumericId', () => {
       parseNumericId('1.5', 'Bundle');
       throw new Error('expected parseNumericId to throw');
     } catch (error) {
-      expect(getExitCode(error)).toBe(ExitCode.VALIDATION);
+      expect(CliError.getExitCode(error)).toBe(ExitCode.VALIDATION);
     }
   });
 });
@@ -60,7 +60,7 @@ describe('parseScheme', () => {
       parseScheme(['en']);
       throw new Error('expected parseScheme to throw');
     } catch (error) {
-      expect(getExitCode(error)).toBe(ExitCode.VALIDATION);
+      expect(CliError.getExitCode(error)).toBe(ExitCode.VALIDATION);
     }
   });
 });

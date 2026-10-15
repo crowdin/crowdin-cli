@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { CrowdinError } from '@crowdin/crowdin-api-client';
 import AuthorizationError from '@/cli/errors/AuthorizationError.ts';
-import CliError, { ExitCode, getExitCode } from '@/cli/errors/CliError.ts';
+import CliError, { ExitCode } from '@/cli/errors/CliError.ts';
 import ForbiddenError from '@/cli/errors/ForbiddenError.ts';
 import NotFoundError from '@/cli/errors/NotFoundError.ts';
 import RateLimitError from '@/cli/errors/RateLimitError.ts';
@@ -96,25 +96,33 @@ describe('toCliError', () => {
   });
 });
 
-describe('getExitCode', () => {
+describe('CliError.getExitCode', () => {
   test('reads a CliError exit code', () => {
-    expect(getExitCode(new ValidationError('bad config'))).toBe(ExitCode.VALIDATION);
+    expect(CliError.getExitCode(new ValidationError('bad config'))).toBe(ExitCode.VALIDATION);
   });
 
   test('reads a duck-typed numeric exitCode property (lib errors)', () => {
     // Mirrors FileNotFoundError / InvalidConfigurationError, which carry exitCode without importing cli/.
-    expect(getExitCode({ exitCode: ExitCode.NOT_FOUND })).toBe(ExitCode.NOT_FOUND);
-    expect(getExitCode(Object.assign(new Error('invalid'), { exitCode: ExitCode.VALIDATION }))).toBe(
+    expect(CliError.getExitCode({ exitCode: ExitCode.NOT_FOUND })).toBe(ExitCode.NOT_FOUND);
+    expect(CliError.getExitCode(Object.assign(new Error('invalid'), { exitCode: ExitCode.VALIDATION }))).toBe(
       ExitCode.VALIDATION,
     );
   });
 
   test('ignores a non-numeric exitCode property', () => {
-    expect(getExitCode({ exitCode: 'nope' })).toBe(ExitCode.GENERIC);
+    expect(CliError.getExitCode({ exitCode: 'nope' })).toBe(ExitCode.GENERIC);
   });
 
   test('falls back to the generic exit code for a plain error or unknown value', () => {
-    expect(getExitCode(new Error('boom'))).toBe(ExitCode.GENERIC);
-    expect(getExitCode(undefined)).toBe(ExitCode.GENERIC);
+    expect(CliError.getExitCode(new Error('boom'))).toBe(ExitCode.GENERIC);
+    expect(CliError.getExitCode(undefined)).toBe(ExitCode.GENERIC);
+  });
+});
+
+describe('CliError.getErrorMessage', () => {
+  test('returns the message of an Error and stringifies anything else', () => {
+    expect(CliError.getErrorMessage(new Error('boom'))).toBe('boom');
+    expect(CliError.getErrorMessage('plain')).toBe('plain');
+    expect(CliError.getErrorMessage(undefined)).toBe('undefined');
   });
 });
