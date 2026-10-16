@@ -132,6 +132,21 @@ describe('exit codes (offline, end-to-end)', () => {
     }
   });
 
+  // auto-translate resolves files server-side, so flags alone load the config and the run reaches the
+  // command's own offline validation (1). Its hidden, ignored --source/--dest must not bring the check back.
+  test('auto-translate without a config file does not exit 102', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'crowdin-exitcode-autotranslate-'));
+
+    try {
+      const args = ['auto-translate', '-T', 'x', '-i', '1', '--method', 'mt'];
+
+      expect(await runCli(args, dir)).toBe(1);
+      expect(await runCli([...args, '-s', 'a', '--dest', 'b'], dir)).toBe(1);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
   test('explicit --config that does not exist exits 102 (not found)', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'crowdin-exitcode-explicit-'));
 

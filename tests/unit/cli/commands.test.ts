@@ -22,7 +22,7 @@ const TIER_OPTIONS: Record<'base' | 'project' | 'files', string[]> = {
 const COMMAND_TIER: Record<string, 'base' | 'project' | 'files'> = {
   upload: 'files',
   download: 'files',
-  'auto-translate': 'files',
+  'auto-translate': 'project',
   config: 'files',
   app: 'base',
   branch: 'project',

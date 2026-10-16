@@ -1,7 +1,7 @@
 import type { ProjectsGroupsModel, ResponseObject, TranslationsModel } from '@crowdin/crowdin-api-client';
 import { ProjectsGroupsModel as ProjectsGroups } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import { branch, filesConfigGroup, projectConfigGroup } from '@/cli/commands/common/options.ts';
+import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { PreTranslationStatus } from '@/cli/services/TranslationService.ts';
@@ -27,6 +27,7 @@ import {
   excludeLabel,
   excludeLanguage,
   file,
+  ignoredFilesOptions,
   label,
   language,
   method,
@@ -134,7 +135,8 @@ export default class AutoTranslateCommand {
         sourceLanguage,
         aiPrompt,
         async,
-        filesConfigGroup,
+        ...ignoredFilesOptions,
+        projectConfigGroup,
       ],
       subcommands: [
         {

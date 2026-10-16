@@ -46,13 +46,13 @@ export const translation: OptionDef = {
 // Distinct from init's `--destination` (which saves the config skeleton, defaulting to crowdin.yml):
 // here it overrides the in-project file destination, so it must have no default — otherwise the value
 // would always override the configured `dest`.
-const destination: OptionDef = {
+export const destination: OptionDef = {
   name: 'dest',
   type: 'string',
   description: 'Specify file name in Crowdin',
 };
 
-const preserveHierarchy: OptionDef = {
+export const preserveHierarchy: OptionDef = {
   name: 'preserve-hierarchy',
   type: 'boolean',
   description: 'Save the directory hierarchy in the Crowdin project',
@@ -111,5 +111,5 @@ export const baseConfigGroup: OptionGroupDef = { group: 'Config options:', optio
 // Project-scoped commands (branch, file, string, task, ...).
 export const projectConfigGroup: OptionGroupDef = { group: 'Config options:', options: projectConfigOptions };
 
-// File-based commands (upload, download, auto-translate, config).
+// File-based commands (upload, download, config).
 export const filesConfigGroup: OptionGroupDef = { group: 'Config options:', options: filesConfigOptions };

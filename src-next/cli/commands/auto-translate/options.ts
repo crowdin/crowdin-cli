@@ -1,3 +1,10 @@
+import {
+  destination,
+  noPreserveHierarchy,
+  preserveHierarchy,
+  source,
+  translation,
+} from '@/cli/commands/common/options.ts';
 import type { OptionDef } from '@/cli/types.ts';
 
 export const language: OptionDef = {
@@ -150,3 +157,13 @@ export const wait: OptionDef = {
   type: 'boolean',
   description: 'Wait for the auto-translation to finish',
 };
+
+// Files-tier options the command used to carry; accepted and ignored so existing scripts keep working.
+// DROP IN THE NEXT MAJOR.
+export const ignoredFilesOptions: OptionDef[] = [
+  source,
+  translation,
+  destination,
+  preserveHierarchy,
+  noPreserveHierarchy,
+].map((option) => ({ ...option, hidden: true }));
