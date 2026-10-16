@@ -138,11 +138,11 @@ async function needsConfigFile(
   return isFilesTier(command) && !options.source && !options.translation;
 }
 
-// The command's own option set is the tier marker: only filesConfigGroup carries --source, and only
-// the project/files groups carry --project-id (see cli/commands/common/options.ts), so this cannot
+// The command's own option set is the tier marker: only filesConfigGroup carries a visible --source, and
+// only the project/files groups carry --project-id (see cli/commands/common/options.ts), so this cannot
 // drift from the tiers declared there.
 function isFilesTier(command: Command): boolean {
-  return command.options.some((option) => option.attributeName() === 'source');
+  return command.options.some((option) => option.attributeName() === 'source' && !option.hidden);
 }
 
 function formatConfigErrors(errors: string[], fromAnyFile: boolean): string {
