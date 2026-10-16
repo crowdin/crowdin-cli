@@ -9,7 +9,7 @@ import type { AppService } from '@/cli/services/AppService.ts';
 import type { GetAppService, GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import type { Output } from '@/cli/utils/output.ts';
-import { type ApiMethod, findMethodsByPath } from '@/lib/apps/manifest.ts';
+import { type ApiMethod, findMethodsByPath, joinVerbs } from '@/lib/apps/manifest.ts';
 import { describeOperation, type MethodDescription, specUrlFromDocsUrl } from '@/lib/apps/openapi.ts';
 import { parseFields } from './fields.ts';
 import { field, force, input, method, typedField } from './options.ts';
@@ -211,7 +211,7 @@ export default class AppCommand {
 
   private selectMethod(app: string, methods: ApiMethod[], path: string, verb: string | undefined): ApiMethod {
     const matches = findMethodsByPath(methods, path);
-    const declared = this.joinVerbs(matches.map((match) => match.method));
+    const declared = joinVerbs(matches.map((match) => match.method));
     const [first] = matches;
 
     if (!first) {
@@ -283,9 +283,5 @@ export default class AppCommand {
         `Invalid application identifier '${identifier}'. Use letters, digits, underscores and dashes`,
       );
     }
-  }
-
-  private joinVerbs(verbs: string[]): string {
-    return verbs.length > 1 ? `${verbs.slice(0, -1).join(', ')} and ${verbs.at(-1)}` : (verbs[0] ?? '');
   }
 }
