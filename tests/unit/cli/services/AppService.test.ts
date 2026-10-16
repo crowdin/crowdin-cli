@@ -314,16 +314,100 @@ describe('AppService', () => {
       );
     });
 
-    test('maps a Crowdin 404 to the not-declared message', async () => {
-      spyOn(apiClient.applicationsApi, 'addApplicationData').mockRejectedValue(
-        new CrowdinError('Not found', 404, { message: 'Not found', code: 404 }),
-      );
+    describe('Crowdin 404 and 405', () => {
+      const update: ApiRequest = { method: 'GET', path: 'crowdin-update', query: '', body: undefined };
+      const declareMethods = (...methods: string[]) =>
+        spyOn(apiClient.applicationsApi, 'getApplicationInstallation').mockResolvedValue({
+          data: {
+            identifier: 'app-1',
+            manifest: { modules: { api: methods.map((method) => ({ url: '/crowdin-update', method })) } },
+          },
+        } as never);
+      const callFails = (request: ApiRequest) => {
+        const clientMethod = request.method === 'GET' ? 'getApplicationData' : 'updateOrRestoreApplicationData';
+        spyOn(apiClient.applicationsApi, clientMethod).mockRejectedValue(
+          new CrowdinError('Not found', 404, { message: 'Not found', code: 404 }),
+        );
+        return appService.callApi('app-1', request);
+      };
 
-      expect(appService.callApi('app-1', { ...get, method: 'POST', body: {} })).rejects.toThrow(
-        new NotFoundError(
-          "Application 'app-1' is not installed or does not declare 'POST settings'. Run 'crowdin app methods app-1' to list its methods, and pass --method for anything but GET",
-        ),
-      );
+      test('names the declared verb and how to send it', async () => {
+        declareMethods('post');
+
+        expect(callFails(update)).rejects.toThrow(
+          new NotFoundError("Application 'app-1' declares 'crowdin-update' for POST, not GET. Pass -X POST or --input"),
+        );
+      });
+
+      test('offers --input only for POST', async () => {
+        declareMethods('patch', 'delete');
+
+        expect(callFails({ ...update, method: 'PUT', body: {} })).rejects.toThrow(
+          new NotFoundError(
+            "Application 'app-1' declares 'crowdin-update' for PATCH and DELETE, not PUT. Pass -X PATCH or -X DELETE",
+          ),
+        );
+      });
+
+      test('names the declared verb on a 405', async () => {
+        declareMethods('post');
+        spyOn(apiClient.applicationsApi, 'getApplicationData').mockRejectedValue(
+          new CrowdinError('Method Not Allowed', 405, { message: 'Method Not Allowed', code: 405 }),
+        );
+
+        expect(appService.callApi('app-1', update)).rejects.toThrow(
+          new NotFoundError("Application 'app-1' declares 'crowdin-update' for POST, not GET. Pass -X POST or --input"),
+        );
+      });
+
+      test('keeps the status message on a 405 the manifest does not explain', async () => {
+        declareMethods('get');
+        spyOn(apiClient.applicationsApi, 'getApplicationData').mockRejectedValue(
+          new CrowdinError('Method Not Allowed', 405, { message: 'Method Not Allowed', code: 405 }),
+        );
+
+        expect(appService.callApi('app-1', update)).rejects.toThrow(
+          new CliError("Crowdin returned 405 for 'app-1': Method Not Allowed"),
+        );
+      });
+
+      test('reports an undeclared path', async () => {
+        declareMethods();
+
+        expect(callFails(update)).rejects.toThrow(
+          new NotFoundError(
+            "Application 'app-1' does not declare 'GET crowdin-update'. Run 'crowdin app methods app-1' to list its methods",
+          ),
+        );
+      });
+
+      test('reports a missing app', async () => {
+        spyOn(apiClient.applicationsApi, 'getApplicationInstallation').mockRejectedValue(
+          new CrowdinError('Not found', 404, { message: 'Not found', code: 404 }),
+        );
+
+        expect(callFails(update)).rejects.toThrow(
+          new NotFoundError(
+            "Application 'app-1' is not installed. Run 'crowdin app list' to see installed applications",
+          ),
+        );
+      });
+
+      test.each([
+        [
+          'the lookup fails',
+          () => spyOn(apiClient.applicationsApi, 'getApplicationInstallation').mockRejectedValue(new Error('boom')),
+        ],
+        ['the sent verb is declared', () => declareMethods('get')],
+      ])('keeps the ambiguous message when %s', async (_, arrange) => {
+        arrange();
+
+        expect(callFails(update)).rejects.toThrow(
+          new NotFoundError(
+            "Application 'app-1' is not installed or does not declare 'GET crowdin-update'. Run 'crowdin app methods app-1' to list its methods, and pass --method for anything but GET",
+          ),
+        );
+      });
     });
 
     test('maps other Crowdin errors with the status', async () => {

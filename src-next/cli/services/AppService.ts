@@ -5,7 +5,7 @@ import ForbiddenError from '@/cli/errors/ForbiddenError.ts';
 import NotFoundError from '@/cli/errors/NotFoundError.ts';
 import { connectionMessage, mapCrowdinError, toCliError } from '@/cli/errors/toCliError.ts';
 import { buildUserAgent } from '@/cli/utils/userAgent.ts';
-import { type ApiMethod, type Manifest, parseApiMethods } from '@/lib/apps/manifest.ts';
+import { type ApiMethod, findMethodsByPath, joinVerbs, type Manifest, parseApiMethods } from '@/lib/apps/manifest.ts';
 import { isOpenApiDocument, type OpenApiDocument } from '@/lib/apps/openapi.ts';
 import { isRecord } from '@/lib/utils/record.ts';
 
@@ -113,7 +113,7 @@ export class AppService {
 
       return isRecord(response) && 'data' in response ? response.data : response;
     } catch (error) {
-      throw this.toApiError(error, identifier, request);
+      throw await this.toApiError(error, identifier, request);
     }
   }
 
@@ -170,7 +170,7 @@ export class AppService {
 
   // Origin comes from the client's `apiError`: the whole `{ data: { error } }` body for the app's own
   // errors, Crowdin's `error`/`errors` member for its own, nothing for a body it recognized as neither.
-  private toApiError(error: unknown, identifier: string, request: ApiRequest): CliError {
+  private async toApiError(error: unknown, identifier: string, request: ApiRequest): Promise<CliError> {
     if (!(error instanceof CrowdinError)) {
       return toCliError(error, `Request to '${identifier}' failed`);
     }
@@ -196,8 +196,18 @@ export class AppService {
           `Crowdin refused the call to '${identifier}': ${error.message}. The token needs the 'application.proxy' scope and your user needs access to the application`,
         );
       case 404:
-        return new NotFoundError(
-          `Application '${identifier}' is not installed or does not declare '${request.method} ${request.path}'. Run 'crowdin app methods ${identifier}' to list its methods, and pass --method for anything but GET`,
+        return this.wrongVerbError(
+          identifier,
+          request,
+          new NotFoundError(
+            `Application '${identifier}' is not installed or does not declare '${request.method} ${request.path}'. Run 'crowdin app methods ${identifier}' to list its methods, and pass --method for anything but GET`,
+          ),
+        );
+      case 405:
+        return this.wrongVerbError(
+          identifier,
+          request,
+          new CliError(`Crowdin returned ${status} for '${identifier}': ${error.message}`),
         );
       case 401:
       case 429:
@@ -205,6 +215,39 @@ export class AppService {
       default:
         return new CliError(`Crowdin returned ${status} for '${identifier}': ${error.message}`);
     }
+  }
+
+  // Apps answer an undeclared verb with 404 or 405, and Crowdin a missing app with 404; the manifest tells them apart.
+  private async wrongVerbError(identifier: string, request: ApiRequest, fallback: CliError): Promise<CliError> {
+    let methods: ApiMethod[];
+
+    try {
+      methods = await this.listMethods(identifier);
+    } catch (error) {
+      return error instanceof NotFoundError ? error : fallback;
+    }
+
+    const verbs = findMethodsByPath(methods, request.path).map((method) => method.method);
+
+    if (verbs.length === 0) {
+      return new NotFoundError(
+        `Application '${identifier}' does not declare '${request.method} ${request.path}'. Run 'crowdin app methods ${identifier}' to list its methods`,
+      );
+    }
+
+    if (verbs.includes(request.method)) {
+      return fallback;
+    }
+
+    const flags = verbs.map((verb) => `-X ${verb}`);
+
+    if (request.method === 'GET' && verbs.includes('POST')) {
+      flags.push('--input');
+    }
+
+    return new NotFoundError(
+      `Application '${identifier}' declares '${request.path}' for ${joinVerbs(verbs)}, not ${request.method}. Pass ${flags.join(' or ')}`,
+    );
   }
 
   /** The path handed to the client, which prefixes it with `{apiUrl}/applications/{app}/api/`. */

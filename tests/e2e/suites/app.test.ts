@@ -69,7 +69,6 @@ describe('app', () => {
 
   test('rejects an unknown subcommand', async () => {
     const result = await ctx.runner.run(['app', 'bogus']);
-
     expectFailure(result, 2, "unknown command 'bogus'");
   });
 
@@ -111,7 +110,6 @@ describe('app', () => {
 
   test('requires an identifier to install', async () => {
     const result = await ctx.runner.run(['app', 'install']);
-
     expectFailure(result, 2, "missing required argument 'identifier'");
   });
 
@@ -124,7 +122,6 @@ describe('app', () => {
 
   test('requires an identifier to uninstall', async () => {
     const result = await ctx.runner.run(['app', 'uninstall']);
-
     expectFailure(result, 2, "missing required argument 'identifier'");
   });
 
@@ -179,12 +176,7 @@ describe('app', () => {
 
   test('maps the proxy 404 for an undeclared method', async () => {
     const result = await ctx.runner.run(['app', 'api', INSTALLABLE_IDENTIFIER, 'anything', '-F', 'projectId=1']);
-
-    expectFailure(
-      result,
-      102,
-      `Application '${INSTALLABLE_IDENTIFIER}' is not installed or does not declare 'GET anything'`,
-    );
+    expectFailure(result, 102, `Application '${INSTALLABLE_IDENTIFIER}' does not declare 'GET anything'`);
   });
 
   test('uninstalls the application again', async () => {
@@ -204,18 +196,12 @@ describe('app', () => {
 
   test('reports methods of an application that is not installed', async () => {
     const result = await ctx.runner.run(['app', 'methods', UNKNOWN_IDENTIFIER]);
-
     expectFailure(result, 102, `Application '${UNKNOWN_IDENTIFIER}' is not installed`);
   });
 
   test('reports a call to an application that is not installed', async () => {
     const result = await ctx.runner.run(['app', 'api', UNKNOWN_IDENTIFIER, 'settings']);
-
-    expectFailure(
-      result,
-      102,
-      `Application '${UNKNOWN_IDENTIFIER}' is not installed or does not declare 'GET settings'`,
-    );
+    expectFailure(result, 102, `Application '${UNKNOWN_IDENTIFIER}' is not installed`);
   });
 
   test('prints the resolved request on --dryrun without sending it', async () => {
@@ -266,7 +252,6 @@ describe('app', () => {
 
     test("passes the app's own error through", async () => {
       const result = await ctx.runner.run(['app', 'api', app, 'settings']);
-
       expectFailure(result, 1, 'Missing required parameter: projectId');
     });
   });
@@ -274,13 +259,11 @@ describe('app', () => {
   // Last: switchConfig replaces the config every later run would use.
   test('does not require project_id', async () => {
     await switchConfig(ctx, 'no-project-id');
-
     expect(Array.isArray(await listInstalled())).toBe(true);
   });
 
   test.each([['install'], ['uninstall']])('rejects an empty identifier on %s', async (subcommand) => {
     const result = await ctx.runner.run(['app', subcommand, '']);
-
     expectFailure(result, 1, 'Application identifier can not be empty');
   });
 });

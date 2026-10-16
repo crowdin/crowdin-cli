@@ -43,6 +43,10 @@ export function findMethodsByPath(methods: ApiMethod[], path: string): ApiMethod
   return methods.filter((method) => method.path === wanted);
 }
 
+export function joinVerbs(verbs: string[]): string {
+  return verbs.length > 1 ? `${verbs.slice(0, -1).join(', ')} and ${verbs.at(-1)}` : (verbs[0] ?? '');
+}
+
 function normalizeApiPath(path: string): string {
   return path.replace(/^\//, '');
 }
