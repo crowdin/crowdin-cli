@@ -1,5 +1,20 @@
 # Changelog
 
+# [5.4.0](https://github.com/crowdin/crowdin-cli/compare/5.3.0...5.4.0) (2026-10-16)
+
+
+### Bug Fixes
+
+* **config:** treat a trailing slash in ignore patterns as a folder ([#1127](https://github.com/crowdin/crowdin-cli/issues/1127)) ([6b07e4f](https://github.com/crowdin/crowdin-cli/commit/6b07e4fc13d94acd9c6209940586e5af3b120574))
+* plain/json output fixes and file download --language export filters ([#1137](https://github.com/crowdin/crowdin-cli/issues/1137)) ([cb005a4](https://github.com/crowdin/crowdin-cli/commit/cb005a471b6be45c68ec33afe162997e96290197))
+
+
+### Features
+
+* **app:** add methods and api subcommands ([#1145](https://github.com/crowdin/crowdin-cli/issues/1145)) ([335a2aa](https://github.com/crowdin/crowdin-cli/commit/335a2aa33c9d5451c7462ae389c9913bff65bd2d))
+* **auto-translate:** add --async, status and list ([#1140](https://github.com/crowdin/crowdin-cli/issues/1140)) ([e2c413a](https://github.com/crowdin/crowdin-cli/commit/e2c413a4af280f27b7b5c464efb1be8155207f37))
+* **screenshot:** upload a directory of screenshots ([#1141](https://github.com/crowdin/crowdin-cli/issues/1141)) ([f3bb539](https://github.com/crowdin/crowdin-cli/commit/f3bb539aa1f39c4f993e24b095555b6a4ff21202))
+
 # [5.3.0](https://github.com/crowdin/crowdin-cli/compare/5.2.0...5.3.0) (2026-09-24)
 
 
