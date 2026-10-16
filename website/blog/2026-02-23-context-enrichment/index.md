@@ -37,7 +37,7 @@ npx skills add crowdin/skills
 
 This installs two skills relevant to context enrichment:
 
-- `crowdin-context-cli` - documents the `context download` and `context upload` CLI commands so the agent understands the full workflow and the JSONL format.
+- `crowdin-cli` - documents the Crowdin CLI, including the `context download` and `context upload` commands, so the agent understands the full workflow and the JSONL format.
 - `context-extraction` - teaches the agent how to write good context descriptions: which strings need context (ambiguous short words, plurals, UI labels with inline formatting), how to write concise 1–3 sentence descriptions that explain the UI element type and placement, and what *not* to touch in the file.
 
 ## Step 1: Download Strings Context
