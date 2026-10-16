@@ -358,7 +358,7 @@ jobs:
         uses: ./.github/actions/read-version
 
       - name: Submit to winget-pkgs
-        uses: vedantmgoyal9/winget-releaser@8e1180065275ff8d815d981788ee8592c8735b8c # v2
+        uses: vedantmgoyal9/winget-releaser@b7370d4d152efdce803a26cc6ca9eee58cb2ad54 # v2
         with:
           identifier: Crowdin.CrowdinCLI
           installers-regex: '^crowdin\.exe$'
