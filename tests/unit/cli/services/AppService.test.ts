@@ -56,7 +56,6 @@ describe('AppService', () => {
 
     test('wraps API error as CliError', async () => {
       spyOn(apiClient.applicationsApi, 'installApplication').mockRejectedValue(new Error('bad manifest'));
-
       expect(appService.installByManifestUrl('https://example.test/manifest.json')).rejects.toThrow(
         new CliError("Failed to install application from 'https://example.test/manifest.json'. bad manifest"),
       );
@@ -76,7 +75,6 @@ describe('AppService', () => {
 
     test('wraps API error as CliError', async () => {
       spyOn(apiClient.applicationsApi, 'deleteApplicationInstallation').mockRejectedValue(new Error('not installed'));
-
       expect(appService.uninstall('app-1', false)).rejects.toThrow(
         new CliError("Failed to uninstall application 'app-1'. not installed"),
       );
@@ -86,33 +84,29 @@ describe('AppService', () => {
   describe('findManifestUrl', () => {
     test('queries the store by slug and returns the manifest', async () => {
       const fetchSpy = spyOn(globalThis, 'fetch').mockResolvedValue(
-        Response.json({ data: [{ manifest: 'https://example.test/manifest.json' }] }),
+        Response.json({ docs: [{ manifest: 'https://example.test/manifest.json' }] }),
       );
 
       expect(await appService.findManifestUrl('my-app')).toBe('https://example.test/manifest.json');
 
-      const requestedUrl = String(fetchSpy.mock.calls[0]?.[0]);
+      const requestedUrl = new URL(String(fetchSpy.mock.calls[0]?.[0]));
 
-      expect(requestedUrl).toStartWith('https://developer.app.crowdin.net/items/Item?filter=');
-      // The slug travels as a URL-encoded Directus filter, so the raw JSON must not leak into the query.
-      expect(requestedUrl).toContain(encodeURIComponent(JSON.stringify({ slug: { _eq: 'my-app' } })));
+      expect(requestedUrl.origin + requestedUrl.pathname).toBe('https://developers.app.crowdin.net/api/items');
+      expect(requestedUrl.searchParams.get('where[slug][equals]')).toBe('my-app');
     });
 
     test('returns null when the store has no matching item', async () => {
-      spyOn(globalThis, 'fetch').mockResolvedValue(Response.json({ data: [] }));
-
+      spyOn(globalThis, 'fetch').mockResolvedValue(Response.json({ docs: [] }));
       expect(await appService.findManifestUrl('my-app')).toBeNull();
     });
 
     test('returns null when the matched item carries no manifest', async () => {
-      spyOn(globalThis, 'fetch').mockResolvedValue(Response.json({ data: [{}] }));
-
+      spyOn(globalThis, 'fetch').mockResolvedValue(Response.json({ docs: [{}] }));
       expect(await appService.findManifestUrl('my-app')).toBeNull();
     });
 
     test('wraps a non-ok store response as CliError', async () => {
       spyOn(globalThis, 'fetch').mockResolvedValue(new Response('nope', { status: 503 }));
-
       expect(appService.findManifestUrl('my-app')).rejects.toThrow(
         new CliError("Failed to find application 'my-app' in Crowdin Store. Unexpected response status: 503"),
       );
@@ -120,7 +114,6 @@ describe('AppService', () => {
 
     test('wraps a network failure as CliError', async () => {
       spyOn(globalThis, 'fetch').mockRejectedValue(new Error('offline'));
-
       expect(appService.findManifestUrl('my-app')).rejects.toThrow(
         new CliError("Failed to find application 'my-app' in Crowdin Store. offline"),
       );
@@ -150,6 +143,7 @@ describe('AppService', () => {
 
     test('reads the inline manifest without fetching', async () => {
       installed({ manifest });
+
       const fetchSpy = spyOn(globalThis, 'fetch');
 
       expect(await appService.listMethods('app-1')).toEqual([settings]);
@@ -158,6 +152,7 @@ describe('AppService', () => {
 
     test('fetches the hosted manifest with the CLI user agent', async () => {
       installed({ manifest: null });
+
       const fetchSpy = spyOn(globalThis, 'fetch').mockResolvedValue(Response.json(manifest));
 
       expect(await appService.listMethods('app-1')).toEqual([settings]);
@@ -192,6 +187,7 @@ describe('AppService', () => {
       [Response.json([1, 2]), 'the response is not a JSON object'],
     ])('reports a manifest fetch failure %#', async (response, reason) => {
       installed({ manifest: null });
+
       spyOn(globalThis, 'fetch').mockResolvedValue(response);
 
       expect(appService.listMethods('app-1')).rejects.toThrow(
@@ -201,6 +197,7 @@ describe('AppService', () => {
 
     test('reports a manifest fetch timeout', async () => {
       installed({ manifest: null });
+
       spyOn(globalThis, 'fetch').mockRejectedValue(new DOMException('The operation timed out.', 'TimeoutError'));
 
       expect(appService.listMethods('app-1')).rejects.toThrow(
@@ -212,13 +209,11 @@ describe('AppService', () => {
   describe('fetchOpenApi', () => {
     test('returns an OpenAPI document', async () => {
       spyOn(globalThis, 'fetch').mockResolvedValue(Response.json({ openapi: '3.0.0', paths: {} }));
-
       expect(await appService.fetchOpenApi('https://app.test/swagger.json')).toEqual({ openapi: '3.0.0', paths: {} });
     });
 
     test('rejects other JSON', async () => {
       spyOn(globalThis, 'fetch').mockResolvedValue(Response.json({ hello: 'world' }));
-
       expect(appService.fetchOpenApi('https://app.test/swagger.json')).rejects.toThrow('is not an OpenAPI document');
     });
   });
@@ -249,19 +244,16 @@ describe('AppService', () => {
 
     test('returns a body without a data envelope as is', async () => {
       spyOn(apiClient.applicationsApi, 'getApplicationData').mockResolvedValue({ files: [] } as never);
-
       expect(await appService.callApi('app-1', get)).toEqual({ files: [] });
     });
 
     test.each([[undefined], ['']])('returns undefined for an empty body (%p)', async (response) => {
       spyOn(apiClient.applicationsApi, 'deleteApplicationData').mockResolvedValue(response as never);
-
       expect(await appService.callApi('app-1', { ...get, method: 'DELETE' })).toBeUndefined();
     });
 
     test('keeps a JSON null result', async () => {
       spyOn(apiClient.applicationsApi, 'getApplicationData').mockResolvedValue(null as never);
-
       expect(await appService.callApi('app-1', get)).toBeNull();
     });
 
@@ -325,9 +317,11 @@ describe('AppService', () => {
         } as never);
       const callFails = (request: ApiRequest) => {
         const clientMethod = request.method === 'GET' ? 'getApplicationData' : 'updateOrRestoreApplicationData';
+
         spyOn(apiClient.applicationsApi, clientMethod).mockRejectedValue(
           new CrowdinError('Not found', 404, { message: 'Not found', code: 404 }),
         );
+
         return appService.callApi('app-1', request);
       };
 
@@ -351,6 +345,7 @@ describe('AppService', () => {
 
       test('names the declared verb on a 405', async () => {
         declareMethods('post');
+
         spyOn(apiClient.applicationsApi, 'getApplicationData').mockRejectedValue(
           new CrowdinError('Method Not Allowed', 405, { message: 'Method Not Allowed', code: 405 }),
         );
@@ -362,6 +357,7 @@ describe('AppService', () => {
 
       test('keeps the status message on a 405 the manifest does not explain', async () => {
         declareMethods('get');
+
         spyOn(apiClient.applicationsApi, 'getApplicationData').mockRejectedValue(
           new CrowdinError('Method Not Allowed', 405, { message: 'Method Not Allowed', code: 405 }),
         );
