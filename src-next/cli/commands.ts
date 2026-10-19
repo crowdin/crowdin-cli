@@ -1,3 +1,4 @@
+import AiPromptCommand from './commands/ai-prompt/AiPromptCommand.ts';
 import AppCommand from './commands/app/AppCommand.ts';
 import AutoTranslateCommand from './commands/auto-translate/AutoTranslateCommand.ts';
 import BranchCommand from './commands/branch/BranchCommand.ts';
@@ -24,6 +25,7 @@ import UploadCommand from './commands/upload/UploadCommand.ts';
 import { createGetConfig } from './config.ts';
 import { createGetOutput } from './output.ts';
 import {
+  createGetAiService,
   createGetApiClient,
   createGetAppService,
   createGetBranchService,
@@ -75,6 +77,7 @@ const getLanguageService = createGetLanguageService(createGetApiClient(tryGetCon
 const getTmService = createGetTmService(getApiClient, getOutput);
 const getGlossaryService = createGetGlossaryService(getApiClient, getOutput);
 const getStyleGuideService = createGetStyleGuideService(getApiClient);
+const getAiService = createGetAiService(getApiClient);
 
 const commentCommand = new CommentCommand(getOutput, getCommentService);
 const appCommand = new AppCommand(getOutput, getAppService);
@@ -151,6 +154,7 @@ const taskCommand = new TaskCommand(
 const tmCommand = new TmCommand(getOutput, getTmService, getStorageService, getApiClient, getConfig);
 const glossaryCommand = new GlossaryCommand(getOutput, getGlossaryService, getStorageService, getApiClient, getConfig);
 const styleGuideCommand = new StyleGuideCommand(getOutput, getStyleGuideService, getStorageService, getConfig);
+const aiPromptCommand = new AiPromptCommand(getOutput, getAiService, getConfig);
 const contextCommand = new ContextCommand(
   getOutput,
   getProjectService,
@@ -183,6 +187,7 @@ export const commands: CommandDef[] = [
   glossaryCommand.getDefinition(),
   tmCommand.getDefinition(),
   styleGuideCommand.getDefinition(),
+  aiPromptCommand.getDefinition(),
   taskCommand.getDefinition(),
   bundleCommand.getDefinition(),
   branchCommand.getDefinition(),

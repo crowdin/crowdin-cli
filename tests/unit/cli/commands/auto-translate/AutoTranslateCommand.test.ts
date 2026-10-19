@@ -531,7 +531,9 @@ describe('AutoTranslateCommand', () => {
       commandContext = createCommandContext({ ...globalOptions, method: 'ai' });
 
       expect(command.defaultAction(commandContext)).rejects.toThrow(
-        new CliError("AI should be used with the '--ai-prompt' parameter"),
+        new CliError(
+          "AI should be used with the '--ai-prompt' parameter. Run 'crowdin ai-prompt list --action pre_translate --assigned' to find one",
+        ),
       );
     });
 

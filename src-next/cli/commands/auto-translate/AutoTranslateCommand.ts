@@ -198,7 +198,9 @@ export default class AutoTranslateCommand {
     const autoApprove = this.resolveAutoApproveOption(options.autoApproveOption, translateMethod, output);
 
     if (translateMethod === 'ai' && aiPromptId === undefined) {
-      throw new CliError("AI should be used with the '--ai-prompt' parameter");
+      throw new CliError(
+        "AI should be used with the '--ai-prompt' parameter. Run 'crowdin ai-prompt list --action pre_translate --assigned' to find one",
+      );
     }
 
     const project = await projectService.loadProject();
