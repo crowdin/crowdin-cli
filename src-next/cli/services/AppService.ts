@@ -27,7 +27,7 @@ const MANIFEST_TIMEOUT_MS = 15_000;
 const OPENAPI_TIMEOUT_MS = 10_000;
 
 interface AppStoreResponse {
-  data?: Array<{
+  docs?: Array<{
     manifest?: string;
   }>;
 }
@@ -118,8 +118,13 @@ export class AppService {
   }
 
   async findManifestUrl(identifier: string): Promise<string | null> {
-    const filter = encodeURIComponent(JSON.stringify({ slug: { _eq: identifier } }));
-    const url = `https://developer.app.crowdin.net/items/Item?filter=${filter}&fields=manifest`;
+    const query = new URLSearchParams({
+      'where[slug][equals]': identifier,
+      'select[manifest]': 'true',
+      limit: '1',
+      depth: '0',
+    });
+    const url = `https://developers.app.crowdin.net/api/items?${query}`;
 
     try {
       const response = await fetch(url);
@@ -129,7 +134,7 @@ export class AppService {
       }
 
       const payload = (await response.json()) as AppStoreResponse;
-      const manifest = payload.data?.[0]?.manifest;
+      const manifest = payload.docs?.[0]?.manifest;
 
       return manifest ?? null;
     } catch (error) {
