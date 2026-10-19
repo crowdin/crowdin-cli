@@ -1,6 +1,7 @@
 import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import ValidationError from '@/cli/errors/ValidationError.ts';
+import { AiService } from '@/cli/services/AiService.ts';
 import { AppService } from '@/cli/services/AppService.ts';
 import { BranchService } from '@/cli/services/BranchService.ts';
 import { BundleService } from '@/cli/services/BundleService.ts';
@@ -49,6 +50,7 @@ export type GetLanguageService = (command: Command) => Promise<LanguageService>;
 export type GetTmService = (command: Command) => Promise<TmService>;
 export type GetGlossaryService = (command: Command) => Promise<GlossaryService>;
 export type GetStyleGuideService = (command: Command) => Promise<StyleGuideService>;
+export type GetAiService = (command: Command) => Promise<AiService>;
 
 export function createGetApiClient(getConfig: GetConfig) {
   let cachedClient: Client | undefined;
@@ -382,6 +384,20 @@ export function createGetStyleGuideService(getApiClient: GetApiClient) {
     }
 
     cachedService = new StyleGuideService(await getApiClient(command));
+
+    return cachedService;
+  };
+}
+
+export function createGetAiService(getApiClient: GetApiClient) {
+  let cachedService: AiService | undefined;
+
+  return async (command: Command): Promise<AiService> => {
+    if (cachedService) {
+      return cachedService;
+    }
+
+    cachedService = new AiService(await getApiClient(command));
 
     return cachedService;
   };

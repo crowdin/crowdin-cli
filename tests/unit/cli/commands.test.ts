@@ -41,6 +41,7 @@ const COMMAND_TIER: Record<string, 'base' | 'project' | 'files'> = {
   glossary: 'base',
   tm: 'base',
   'style-guide': 'base',
+  'ai-prompt': 'base',
 };
 
 // Subcommands that only read jobs by id, so they need the project but not the files config.
@@ -94,6 +95,7 @@ describe('command registry', () => {
       'glossary',
       'tm',
       'style-guide',
+      'ai-prompt',
       'task',
       'bundle',
       'branch',

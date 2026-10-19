@@ -231,6 +231,19 @@ const sidebars: SidebarsConfig = {
         },
         {
           type: 'category',
+          label: 'crowdin ai-prompt',
+          link: {
+            type: 'doc',
+            id: 'commands/crowdin-ai-prompt'
+          },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'commands/crowdin-ai-prompt-list',
+          ]
+        },
+        {
+          type: 'category',
           label: 'crowdin comment',
           link: {
             type: 'doc',
