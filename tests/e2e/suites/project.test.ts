@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import { expectFailure } from '../helpers/cli.ts';
 import { resolveEnv } from '../helpers/env.ts';
+import { deleteTestProject } from '../helpers/project.ts';
 import { runJson, type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
@@ -50,7 +51,7 @@ describe('project', () => {
     if (ctx && !ctx.env.keep) {
       for (const id of createdProjectIds) {
         try {
-          await ctx.client.projectsGroupsApi.deleteProject(id);
+          await deleteTestProject(ctx.client, id);
         } catch (error) {
           console.error(`Failed to delete project #${id}: ${error instanceof Error ? error.message : error}`);
         }

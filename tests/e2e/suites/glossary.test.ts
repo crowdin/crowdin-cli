@@ -90,7 +90,7 @@ async function removeSuiteGlossaries(ctx: SuiteContext): Promise<void> {
     const response = await ctx.client.glossariesApi.withFetchAll().listGlossaries();
 
     for (const entry of response.data) {
-      if (SUITE_GLOSSARY_NAMES.includes(entry.data.name)) {
+      if (entry.data.name && SUITE_GLOSSARY_NAMES.includes(entry.data.name)) {
         await ctx.client.glossariesApi.deleteGlossary(entry.data.id);
       }
     }
@@ -347,19 +347,16 @@ describe('glossary', () => {
   // Like the upload guards, these fire before the glossary is fetched - hence the arbitrary id.
   test('rejects a non-numeric glossary id', async () => {
     const result = await ctx.runner.run(['glossary', 'download', 'not-a-number']);
-
     expectFailure(result, 2, 'Glossary id must be numeric');
   });
 
   test('rejects a --to extension that is not a supported format', async () => {
     const result = await ctx.runner.run(['glossary', 'download', '1', '--to', 'download/out.txt']);
-
     expectFailure(result, 1, 'Supported formats: tbx, csv, xlsx');
   });
 
   test('reports a glossary that does not exist', async () => {
     const result = await ctx.runner.run(['glossary', 'download', String(MISSING_GLOSSARY_ID)]);
-
     expectFailure(result, 102, 'Not Found');
   });
 
@@ -375,6 +372,7 @@ describe('glossary', () => {
 
     const uploaded = await extractTbxContent(join(ctx.workspace, 'sources/simple-glossary.tbx'));
     const downloaded = await extractTbxContent(join(ctx.workspace, file));
+
     expect(downloaded.terms).toEqual(uploaded.terms);
     expect(downloaded.descriptions).toEqual(uploaded.descriptions);
   });
@@ -388,7 +386,6 @@ describe('glossary', () => {
     expect(result.stdout).toContain('Building glossary');
     expect(result.stdout).toContain(`'${file}' downloaded successfully`);
     expect(normalize(result.stdout)).toMatchSnapshot();
-
     expect(await Bun.file(join(ctx.workspace, file)).text()).toBe(
       await Bun.file(join(ctx.workspace, 'expected/simple-glossary.csv')).text(),
     );
@@ -458,7 +455,6 @@ describe('glossary', () => {
 
     expect(plain).toMatchObject({ exitCode: 0 });
     expect(plain.stdout.trim()).toBe(file);
-
     expect(await runJson(ctx, ['glossary', 'download', String(tbxGlossaryId), '--to', file])).toBe(file);
   });
 

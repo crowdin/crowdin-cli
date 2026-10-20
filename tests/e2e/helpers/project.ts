@@ -78,6 +78,22 @@ export async function createTestProject(client: Client, opts: CreateProjectOptio
   return { id: response.data.id, name: response.data.name };
 }
 
+/**
+ * Deleting a project leaves its default TM and glossary behind in the account. Left there, they pile
+ * up run after run: TM pre-translation in Enterprise workflows reuses their segments, and the
+ * account-wide `glossary list` keeps growing.
+ */
 export async function deleteTestProject(client: Client, projectId: number): Promise<void> {
+  const { defaultTmId, defaultGlossaryId } = (await client.projectsGroupsApi.getProject(projectId))
+    .data as ProjectsGroupsModel.ProjectSettings;
+
   await client.projectsGroupsApi.deleteProject(projectId);
+
+  if (defaultTmId) {
+    await client.translationMemoryApi.deleteTm(defaultTmId);
+  }
+
+  if (defaultGlossaryId) {
+    await client.glossariesApi.deleteGlossary(defaultGlossaryId);
+  }
 }
