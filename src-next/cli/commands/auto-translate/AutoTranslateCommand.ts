@@ -17,6 +17,7 @@ import type { CommandDef } from '@/cli/types.ts';
 import { isMachineFormat } from '@/cli/utils/formatter.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import { normalizePath, toNumberArray } from '@/cli/utils/parsing.ts';
+import { withSpinner } from '@/cli/utils/withSpinner.ts';
 import { FILE_MANAGEMENT_UNAVAILABLE, isStringsBasedProject } from '@/lib/project/type.ts';
 import { stripBranchPrefix } from '@/lib/utils/path.ts';
 import {
@@ -467,15 +468,19 @@ export default class AutoTranslateCommand {
       let languages = projectLanguages;
 
       if (translateMethod === 'mt' && engineIdValue !== undefined) {
-        try {
-          output.spinner('mtLanguages', 'start', 'Validating supported languages for the specified MT engine');
-          const supportedLanguageIds = new Set(await translationService.getMtSupportedLanguageIds(engineIdValue));
-          output.spinner('mtLanguages', 'stop', 'Validation was successful');
-          languages = projectLanguages.filter((languageId) => supportedLanguageIds.has(languageId));
-        } catch (error) {
-          const reason = CliError.getErrorMessage(error);
-          output.spinner('mtLanguages', 'error', `Validation error: ${reason}`);
-        }
+        const supportedLanguageIds = new Set(
+          await withSpinner(
+            output,
+            'mtLanguages',
+            {
+              start: 'Validating supported languages for the specified MT engine',
+              stop: 'Validation was successful',
+              fail: 'Validation error',
+            },
+            () => translationService.getMtSupportedLanguageIds(engineIdValue),
+          ),
+        );
+        languages = projectLanguages.filter((languageId) => supportedLanguageIds.has(languageId));
       }
 
       if (excludedLanguages.length > 0) {
