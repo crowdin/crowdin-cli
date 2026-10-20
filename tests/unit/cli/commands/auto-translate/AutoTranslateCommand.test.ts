@@ -251,6 +251,20 @@ describe('AutoTranslateCommand', () => {
     expect(request.engineId).toBe(1);
   });
 
+  test('fails instead of sending all languages when the MT engine lookup fails', async () => {
+    const command = createCommand();
+    commandContext = createCommandContext({ ...globalOptions, method: 'mt', engineId: 1, branch: 'main' });
+
+    spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
+    spyOn(translationService, 'getMtSupportedLanguageIds').mockRejectedValue(
+      new CliError("Failed to fetch the specified MT engine. Endpoint isn't allowed for token scopes.", 103),
+    );
+    const preTranslate = spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
+
+    expect(command.defaultAction(commandContext)).rejects.toMatchObject({ exitCode: 103, reported: true });
+    expect(preTranslate).not.toHaveBeenCalled();
+  });
+
   test('excludes the specified languages', async () => {
     const command = createCommand();
     commandContext = createCommandContext({
@@ -263,6 +277,7 @@ describe('AutoTranslateCommand', () => {
     spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
     spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
     spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
+
     const preTranslate = spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
 
     await command.defaultAction(commandContext);
@@ -285,6 +300,7 @@ describe('AutoTranslateCommand', () => {
     spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
     spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
     spyOn(translationService, 'getMtSupportedLanguageIds').mockResolvedValue(['ua', 'en', 'fr']);
+
     const warning = spyOn(output, 'warning').mockImplementation(() => {});
     const preTranslate = spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
 
