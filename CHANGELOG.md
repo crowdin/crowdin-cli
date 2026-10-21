@@ -1,5 +1,19 @@
 # Changelog
 
+# [5.5.0](https://github.com/crowdin/crowdin-cli/compare/5.4.0...5.5.0) (2026-10-21)
+
+
+### Bug Fixes
+
+* **app:** name the declared method when an app call hits the wrong verb ([#1151](https://github.com/crowdin/crowdin-cli/issues/1151)) ([25a49d9](https://github.com/crowdin/crowdin-cli/commit/25a49d975bc0d6ae83cd6576698362411b3866f3))
+* **app:** query the new Crowdin Store API on install ([#1153](https://github.com/crowdin/crowdin-cli/issues/1153)) ([ec606a8](https://github.com/crowdin/crowdin-cli/commit/ec606a8907f367d54ba6df418fb163da83b80b26))
+* **auto-translate:** stop requiring a config file ([#1149](https://github.com/crowdin/crowdin-cli/issues/1149)) ([20d529d](https://github.com/crowdin/crowdin-cli/commit/20d529da34975c4d2a4839b8de3c1f76c04fc763))
+
+
+### Features
+
+* **ai-prompt:** add ai-prompt list command ([#1152](https://github.com/crowdin/crowdin-cli/issues/1152)) ([e57fd37](https://github.com/crowdin/crowdin-cli/commit/e57fd37cb7c9aa73a6bc869a9cd3a569f243cfd7))
+
 # [5.4.0](https://github.com/crowdin/crowdin-cli/compare/5.3.0...5.4.0) (2026-10-16)
 
 
