@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { ProjectsGroupsModel, type TranslationsModel } from '@crowdin/crowdin-api-client';
+import { ProjectsGroupsModel, type SourceFilesModel, type TranslationsModel } from '@crowdin/crowdin-api-client';
 import AdmZip from 'adm-zip';
 import type { Command } from 'commander';
 import { printDryRunPaths } from '@/cli/commands/common/dryRunPaths.ts';
@@ -11,6 +11,7 @@ import { pathView } from '@/cli/commands/common/views.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import type { FileService } from '@/cli/services/FileService.ts';
 import type {
   GetBranchService,
   GetConfig,
@@ -70,6 +71,12 @@ interface SourcesOptions extends GlobalOptions {
   branch?: string;
   reviewed?: boolean;
   dryrun?: boolean;
+}
+
+interface SourceDownload {
+  fileId: number;
+  relativePath: string;
+  destination: string;
 }
 
 interface ExportCombo {
@@ -183,78 +190,20 @@ export default class DownloadCommand {
       return;
     }
 
-    const downloadedFiles: DownloadedFile[] = [];
-
     if (options.reviewed) {
-      const build = await fileService.buildReviewedSources(branch?.id);
-      const downloadUrl = await fileService.getReviewedSourcesDownloadUrl(build.data.id);
-      const tempDir = await mkdtemp(path.join(tmpdir(), 'crowdin-reviewed-sources-'));
-
-      try {
-        const archivePath = path.join(tempDir, 'reviewed.zip');
-        await downloadToFile(downloadUrl, archivePath);
-
-        // The reviewed archive nests every file under a `<source_language_id>-REV` directory;
-        // strip that prefix so keys line up with the project file paths.
-        const prefix = `${project.data.sourceLanguageId}-REV`;
-        const reviewedFiles = new Map<string, Uint8Array>();
-        const zip = new AdmZip(archivePath);
-
-        for (const entry of zip.getEntries()) {
-          if (entry.isDirectory) {
-            continue;
-          }
-
-          const name = stripLeadingSlashes(toPosixPath(entry.entryName));
-
-          if (!name.startsWith(`${prefix}/`)) {
-            continue;
-          }
-
-          reviewedFiles.set(stripBranchPrefix(name.slice(prefix.length), branch?.name), entry.getData());
-        }
-
-        for (const download of downloads) {
-          const content = reviewedFiles.get(`/${download.relativePath}`);
-
-          if (!content) {
-            downloadedFiles.push({
-              path: download.relativePath,
-              action: 'skipped',
-              reason: 'not in the reviewed archive',
-            });
-            continue;
-          }
-
-          const filePath = path.join(config.basePath, download.destination);
-
-          await mkdir(path.dirname(filePath), { recursive: true });
-          await Bun.write(filePath, content);
-          output.success(`File '${download.relativePath}'`);
-          downloadedFiles.push({ path: download.relativePath, action: 'downloaded' });
-        }
-      } finally {
-        try {
-          await rm(tempDir, { recursive: true, force: true });
-        } catch {
-          output.warning(`Failed to clean up temp directory '${tempDir}'`);
-        }
-      }
-
-      // Text already streamed a line per file, so only the machine formats need the summary.
-      // plain is line-oriented and cannot carry the action, so it lists only what was written.
-      if (isMachineFormat(options.output)) {
-        const sorted = downloadedFiles.sort((one, other) => one.path.localeCompare(other.path));
-
-        output.list(
-          isStructuredFormat(options.output) ? sorted : sorted.filter(({ action }) => action !== 'skipped'),
-          downloadedFileView,
-        );
-      }
-
+      await this.downloadReviewedSources(
+        fileService,
+        config,
+        downloads,
+        branch,
+        project.data.sourceLanguageId,
+        options,
+        output,
+      );
       return;
     }
 
+    const downloadedFiles: DownloadedFile[] = [];
     const results = await runConcurrently(
       downloads.map((download) => async () => {
         try {
@@ -282,6 +231,97 @@ export default class DownloadCommand {
       throw new CliError(EXECUTION_FINISHED_WITH_ERRORS);
     }
   };
+
+  private async downloadReviewedSources(
+    fileService: FileService,
+    config: Config,
+    downloads: SourceDownload[],
+    branch: SourceFilesModel.Branch | undefined,
+    sourceLanguageId: string,
+    options: SourcesOptions,
+    output: Output,
+  ): Promise<void> {
+    const downloadedFiles: DownloadedFile[] = [];
+    const build = await fileService.buildReviewedSources(branch?.id);
+    const downloadUrl = await fileService.getReviewedSourcesDownloadUrl(build.data.id);
+    const tempDir = await mkdtemp(path.join(tmpdir(), 'crowdin-reviewed-sources-'));
+
+    try {
+      const archivePath = path.join(tempDir, 'reviewed.zip');
+
+      await downloadToFile(downloadUrl, archivePath);
+
+      const reviewedFiles = this.readReviewedArchive(archivePath, sourceLanguageId, branch?.name);
+
+      for (const download of downloads) {
+        const content = reviewedFiles.get(`/${download.relativePath}`);
+
+        if (!content) {
+          downloadedFiles.push({
+            path: download.relativePath,
+            action: 'skipped',
+            reason: 'not in the reviewed archive',
+          });
+          continue;
+        }
+
+        const filePath = path.join(config.basePath, download.destination);
+
+        await mkdir(path.dirname(filePath), { recursive: true });
+        await Bun.write(filePath, content);
+
+        output.success(`File '${download.relativePath}'`);
+
+        downloadedFiles.push({ path: download.relativePath, action: 'downloaded' });
+      }
+    } finally {
+      try {
+        await rm(tempDir, { recursive: true, force: true });
+      } catch {
+        output.warning(`Failed to clean up temp directory '${tempDir}'`);
+      }
+    }
+
+    // Text already streamed a line per file, so only the machine formats need the summary.
+    // plain is line-oriented and cannot carry the action, so it lists only what was written.
+    if (isMachineFormat(options.output)) {
+      const sorted = downloadedFiles.sort((one, other) => one.path.localeCompare(other.path));
+
+      output.list(
+        isStructuredFormat(options.output) ? sorted : sorted.filter(({ action }) => action !== 'skipped'),
+        downloadedFileView,
+      );
+    }
+  }
+
+  /**
+   * The reviewed archive nests every file under a `<source_language_id>-REV` directory; strip that
+   * prefix so keys line up with the project file paths.
+   */
+  private readReviewedArchive(
+    archivePath: string,
+    sourceLanguageId: string,
+    branchName: string | undefined,
+  ): Map<string, Uint8Array> {
+    const prefix = `${sourceLanguageId}-REV`;
+    const reviewedFiles = new Map<string, Uint8Array>();
+
+    for (const entry of new AdmZip(archivePath).getEntries()) {
+      if (entry.isDirectory) {
+        continue;
+      }
+
+      const name = stripLeadingSlashes(toPosixPath(entry.entryName));
+
+      if (!name.startsWith(`${prefix}/`)) {
+        continue;
+      }
+
+      reviewedFiles.set(stripBranchPrefix(name.slice(prefix.length), branchName), entry.getData());
+    }
+
+    return reviewedFiles;
+  }
 
   translationsAction = async (command: Command) => {
     const options = command.optsWithGlobals() as TranslationsOptions;
@@ -727,8 +767,8 @@ export default class DownloadCommand {
     projectFiles: { data: { id: number; path?: string; exportOptions?: unknown } }[],
     managerAccess: boolean,
     output: Output,
-  ): { fileId: number; relativePath: string; destination: string }[] {
-    const downloads: { fileId: number; relativePath: string; destination: string }[] = [];
+  ): SourceDownload[] {
+    const downloads: SourceDownload[] = [];
 
     for (const patterns of config.files) {
       const searchPattern = patterns.dest ?? patterns.source;
