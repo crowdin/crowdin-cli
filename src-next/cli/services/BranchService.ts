@@ -53,6 +53,10 @@ export class BranchService {
     }
   }
 
+  async resolveBranchId(name: string | undefined, createMissing: boolean = false): Promise<number | undefined> {
+    return (await this.resolveBranch(name, createMissing))?.id;
+  }
+
   async resolveBranch(
     name: string | undefined,
     createMissing: boolean = false,
@@ -68,10 +72,6 @@ export class BranchService {
     }
 
     return branch;
-  }
-
-  async resolveBranchId(name: string | undefined, createMissing: boolean = false): Promise<number | undefined> {
-    return (await this.resolveBranch(name, createMissing))?.id;
   }
 
   async list(): Promise<SourceFilesModel.Branch[]> {

@@ -136,7 +136,7 @@ export default class FileCommand {
   }
 
   defaultAction = async (command: Command) => {
-    command?.help();
+    command.help();
   };
 
   listAction = async (command: Command) => {

@@ -53,7 +53,7 @@ export default class ConfigCommand {
   }
 
   defaultAction = async (command: Command) => {
-    command?.help();
+    command.help();
   };
 
   listSourcesAction = async (command: Command) => {
