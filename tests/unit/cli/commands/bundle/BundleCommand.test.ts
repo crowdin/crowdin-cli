@@ -66,6 +66,11 @@ describe('BundleCommand', () => {
     exportPattern: '/%locale%/app.json',
     isMultilingual: false,
     includeProjectSourceLanguage: false,
+    includeInContextPseudoLanguage: false,
+    sourceLanguageExportPattern: '',
+    labelMatchRule: null,
+    excludeLabelMatchRule: null,
+    languageIds: null,
     labelIds: [],
     excludeLabelIds: [],
     createdAt: '',
@@ -410,7 +415,7 @@ describe('BundleCommand', () => {
 
       bundleService.get.mockResolvedValue(null);
 
-      await expect(cmd.downloadAction(createCommandContext(textOptions(), ['5']))).rejects.toMatchObject({
+      expect(cmd.downloadAction(createCommandContext(textOptions(), ['5']))).rejects.toMatchObject({
         message: "Couldn't find bundle by the specified ID",
         exitCode: 102,
       });

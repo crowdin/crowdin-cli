@@ -73,7 +73,7 @@ describe('StringCommand', () => {
     maxLength: 0,
     isHidden: false,
     isDuplicate: false,
-    masterStringId: false,
+    masterStringId: null,
     hasPlurals: false,
     isIcu: false,
     labelIds: [],

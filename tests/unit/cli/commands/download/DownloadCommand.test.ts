@@ -667,7 +667,7 @@ describe('DownloadCommand', () => {
 
       // A build failure (or any other build-step error, e.g. a transient 5xx) must propagate and
       // fail the process (#1102) instead of being swallowed into a warning with a 0 exit code.
-      await expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow('Translations build failed');
+      expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow('Translations build failed');
     });
   });
 
@@ -1472,7 +1472,7 @@ describe('DownloadCommand', () => {
       const errorSpy = spyOn(output, 'error');
 
       // globalOptions is json, so this takes the machine-format branch.
-      await expect(downloadCommand.translationsAction(commandContext)).rejects.toMatchObject({ exitCode: 103 });
+      expect(downloadCommand.translationsAction(commandContext)).rejects.toMatchObject({ exitCode: 103 });
       expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('manager or developer role'));
       expect(buildProject).not.toHaveBeenCalled();
     });

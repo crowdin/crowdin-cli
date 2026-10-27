@@ -351,7 +351,7 @@ describe('InitCommand', () => {
     };
 
     // @ts-expect-error - exercising the private promptForVerifiedToken
-    await expect(command.promptForVerifiedToken(undefined, output)).rejects.toThrow('Rate limit exceeded');
+    expect(command.promptForVerifiedToken(undefined, output)).rejects.toThrow('Rate limit exceeded');
     expect(tokenCall).toBe(1);
   });
 
@@ -366,6 +366,6 @@ describe('InitCommand', () => {
     // @ts-expect-error - exercising the private selectProject with a stub client
     const promise = command.selectProject(apiClient, { ...globalOptions }, createOutput(globalOptions));
 
-    await expect(promise).rejects.toThrow('No projects with manager access found');
+    expect(promise).rejects.toThrow('No projects with manager access found');
   });
 });

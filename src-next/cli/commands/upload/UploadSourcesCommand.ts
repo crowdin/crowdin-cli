@@ -176,7 +176,7 @@ export default class UploadSourcesCommand {
     );
     const projectFileContexts = new Map(projectFiles.data.map((file) => [file.data.id, file.data.context]));
     const projectFileExcludedLanguages = new Map(
-      projectFiles.data.map((file) => [file.data.id, file.data.excludedTargetLanguages]),
+      projectFiles.data.map((file) => [file.data.id, file.data.excludedTargetLanguages ?? undefined]),
     );
     const projectDirectoryList = isStringsBasedProject ? [] : await directoryService.loadProjectDirectories(branchId);
     const projectDirectories = new Map(

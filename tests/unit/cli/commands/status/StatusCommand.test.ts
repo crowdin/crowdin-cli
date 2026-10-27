@@ -168,7 +168,7 @@ describe('StatusCommand', () => {
       data: [createProgress('fr', 99, 100)],
     } as never);
 
-    await expect(
+    expect(
       statusCommand.translationStatusAction(createCommandContext({ ...globalOptions, failIfIncomplete: true })),
     ).rejects.toThrow(new CliError('The current project is incomplete'));
 
@@ -247,7 +247,7 @@ describe('StatusCommand', () => {
       data: [createProgress('fr', 99, 100)],
     } as never);
 
-    await expect(
+    expect(
       statusCommand.translationStatusAction(
         createCommandContext({ ...globalOptions, verbose: true, failIfIncomplete: true }),
       ),

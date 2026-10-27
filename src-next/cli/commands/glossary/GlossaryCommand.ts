@@ -149,7 +149,7 @@ export default class GlossaryCommand {
     const output = this.getOutput(command);
     const glossaryService = await this.getGlossaryService(command);
     const glossary = await glossaryService.get(id);
-    const to = options.to ?? `${toSafeFileName(glossary.name)}.${format ?? 'tbx'}`;
+    const to = options.to ?? `${toSafeFileName(glossary.name ?? `glossary-${glossary.id}`)}.${format ?? 'tbx'}`;
 
     const exportId = await glossaryService.export(glossary.id, format);
     const downloadUrl = await glossaryService.getDownloadUrl(glossary.id, exportId);
