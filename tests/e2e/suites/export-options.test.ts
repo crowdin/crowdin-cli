@@ -378,4 +378,114 @@ describe('export options', () => {
     expect(await Bun.file(join(ctx.workspace, 'translations/it/2_android.xml')).exists()).toBe(false);
     expect(await Bun.file(join(ctx.workspace, 'translations/uk/2_android.xml')).exists()).toBe(false);
   });
+
+  test('--no-skip-untranslated-strings overrides skip_untranslated_strings in config', async () => {
+    await clearDir(ctx.workspace, 'translations');
+    await switchConfig(ctx, 'skip-untranslated-strings');
+
+    const result = await ctx.runner.run(['download', 'translations', '--no-skip-untranslated-strings']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(normalize(result.stdout)).toMatchSnapshot();
+    // str2 is untranslated in uk, so the config alone would drop it.
+    expect(await Bun.file(join(ctx.workspace, 'translations/uk/2_android.xml')).text()).toContain('2_android.xml/str2');
+  });
+
+  test('--no-skip-untranslated-files overrides skip_untranslated_files in config', async () => {
+    await clearDir(ctx.workspace, 'translations');
+    await switchConfig(ctx, 'skip-untranslated-files');
+
+    const result = await ctx.runner.run(['download', 'translations', '--no-skip-untranslated-files']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(normalize(result.stdout)).toMatchSnapshot();
+    expect(await Bun.file(join(ctx.workspace, 'translations/it/2_android.xml')).exists()).toBe(true);
+    expect(await Bun.file(join(ctx.workspace, 'translations/uk/2_android.xml')).exists()).toBe(true);
+  });
+
+  test('--no-export-only-approved overrides export_only_approved in config', async () => {
+    await clearDir(ctx.workspace, 'translations');
+    await switchConfig(ctx, 'export-only-approved');
+
+    const result = await ctx.runner.run(['download', 'translations', '--no-export-only-approved']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(normalize(result.stdout)).toMatchSnapshot();
+    // The unapproved uk translation, which the config alone replaces with the source text.
+    expect(await Bun.file(join(ctx.workspace, 'translations/uk/2_android.xml')).text()).toContain('перша стрічка');
+  });
+
+  test('CLI flags override export options set to false in config', async () => {
+    await clearDir(ctx.workspace, 'translations');
+    await switchConfig(ctx, 'export-options-off');
+
+    const result = await ctx.runner.run([
+      'download',
+      'translations',
+      '--skip-untranslated-strings',
+      '--export-only-approved',
+    ]);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(normalize(result.stdout)).toMatchSnapshot();
+
+    await expectFilesMatch(
+      ctx.workspace,
+      'translations',
+      'expected/skip-strings-approved',
+      'it/1_android.xml',
+      'it/2_android.xml',
+      'uk/1_android.xml',
+      'uk/2_android.xml',
+    );
+  });
+
+  test('--skip-untranslated-files overrides skip_untranslated_files: false in config', async () => {
+    await clearDir(ctx.workspace, 'translations');
+    await switchConfig(ctx, 'export-options-off');
+
+    const result = await ctx.runner.run(['download', 'translations', '--skip-untranslated-files']);
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(normalize(result.stdout)).toMatchSnapshot();
+
+    await expectFilesMatch(
+      ctx.workspace,
+      'translations',
+      'expected/skip-files',
+      'it/1_android.xml',
+      'uk/1_android.xml',
+    );
+    expect(await Bun.file(join(ctx.workspace, 'translations/uk/2_android.xml')).exists()).toBe(false);
+  });
+
+  test('--no-skip-untranslated-strings overrides the project export setting', async () => {
+    await clearDir(ctx.workspace, 'translations');
+    await restoreConfig(ctx);
+    await ctx.client.projectsGroupsApi.editProject(ctx.project.id, [
+      { op: 'replace', path: '/skipUntranslatedStrings', value: true },
+    ]);
+
+    try {
+      const projectOnly = await ctx.runner.run(['download', 'translations']);
+
+      expect(projectOnly).toMatchObject({ exitCode: 0 });
+      expect(await Bun.file(join(ctx.workspace, 'translations/uk/2_android.xml')).text()).not.toContain(
+        '2_android.xml/str2',
+      );
+
+      await clearDir(ctx.workspace, 'translations');
+      const result = await ctx.runner.run(['download', 'translations', '--no-skip-untranslated-strings']);
+
+      expect(result).toMatchObject({ exitCode: 0 });
+      expect(normalize(result.stdout)).toMatchSnapshot();
+      expect(await Bun.file(join(ctx.workspace, 'translations/uk/2_android.xml')).text()).toContain(
+        '2_android.xml/str2',
+      );
+    } finally {
+      await ctx.client.projectsGroupsApi.editProject(ctx.project.id, [
+        { op: 'replace', path: '/skipUntranslatedStrings', value: false },
+      ]);
+    }
+  });
 });

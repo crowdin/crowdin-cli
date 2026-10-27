@@ -1,0 +1,13 @@
+project_id: "{{projectId}}"
+api_token: "{{token}}"
+
+base_path: "."
+base_url: "{{baseUrl}}"
+preserve_hierarchy: false
+
+files:
+  - source: "/sources/*.xml"
+    translation: "/translations/%two_letters_code%/%original_file_name%"
+    skip_untranslated_strings: false
+    skip_untranslated_files: false
+    export_only_approved: false

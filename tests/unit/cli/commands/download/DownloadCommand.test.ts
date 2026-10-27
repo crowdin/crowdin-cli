@@ -1205,7 +1205,7 @@ describe('DownloadCommand', () => {
       expect(apiClient.translationsApi.buildProject).toHaveBeenCalledWith(123, {});
     });
 
-    test('ignores export_only_approved: false on enterprise, which cannot force approvals off', async () => {
+    test('maps export_only_approved: false to zero required approvals on enterprise', async () => {
       spyOn(projectService, 'isEnterprise').mockReturnValue(true);
       await Bun.write(join(tempDir, 'resources/en/messages.json'), '{}');
       mockBuildAndDownload([language('fr', 'fr-FR')]);
@@ -1224,7 +1224,7 @@ describe('DownloadCommand', () => {
 
       await downloadCommand.translationsAction(commandContext);
 
-      expect(apiClient.translationsApi.buildProject).toHaveBeenCalledWith(123, {});
+      expect(apiClient.translationsApi.buildProject).toHaveBeenCalledWith(123, { exportWithMinApprovalsCount: 0 });
     });
 
     test('maps export_only_approved to exportWithMinApprovalsCount on enterprise', async () => {
@@ -1329,6 +1329,117 @@ describe('DownloadCommand', () => {
       expect(apiClient.translationsApi.buildProject).toHaveBeenCalledTimes(1);
       expect(apiClient.translationsApi.buildProject).toHaveBeenCalledWith(123, { skipUntranslatedFiles: true });
     });
+
+    test('--no- CLI flags override per-file config set to true', async () => {
+      await Bun.write(join(tempDir, 'resources/en/messages.json'), '{}');
+      mockBuildAndDownload([language('fr', 'fr-FR')]);
+      mockZipEntries([{ entryName: 'resources/fr-FR/messages.json', content: 'translated' }]);
+
+      commandContext = createCommandContext({
+        ...globalOptions,
+        skipUntranslatedStrings: false,
+        skipUntranslatedFiles: false,
+        exportOnlyApproved: false,
+      });
+
+      const downloadCommand = createCommandFor({
+        ...config,
+        files: [
+          {
+            source: '/resources/en/*.json',
+            translation: '/resources/%locale%/%original_file_name%',
+            skip_untranslated_strings: true,
+            export_only_approved: true,
+          },
+        ],
+      });
+
+      await downloadCommand.translationsAction(commandContext);
+
+      expect(apiClient.translationsApi.buildProject).toHaveBeenCalledWith(123, {
+        skipUntranslatedStrings: false,
+        skipUntranslatedFiles: false,
+        exportApprovedOnly: false,
+      });
+    });
+
+    test('CLI flags override per-file config set to false', async () => {
+      await Bun.write(join(tempDir, 'resources/en/messages.json'), '{}');
+      mockBuildAndDownload([language('fr', 'fr-FR')]);
+      mockZipEntries([{ entryName: 'resources/fr-FR/messages.json', content: 'translated' }]);
+
+      commandContext = createCommandContext({
+        ...globalOptions,
+        skipUntranslatedFiles: true,
+        exportOnlyApproved: true,
+      });
+
+      const downloadCommand = createCommandFor({
+        ...config,
+        files: [
+          {
+            source: '/resources/en/*.json',
+            translation: '/resources/%locale%/%original_file_name%',
+            skip_untranslated_files: false,
+            export_only_approved: false,
+          },
+        ],
+      });
+
+      await downloadCommand.translationsAction(commandContext);
+
+      expect(apiClient.translationsApi.buildProject).toHaveBeenCalledWith(123, {
+        skipUntranslatedFiles: true,
+        exportApprovedOnly: true,
+      });
+    });
+
+    test('--no-export-only-approved sends zero required approvals on enterprise', async () => {
+      spyOn(projectService, 'isEnterprise').mockReturnValue(true);
+      await Bun.write(join(tempDir, 'resources/en/messages.json'), '{}');
+      mockBuildAndDownload([language('fr', 'fr-FR')]);
+      mockZipEntries([{ entryName: 'resources/fr-FR/messages.json', content: 'translated' }]);
+
+      commandContext = createCommandContext({ ...globalOptions, exportOnlyApproved: false });
+
+      const downloadCommand = createCommandFor({
+        ...config,
+        files: [
+          {
+            source: '/resources/en/*.json',
+            translation: '/resources/%locale%/%original_file_name%',
+            export_only_approved: true,
+          },
+        ],
+      });
+
+      await downloadCommand.translationsAction(commandContext);
+
+      expect(apiClient.translationsApi.buildProject).toHaveBeenCalledWith(123, { exportWithMinApprovalsCount: 0 });
+    });
+
+    test('rejects a CLI skip flag that conflicts with the opposite skip option in config', async () => {
+      await Bun.write(join(tempDir, 'resources/en/messages.json'), '{}');
+      mockBuildAndDownload([language('fr', 'fr-FR')]);
+
+      commandContext = createCommandContext({ ...globalOptions, skipUntranslatedStrings: true });
+
+      const downloadCommand = createCommandFor({
+        ...config,
+        files: [
+          {
+            source: '/resources/en/*.json',
+            translation: '/resources/%locale%/%original_file_name%',
+            skip_untranslated_files: true,
+          },
+        ],
+      });
+
+      expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow(
+        'You cannot skip strings and files at the same time. Please use one of these parameters instead.',
+      );
+      expect(apiClient.translationsApi.buildProject).not.toHaveBeenCalled();
+    });
   });
 
   describe('translations validations', () => {
@@ -1388,6 +1499,27 @@ describe('DownloadCommand', () => {
       await downloadCommand.translationsAction(commandContext);
 
       expect(warningSpy).toHaveBeenCalledWith(expect.stringContaining("Couldn't find any file to download"));
+    });
+
+    test('errors on no files when --no-skip-untranslated-files overrides the project setting', async () => {
+      const downloadCommand = createDownloadCommand();
+      const buildId = 999;
+
+      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
+        data: { id: 123, languageMapping: {}, targetLanguages: [{ id: 'fr' }], skipUntranslatedFiles: true },
+      } as never);
+      spyOn(apiClient.translationsApi, 'buildProject').mockResolvedValue({
+        data: { id: buildId, status: 'finished', progress: 100 },
+      } as never);
+      spyOn(apiClient.translationsApi, 'checkBuildStatus').mockResolvedValue({
+        data: { id: buildId, status: 'finished', progress: 100 },
+      } as never);
+      spyOn(translationService, 'getTranslationDownloadUrl').mockResolvedValue('https://example.test/translations.zip');
+      respondWithZip();
+
+      commandContext = createCommandContext({ ...globalOptions, skipUntranslatedFiles: false });
+
+      expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow("Couldn't find any file to download");
     });
   });
 
