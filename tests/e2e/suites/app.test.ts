@@ -179,6 +179,19 @@ describe('app', () => {
     expectFailure(result, 102, `Application '${INSTALLABLE_IDENTIFIER}' does not declare 'GET anything'`);
   });
 
+  test('refuses --wait before sending when the app declares no job-info', async () => {
+    const result = await ctx.runner.run([
+      'app',
+      'api',
+      INSTALLABLE_IDENTIFIER,
+      'anything',
+      '-F',
+      'projectId=1',
+      '--wait',
+    ]);
+    expectFailure(result, 1, `Application '${INSTALLABLE_IDENTIFIER}' declares no GET job-info; --wait needs it`);
+  });
+
   test('uninstalls the application again', async () => {
     const result = await ctx.runner.run(['app', 'uninstall', INSTALLABLE_IDENTIFIER]);
 
@@ -229,6 +242,11 @@ describe('app', () => {
     });
   });
 
+  test('requires a jobId to wait on job-info', async () => {
+    const result = await ctx.runner.run(['app', 'api', UNKNOWN_IDENTIFIER, 'job-info', '-F', 'projectId=12', '--wait']);
+    expectFailure(result, 2, '--wait on job-info needs a jobId');
+  });
+
   describe.if(Boolean(FRAMEWORK_APP))('framework app', () => {
     const app = FRAMEWORK_APP ?? '';
 
@@ -253,6 +271,38 @@ describe('app', () => {
     test("passes the app's own error through", async () => {
       const result = await ctx.runner.run(['app', 'api', app, 'settings']);
       expectFailure(result, 1, 'Missing required parameter: projectId');
+    });
+
+    test('passes the error of a job it never started through without waiting', async () => {
+      const result = await ctx.runner.run([
+        'app',
+        'api',
+        app,
+        'crowdin-update',
+        '-X',
+        'POST',
+        '-F',
+        'projectId=1',
+        '--wait',
+      ]);
+
+      expectFailure(result, 103, 'Access denied');
+      expect(result.stdout).not.toContain('Waiting for job');
+    });
+
+    test("passes the app's error through on a resumed wait", async () => {
+      const result = await ctx.runner.run([
+        'app',
+        'api',
+        app,
+        'job-info',
+        '-F',
+        'projectId=1',
+        '-f',
+        'jobId=0',
+        '--wait',
+      ]);
+      expectFailure(result, 103, 'Access denied');
     });
   });
 

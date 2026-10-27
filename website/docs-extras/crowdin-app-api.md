@@ -18,6 +18,18 @@ Send a request body from a file:
 crowdin app api zendesk-guide integration-update --input body.json
 ```
 
+Import files and wait for the job to end:
+
+```bash
+crowdin app api zendesk-guide crowdin-update --input body.json --wait
+```
+
+Wait for a job started earlier:
+
+```bash
+crowdin app api zendesk-guide job-info -F projectId=12 -f jobId=067d… --wait
+```
+
 Cancel a job:
 
 ```bash
@@ -38,4 +50,8 @@ crowdin app api zendesk-guide 'job-info?projectId=12&jobId=067d…' --dryrun
 - A key ending in `[]` collects its values into an array. Giving a plain key twice is an error.
 - Put `-f` and `-F` after `<identifier> <path>`. A field flag takes every following word up to the next option as a value, so a path written after it would be read as a field.
 - The result is the application's JSON response. Errors returned by the application are printed with its own message.
+- `--wait` needs `projectId` in the request, and an app that declares `GET job-info`. It polls `job-info` every 3 seconds and prints the final job record.
+- A failed or canceled job exits with code 1 after printing its record. The wait also gives up after an hour without progress.
+- Interrupting the wait does not cancel the job. Resume with `job-info … --wait`, or cancel it with `DELETE jobs`.
+- Machine formats print nothing until the job ends. To keep the `jobId` in hand, send the request without `--wait`, then wait with `job-info … --wait`.
 - The token needs the `application.proxy` scope.

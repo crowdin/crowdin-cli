@@ -5,14 +5,16 @@ import CliError from '@/cli/errors/CliError.ts';
 import NotFoundError from '@/cli/errors/NotFoundError.ts';
 import ValidationError from '@/cli/errors/ValidationError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { AppService } from '@/cli/services/AppService.ts';
+import type { ApiRequest, AppService } from '@/cli/services/AppService.ts';
 import type { GetAppService, GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import type { Output } from '@/cli/utils/output.ts';
+import { withSpinner } from '@/cli/utils/withSpinner.ts';
 import { type ApiMethod, findMethodsByPath, joinVerbs } from '@/lib/apps/manifest.ts';
 import { describeOperation, type MethodDescription, specUrlFromDocsUrl } from '@/lib/apps/openapi.ts';
+import { isRecord } from '@/lib/utils/record.ts';
 import { parseFields } from './fields.ts';
-import { field, force, input, method, typedField } from './options.ts';
+import { field, force, input, method, typedField, wait } from './options.ts';
 import { buildApiRequest, parseHttpMethod } from './request.ts';
 import {
   appVerboseView,
@@ -38,7 +40,18 @@ interface ApiOptions extends GlobalOptions {
   typedField?: string[];
   input?: string;
   dryrun?: boolean;
+  wait?: boolean;
 }
+
+interface Job {
+  app: string;
+  projectId: string;
+  jobId: string;
+}
+
+const JOB_POLL_INTERVAL = 3000;
+const JOB_IDLE_HOURS = 1;
+const TERMINAL_JOB_STATUSES = ['finished', 'failed', 'canceled'];
 
 const identifierArgument = {
   name: 'identifier',
@@ -93,7 +106,7 @@ export default class AppCommand {
             identifierArgument,
             { name: 'path', description: 'API method path, optionally with a query string' },
           ],
-          options: [method, field, typedField, input, dryRun, baseConfigGroup],
+          options: [method, field, typedField, input, wait, dryRun, baseConfigGroup],
           action: this.apiAction,
         },
       ],
@@ -197,16 +210,40 @@ export default class AppCommand {
       return;
     }
 
+    const target = options.wait ? this.jobTarget(request) : undefined;
+
+    if (target && target.jobId === undefined) {
+      await this.ensureJobInfo(appService, app);
+    }
+
     output.debug(`${request.method} ${url}`);
 
     const result = await appService.callApi(app, request);
 
-    if (result === undefined) {
-      output.success('Request completed with no content');
+    if (!target) {
+      this.printResult(output, result);
       return;
     }
 
-    output.item(result, rawJsonView, { mark: false });
+    const jobId = target.jobId ?? this.responseJobId(result);
+
+    if (jobId === undefined) {
+      this.printResult(output, result);
+      output.warning('Response has no jobId; nothing to wait for');
+      return;
+    }
+
+    const job = { app, projectId: target.projectId, jobId };
+    // In resume mode the user's own job-info call already returned the record.
+    const record = await this.waitForJob(output, appService, job, target.jobId === undefined ? undefined : result);
+
+    this.printResult(output, record);
+
+    const failure = this.jobFailure(job, record);
+
+    if (failure) {
+      throw new CliError(failure);
+    }
   };
 
   private selectMethod(app: string, methods: ApiMethod[], path: string, verb: string | undefined): ApiMethod {
@@ -262,6 +299,150 @@ export default class AppCommand {
     }
 
     return fallback;
+  }
+
+  private printResult(output: Output, result: unknown) {
+    if (result === undefined) {
+      output.success('Request completed with no content');
+      return;
+    }
+
+    output.item(result, rawJsonView, { mark: false });
+  }
+
+  // Validated before sending, so a request that would start a job never starts one we can't wait on.
+  private jobTarget(request: ApiRequest): { projectId: string; jobId?: string } {
+    const query = new URLSearchParams(request.query);
+    const body = isRecord(request.body) ? request.body : {};
+    const read = (key: string) => query.get(key) ?? this.scalar(body[key]);
+    const projectId = read('projectId');
+
+    if (!projectId || !/^[1-9]\d*$/.test(projectId)) {
+      throw new ValidationError('--wait needs a positive integer projectId in the request body or query');
+    }
+
+    if (request.method !== 'GET' || request.path !== 'job-info') {
+      return { projectId };
+    }
+
+    const jobId = read('jobId');
+
+    if (!jobId) {
+      throw new ValidationError('--wait on job-info needs a jobId');
+    }
+
+    return { projectId, jobId };
+  }
+
+  private async ensureJobInfo(appService: AppService, app: string) {
+    const methods = findMethodsByPath(await appService.listMethods(app), 'job-info');
+
+    if (!methods.some((declared) => declared.method === 'GET')) {
+      throw new CliError(`Application '${app}' declares no GET job-info; --wait needs it`);
+    }
+  }
+
+  private responseJobId(result: unknown): string | undefined {
+    return isRecord(result) ? this.scalar(result.jobId) || undefined : undefined;
+  }
+
+  private scalar(value: unknown): string | undefined {
+    return typeof value === 'string' || typeof value === 'number' ? String(value) : undefined;
+  }
+
+  private async waitForJob(output: Output, appService: AppService, job: Job, first: unknown): Promise<unknown> {
+    const request: ApiRequest = {
+      method: 'GET',
+      path: 'job-info',
+      query: new URLSearchParams({ projectId: job.projectId, jobId: job.jobId }).toString(),
+      body: undefined,
+    };
+    const poll = async () => {
+      try {
+        return await appService.callApi(job.app, request);
+      } catch (error) {
+        throw new CliError(
+          `${CliError.getErrorMessage(error)}. The job may still be running. ${this.resumeHint(job)}`,
+          CliError.getExitCode(error),
+        );
+      }
+    };
+
+    return await withSpinner(
+      output,
+      'appJob',
+      {
+        start: `Waiting for job ${job.jobId}`,
+        stop: (record) => `Job ${job.jobId} ${this.jobStatus(record) ?? 'returned no status'}`,
+        fail: `Failed to wait for job ${job.jobId}`,
+      },
+      async () => {
+        const report = (record: unknown) => {
+          if (this.isRunning(record)) {
+            output.spinner('appJob', 'message', `Job ${job.jobId}: ${this.jobState(record)}`);
+          }
+        };
+        let record = first === undefined ? await poll() : first;
+        let state = this.jobState(record);
+        let changedAt = Date.now();
+
+        report(record);
+
+        // Idle, not total: a long job that keeps progressing is worth waiting for.
+        while (this.isRunning(record) && Date.now() - changedAt < JOB_IDLE_HOURS * 3_600_000) {
+          await Bun.sleep(JOB_POLL_INTERVAL);
+          record = await poll();
+
+          if (this.jobState(record) !== state) {
+            state = this.jobState(record);
+            changedAt = Date.now();
+            report(record);
+          }
+        }
+
+        return record;
+      },
+    );
+  }
+
+  private jobFailure(job: Job, record: unknown): string | undefined {
+    const status = this.jobStatus(record);
+    const info = isRecord(record) && typeof record.info === 'string' && record.info ? `: ${record.info}` : '';
+
+    if (status === undefined) {
+      return `job-info returned no job status for job '${job.jobId}'`;
+    }
+
+    switch (status.toLowerCase()) {
+      case 'finished':
+        return undefined;
+      case 'failed':
+        return `Job '${job.jobId}' failed${info}`;
+      case 'canceled':
+        return `Job '${job.jobId}' was canceled${info}`;
+      default:
+        return `Job '${job.jobId}' has not progressed for ${JOB_IDLE_HOURS} h (still ${this.jobState(record)}). ${this.resumeHint(job)}`;
+    }
+  }
+
+  private isRunning(record: unknown): boolean {
+    const status = this.jobStatus(record);
+    return status !== undefined && !TERMINAL_JOB_STATUSES.includes(status.toLowerCase());
+  }
+
+  private jobStatus(record: unknown): string | undefined {
+    return isRecord(record) && typeof record.status === 'string' ? record.status : undefined;
+  }
+
+  private jobState(record: unknown): string {
+    const progress = isRecord(record) && typeof record.progress === 'number' ? `, ${record.progress}%` : '';
+    return `${this.jobStatus(record)}${progress}`;
+  }
+
+  // The jobId can come from the app's response, and the hint is meant to be pasted into a shell.
+  private resumeHint({ app, projectId, jobId }: Job): string {
+    const quoted = `'jobId=${jobId.replaceAll("'", `'\\''`)}'`;
+    return `Resume with: crowdin app api ${app} job-info -F projectId=${projectId} -f ${quoted} --wait`;
   }
 
   private readJsonInput(source: string): unknown {
