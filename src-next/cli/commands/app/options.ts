@@ -29,6 +29,12 @@ export const typedField: OptionDef = {
   description: 'Add a field as key=value, converting true, false, null and integers, and reading @file',
 };
 
+export const wait: OptionDef = {
+  name: 'wait',
+  type: 'boolean',
+  description: 'Wait for the job the request starts, or the job-info request names, to end',
+};
+
 export const input: OptionDef = {
   name: 'input',
   type: 'string',

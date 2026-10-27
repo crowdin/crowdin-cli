@@ -7,6 +7,7 @@ import type { Command } from 'commander';
 import { buildCommand } from '@/cli/builder.ts';
 import AppCommand from '@/cli/commands/app/AppCommand.ts';
 import CliError, { ExitCode } from '@/cli/errors/CliError.ts';
+import NotFoundError from '@/cli/errors/NotFoundError.ts';
 import ValidationError from '@/cli/errors/ValidationError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { AppService } from '@/cli/services/AppService.ts';
@@ -649,6 +650,216 @@ describe('AppCommand', () => {
       await createAppCommand().apiAction(createCommandContext(withOutput('json', { dryrun: true }), ['z', 'settings']));
 
       expect(JSON.parse(printed())).toMatchObject({ method: 'GET', body: null });
+    });
+
+    describe('--wait', () => {
+      const jobInfo = { method: 'GET', path: 'job-info', query: 'projectId=12&jobId=j1', body: undefined };
+      const wait = (extra: Record<string, unknown>, args: string[] = ['z', 'crowdin-update']) =>
+        createAppCommand().apiAction(createCommandContext(withOutput('json', { wait: true, ...extra }), args));
+      const start = (extra: Record<string, unknown> = {}) =>
+        wait({ method: 'POST', typedField: ['projectId=12'], ...extra });
+      const resume = (fields = ['projectId=12', 'jobId=j1']) => wait({ field: fields }, ['z', 'job-info']);
+      const responses = (...values: unknown[]) => {
+        for (const value of values) {
+          appService.callApi.mockResolvedValueOnce(value);
+        }
+      };
+
+      beforeEach(() => {
+        appService.listMethods.mockResolvedValue(
+          parseApiMethods(
+            { modules: { api: [...zendeskManifest.modules.api, { key: 'job', url: '/job-info', method: 'GET' }] } },
+            BASE_URL,
+          ),
+        );
+        spyOn(Bun, 'sleep').mockResolvedValue(undefined);
+      });
+
+      test('starts a job and prints its final record', async () => {
+        const finished = { id: 'j1', status: 'Finished', progress: 100, data: { synced: 2 } };
+        responses({ jobId: 'j1' }, { status: 'inProgress', progress: 40 }, finished);
+
+        await start();
+
+        expect(appService.callApi.mock.calls.map(([, request]) => request)).toEqual([
+          expect.objectContaining({ method: 'POST', path: 'crowdin-update' }),
+          jobInfo,
+          jobInfo,
+        ]);
+        expect(Bun.sleep).toHaveBeenCalledTimes(1);
+        expect(JSON.parse(printed())).toEqual(finished);
+      });
+
+      test('reports progress while the job runs, and its end once', async () => {
+        responses(
+          { jobId: 'j1' },
+          { status: 'inProgress', progress: 40 },
+          { status: 'inProgress', progress: 40 },
+          { status: 'inProgress', progress: 70 },
+          { status: 'finished', progress: 100 },
+        );
+
+        await createAppCommand().apiAction(
+          createCommandContext(withOutput('text', { wait: true, method: 'POST', typedField: ['projectId=12'] }), [
+            'z',
+            'crowdin-update',
+          ]),
+        );
+
+        const lines = printed().split('\n');
+        expect(lines.filter((line) => line.includes(' j1'))).toEqual([
+          expect.stringContaining('Waiting for job j1'),
+          expect.stringContaining('Job j1: inProgress, 40%'),
+          expect.stringContaining('Job j1: inProgress, 70%'),
+          expect.stringContaining('Job j1 finished'),
+        ]);
+      });
+
+      test('quotes a jobId from the response in the resume hint', async () => {
+        responses({ jobId: "it's; rm" });
+        appService.callApi.mockRejectedValueOnce(new CliError('offline'));
+
+        expect(start()).rejects.toThrow(
+          new CliError(
+            "offline. The job may still be running. Resume with: crowdin app api z job-info -F projectId=12 -f 'jobId=it'\\''s; rm' --wait",
+          ),
+        );
+      });
+
+      test('prints a failed job before failing with its info', async () => {
+        responses({ jobId: 'j1' }, { status: 'failed', info: 'Token expired', data: { synced: 1 } });
+
+        expect(start()).rejects.toMatchObject({
+          message: "Job 'j1' failed: Token expired",
+          exitCode: ExitCode.GENERIC,
+        });
+        expect(JSON.parse(printed())).toMatchObject({ status: 'failed', data: { synced: 1 } });
+      });
+
+      test('fails on a canceled job', async () => {
+        responses({ jobId: 'j1' }, { status: 'canceled', info: null });
+
+        expect(start()).rejects.toThrow(new CliError("Job 'j1' was canceled"));
+      });
+
+      test('fails on a record without a status', async () => {
+        responses({ jobId: 'j1' }, {});
+
+        expect(start()).rejects.toThrow(new CliError("job-info returned no job status for job 'j1'"));
+      });
+
+      test('rejects an app without GET job-info before sending', async () => {
+        appService.listMethods.mockResolvedValue(parseApiMethods(zendeskManifest, BASE_URL));
+
+        expect(start()).rejects.toThrow(new CliError("Application 'z' declares no GET job-info; --wait needs it"));
+        expect(appService.callApi).not.toHaveBeenCalled();
+      });
+
+      test('warns and succeeds when the response has no jobId', async () => {
+        const stderr = spyOn(process.stderr, 'write').mockImplementation(() => true);
+        responses({ synced: true });
+
+        await start();
+
+        expect(JSON.parse(printed())).toEqual({ synced: true });
+        expect(stderr).toHaveBeenCalledWith(
+          `${JSON.stringify({ level: 'warning', message: 'Response has no jobId; nothing to wait for' })}\n`,
+        );
+        expect(appService.callApi).toHaveBeenCalledTimes(1);
+      });
+
+      test('takes projectId from the --input body', async () => {
+        responses({ jobId: 'j1' }, { status: 'finished' });
+
+        await wait({ input: inputFile('{"projectId":"12","files":[]}') }, ['z', 'integration-update']);
+
+        expect(appService.callApi).toHaveBeenLastCalledWith('z', jobInfo);
+      });
+
+      test('prefers the query projectId over the body', async () => {
+        responses({ jobId: 'j1' }, { status: 'finished' });
+
+        await wait({ input: inputFile('{"projectId":99}') }, ['z', 'crowdin-update?projectId=12']);
+
+        expect(appService.callApi).toHaveBeenLastCalledWith('z', jobInfo);
+      });
+
+      test.each([[[]], [['projectId=abc']], [['projectId=0']]])('rejects the fields %p', async (typedField) => {
+        expect(start({ typedField })).rejects.toMatchObject({
+          message: '--wait needs a positive integer projectId in the request body or query',
+          exitCode: ExitCode.VALIDATION,
+        });
+        expect(appService.listMethods).not.toHaveBeenCalled();
+        expect(appService.callApi).not.toHaveBeenCalled();
+      });
+
+      test('resumes from the job-info response without a manifest check', async () => {
+        responses({ status: 'inProgress', progress: 5 }, { status: 'finished', progress: 100 });
+
+        await resume();
+
+        expect(appService.listMethods).not.toHaveBeenCalled();
+        expect(appService.callApi).toHaveBeenCalledTimes(2);
+        expect(appService.callApi).toHaveBeenLastCalledWith('z', jobInfo);
+        expect(JSON.parse(printed())).toEqual({ status: 'finished', progress: 100 });
+      });
+
+      test('does not poll a job that already ended', async () => {
+        responses({ status: 'finished' });
+
+        await resume();
+
+        expect(appService.callApi).toHaveBeenCalledTimes(1);
+        expect(Bun.sleep).not.toHaveBeenCalled();
+      });
+
+      test('requires a jobId to resume', async () => {
+        expect(resume(['projectId=12'])).rejects.toMatchObject({
+          message: '--wait on job-info needs a jobId',
+          exitCode: ExitCode.VALIDATION,
+        });
+        expect(appService.callApi).not.toHaveBeenCalled();
+      });
+
+      test('gives up after 1 h without progress, and keeps waiting while it moves', async () => {
+        const minute = 60_000;
+        // Progress at 50 min; still waiting at 100 min (over 1 h in total); 70 min idle at 120 min.
+        const clock = [0, 0, 50 * minute, 100 * minute, 120 * minute];
+        spyOn(Date, 'now').mockImplementation(() => clock.shift() ?? 120 * minute);
+        responses(
+          { status: 'inProgress', progress: 10 },
+          { status: 'inProgress', progress: 20 },
+          { status: 'inProgress', progress: 20 },
+        );
+
+        expect(resume()).rejects.toThrow(
+          new CliError(
+            "Job 'j1' has not progressed for 1 h (still inProgress, 20%). " +
+              "Resume with: crowdin app api z job-info -F projectId=12 -f 'jobId=j1' --wait",
+          ),
+        );
+        expect(appService.callApi).toHaveBeenCalledTimes(3);
+        expect(JSON.parse(printed())).toEqual({ status: 'inProgress', progress: 20 });
+      });
+
+      test('keeps the exit code of a failed poll and adds a resume hint', async () => {
+        responses({ jobId: 'j1' });
+        appService.callApi.mockRejectedValueOnce(new NotFoundError("'z' returned 404: Job not found"));
+
+        expect(start()).rejects.toMatchObject({
+          message:
+            "'z' returned 404: Job not found. The job may still be running. " +
+            "Resume with: crowdin app api z job-info -F projectId=12 -f 'jobId=j1' --wait",
+          exitCode: ExitCode.NOT_FOUND,
+        });
+      });
+
+      test('sends nothing on --dryrun', async () => {
+        await start({ dryrun: true, typedField: [] });
+
+        expect(appService.listMethods).not.toHaveBeenCalled();
+        expect(appService.callApi).not.toHaveBeenCalled();
+      });
     });
   });
 
