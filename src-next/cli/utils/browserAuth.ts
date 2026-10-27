@@ -2,6 +2,7 @@ import { decodeJwt } from 'jose';
 import CliError from '@/cli/errors/CliError.ts';
 import { openUrl } from './open.ts';
 import type { Output } from './output.ts';
+import { withSpinner } from './withSpinner.ts';
 
 const CROWDIN_OAUTH_CLIENT_ID = 'wQEqvhU3vLOa2XicmUyT';
 const CROWDIN_OAUTH_HOST = 'localhost';
@@ -114,15 +115,14 @@ export async function authorizeViaBrowser(output: Output): Promise<BrowserAuthor
     output.warning(`Error opening a web browser. Please open the following link manually:\n${authorizationUrl}`);
   }
 
-  output.spinner('browserAuth', 'start', 'Waiting for authorization in browser...');
-
-  try {
-    const result = await authorization;
-    output.spinner('browserAuth', 'stop', 'Browser authorization finished successfully');
-
-    return result;
-  } catch (error) {
-    output.spinner('browserAuth', 'error', 'Browser authorization failed');
-    throw error;
-  }
+  return await withSpinner(
+    output,
+    'browserAuth',
+    {
+      start: 'Waiting for authorization in browser...',
+      stop: 'Browser authorization finished successfully',
+      fail: 'Browser authorization failed',
+    },
+    () => authorization,
+  );
 }

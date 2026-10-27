@@ -1,7 +1,6 @@
 import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import CliError from '@/cli/errors/CliError.ts';
-import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
@@ -9,6 +8,7 @@ import { authorizeViaBrowser, type BrowserAuthorization } from '@/cli/utils/brow
 import { isMachineFormat } from '@/cli/utils/formatter.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import { buildUserAgent } from '@/cli/utils/userAgent.ts';
+import { withSpinner } from '@/cli/utils/withSpinner.ts';
 import { DEFAULT_IDENTITY_FILE, getIdentityFilePath, saveCredentials } from '@/lib/identityFiles.ts';
 import { buildCredentials } from '@/lib/organization/credentials.ts';
 import { loginView } from './views.ts';
@@ -69,17 +69,15 @@ export default class LoginCommand {
   private async getAuthorizedUser(apiToken: string, url: string, output: Output) {
     const client = new Client(buildCredentials(apiToken, url), { userAgent: buildUserAgent() });
 
-    output.spinner('authorization', 'start', 'Authorizing...');
-
-    try {
-      const user = await client.usersApi.getAuthenticatedUser();
-
-      output.spinner('authorization', 'stop', `Authorized as ${user.data.username}`);
-
-      return user;
-    } catch (error) {
-      output.spinner('authorization', 'error', 'Authorization failed');
-      throw toCliError(error, 'Authorization failed');
-    }
+    return await withSpinner(
+      output,
+      'authorization',
+      {
+        start: 'Authorizing...',
+        stop: (user) => `Authorized as ${user.data.username}`,
+        fail: 'Authorization failed',
+      },
+      () => client.usersApi.getAuthenticatedUser(),
+    );
   }
 }

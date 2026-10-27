@@ -7,6 +7,7 @@ import type { BranchService } from '@/cli/services/BranchService.ts';
 import type { GetBranchService, GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { normalizeBranchName } from '@/cli/utils/parsing.ts';
+import { withSpinner } from '@/cli/utils/withSpinner.ts';
 import { add, edit, merge } from './options.ts';
 import { branchView, mergeView } from './views.ts';
 
@@ -235,20 +236,19 @@ export default class BranchCommand {
       ...(target !== targetName ? { title: target } : {}),
     };
 
-    output.spinner('branch-clone', 'start', 'Cloning branch');
-
-    let clonedBranch: SourceFilesModel.Branch;
-
-    try {
-      clonedBranch = await branchService.cloneBranch(sourceBranch.id, request, (progress) =>
-        output.spinner('branch-clone', 'message', `Cloning branch (${progress}%)`),
-      );
-
-      output.spinner('branch-clone', 'stop', 'Cloning branch (100%)');
-    } catch (error) {
-      output.spinner('branch-clone', 'error', 'Failed to clone the branch');
-      throw error;
-    }
+    const clonedBranch = await withSpinner(
+      output,
+      'branchClone',
+      {
+        start: 'Cloning branch',
+        stop: 'Cloning branch (100%)',
+        fail: 'Failed to clone the branch',
+      },
+      () =>
+        branchService.cloneBranch(sourceBranch.id, request, (progress) =>
+          output.spinner('branchClone', 'message', `Cloning branch (${progress}%)`),
+        ),
+    );
 
     output.item(clonedBranch, branchView);
   };
@@ -275,20 +275,19 @@ export default class BranchCommand {
       dryRun: Boolean(options.dryrun),
     };
 
-    output.spinner('branch-merge', 'start', 'Merging branch');
-
-    let summary: SourceFilesModel.MergeBranchSummary;
-
-    try {
-      summary = await branchService.mergeBranch(targetBranch.id, request, (progress) =>
-        output.spinner('branch-merge', 'message', `Merging branch (${progress}%)`),
-      );
-
-      output.spinner('branch-merge', 'stop', 'Merging branch (100%)');
-    } catch (error) {
-      output.spinner('branch-merge', 'error', 'Failed to merge the branch');
-      throw error;
-    }
+    const summary = await withSpinner(
+      output,
+      'branchMerge',
+      {
+        start: 'Merging branch',
+        stop: 'Merging branch (100%)',
+        fail: 'Failed to merge the branch',
+      },
+      () =>
+        branchService.mergeBranch(targetBranch.id, request, (progress) =>
+          output.spinner('branchMerge', 'message', `Merging branch (${progress}%)`),
+        ),
+    );
 
     output.item({ targetBranchId: summary.targetBranchId, ...summary.details }, mergeView(source, target));
   };

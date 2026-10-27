@@ -93,7 +93,7 @@ describe('browserAuth', () => {
       await fetch(`${CALLBACK_URL}?error=access_denied`);
 
       expect(authorization).rejects.toThrow('access_denied');
-      expect(spinner).toHaveBeenLastCalledWith('browserAuth', 'error', 'Browser authorization failed');
+      expect(spinner).toHaveBeenLastCalledWith('browserAuth', 'error', 'Browser authorization failed. access_denied');
     } finally {
       openUrl.mockRestore();
     }
