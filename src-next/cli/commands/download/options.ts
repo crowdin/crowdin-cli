@@ -18,9 +18,14 @@ export const excludeLanguage: OptionDef = {
 export const exportOnlyApproved: OptionDef = {
   name: 'export-only-approved',
   type: 'boolean',
-  default: false,
   description:
     'Include approved translations only in exported files. If not combined with --skip-untranslated-strings option, strings without approval are fulfilled with the source language',
+};
+
+export const noExportOnlyApproved: OptionDef = {
+  name: 'no-export-only-approved',
+  type: 'boolean',
+  description: 'Include unapproved translations in exported files, overriding the config and project settings',
 };
 
 export const ignoreMatch: OptionDef = {
@@ -62,14 +67,24 @@ export const reviewed: OptionDef = {
 export const skipUntranslatedFiles: OptionDef = {
   name: 'skip-untranslated-files',
   type: 'boolean',
-  default: false,
   description: 'Omit downloading not fully translated files',
+};
+
+export const noSkipUntranslatedFiles: OptionDef = {
+  name: 'no-skip-untranslated-files',
+  type: 'boolean',
+  description: 'Download not fully translated files, overriding the config and project settings',
 };
 
 export const skipUntranslatedStrings: OptionDef = {
   name: 'skip-untranslated-strings',
   type: 'boolean',
-  default: false,
   description:
     'Skip untranslated strings in exported files (does not work with .docx, .html, .md and other document files). For more details see https://support.crowdin.com/project-settings/export/#skip-untranslated-strings',
+};
+
+export const noSkipUntranslatedStrings: OptionDef = {
+  name: 'no-skip-untranslated-strings',
+  type: 'boolean',
+  description: 'Keep untranslated strings in exported files, overriding the config and project settings',
 };

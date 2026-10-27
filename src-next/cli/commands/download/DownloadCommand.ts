@@ -41,6 +41,9 @@ import {
   ignoreMatch,
   keepArchive,
   language,
+  noExportOnlyApproved,
+  noSkipUntranslatedFiles,
+  noSkipUntranslatedStrings,
   pseudo,
   reviewed,
   skipUntranslatedFiles,
@@ -93,8 +96,11 @@ export default class DownloadCommand {
       excludeLanguage,
       pseudo,
       skipUntranslatedStrings,
+      noSkipUntranslatedStrings,
       skipUntranslatedFiles,
+      noSkipUntranslatedFiles,
       exportOnlyApproved,
+      noExportOnlyApproved,
       keepArchive,
       all,
       dryRun,
@@ -347,13 +353,6 @@ export default class DownloadCommand {
     }
 
     const isOrganization = projectService.isEnterprise();
-
-    if (options.skipUntranslatedStrings && options.skipUntranslatedFiles) {
-      throw new CliError(
-        'You cannot skip strings and files at the same time. Please use one of these parameters instead.',
-      );
-    }
-
     const buildGroups = this.buildExportGroups(config, options, branchId, resolvedLanguageIds, isOrganization, output);
     const projectSkipUntranslatedFiles =
       'skipUntranslatedFiles' in project.data ? Boolean(project.data.skipUntranslatedFiles) : false;
@@ -380,14 +379,12 @@ export default class DownloadCommand {
     // One omitted-entry list per build; reported as the cross-build intersection.
     const perBuildOmitted: string[][] = [];
     let anyFileDownloaded = false;
-    let skipUntranslatedFilesUsed = projectSkipUntranslatedFiles;
+    const skipUntranslatedFilesUsed = buildGroups.some(
+      (group) => group.request.skipUntranslatedFiles ?? projectSkipUntranslatedFiles,
+    );
 
     try {
       for (const [buildIndex, group] of buildGroups.entries()) {
-        if (group.request.skipUntranslatedFiles) {
-          skipUntranslatedFilesUsed = true;
-        }
-
         const build = group.pseudo
           ? await translationService.buildProjectTranslations(group.pseudo)
           : await translationService.buildProjectTranslations(group.request);
@@ -508,8 +505,8 @@ export default class DownloadCommand {
   /**
    * Builds the list of translation builds to issue. `pseudo` always produces a single all-files
    * build. Otherwise files are grouped by their effective export-option combo so each combo is
-   * built once and only its own file groups are mapped from that archive. A CLI flag, when set,
-   * forces `true` on every file over the per-file config value; a boolean flag cannot force false.
+   * built once and only its own file groups are mapped from that archive. A CLI flag, `--x` or
+   * `--no-x`, overrides the per-file config value on every file.
    *
    * Combo values are tri-state: an unset option is left out of the build request so the project
    * export settings apply, while an explicit `false` is sent and overrides them.
@@ -552,9 +549,9 @@ export default class DownloadCommand {
     }
 
     const effectiveCombo = (file: Config['files'][number]): ExportCombo => ({
-      skipUntranslatedStrings: options.skipUntranslatedStrings ? true : file.skip_untranslated_strings,
-      skipUntranslatedFiles: options.skipUntranslatedFiles ? true : file.skip_untranslated_files,
-      exportApprovedOnly: options.exportOnlyApproved ? true : file.export_only_approved,
+      skipUntranslatedStrings: options.skipUntranslatedStrings ?? file.skip_untranslated_strings,
+      skipUntranslatedFiles: options.skipUntranslatedFiles ?? file.skip_untranslated_files,
+      exportApprovedOnly: options.exportOnlyApproved ?? file.export_only_approved,
       exportStringsThatPassedWorkflow: file.export_strings_that_passed_workflow,
     });
 
@@ -563,6 +560,13 @@ export default class DownloadCommand {
 
     for (const file of config.files) {
       const combo = effectiveCombo(file);
+
+      if (combo.skipUntranslatedStrings && combo.skipUntranslatedFiles) {
+        throw new CliError(
+          'You cannot skip strings and files at the same time. Please use one of these parameters instead.',
+        );
+      }
+
       const key = JSON.stringify(combo);
       const existing = groups.get(key);
 
@@ -593,9 +597,8 @@ export default class DownloadCommand {
       }
 
       if (isOrganization) {
-        // Enterprise has no way to force approvals off, so only `true` maps to a request field.
-        if (combo.exportApprovedOnly) {
-          request.exportWithMinApprovalsCount = 1;
+        if (combo.exportApprovedOnly !== undefined) {
+          request.exportWithMinApprovalsCount = combo.exportApprovedOnly ? 1 : 0;
         }
 
         if (combo.exportStringsThatPassedWorkflow) {
@@ -796,7 +799,7 @@ export default class DownloadCommand {
   // Maps each server source path (basePath-relative posix, no leading slash) to its excluded target
   // languages, so the dry-run listing can skip those languages per file.
   private buildExcludedTargetLanguagesByPath(
-    projectFiles: { data: { path?: string; excludedTargetLanguages?: string[] } }[],
+    projectFiles: { data: { path?: string; excludedTargetLanguages?: string[] | null } }[],
   ): Map<string, string[]> {
     const byPath = new Map<string, string[]>();
 

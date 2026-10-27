@@ -224,3 +224,85 @@ exports[`export options downloads translations across two file groups with diffe
 ◆  File 'translations/it/1_android.xml' extracted
 ◆  File 'translations/uk/1_android.xml' extracted"
 `;
+
+exports[`export options --no-skip-untranslated-strings overrides skip_untranslated_strings in config 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File 'translations/it/1_android.xml' extracted
+◆  File 'translations/it/2_android.xml' extracted
+◆  File 'translations/uk/1_android.xml' extracted
+◆  File 'translations/uk/2_android.xml' extracted"
+`;
+
+exports[`export options --no-skip-untranslated-files overrides skip_untranslated_files in config 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File 'translations/it/1_android.xml' extracted
+◆  File 'translations/it/2_android.xml' extracted
+◆  File 'translations/uk/1_android.xml' extracted
+◆  File 'translations/uk/2_android.xml' extracted"
+`;
+
+exports[`export options --no-export-only-approved overrides export_only_approved in config 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File 'translations/it/1_android.xml' extracted
+◆  File 'translations/it/2_android.xml' extracted
+◆  File 'translations/uk/1_android.xml' extracted
+◆  File 'translations/uk/2_android.xml' extracted"
+`;
+
+exports[`export options CLI flags override export options set to false in config 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File 'translations/it/1_android.xml' extracted
+◆  File 'translations/it/2_android.xml' extracted
+◆  File 'translations/uk/1_android.xml' extracted
+◆  File 'translations/uk/2_android.xml' extracted"
+`;
+
+exports[`export options --skip-untranslated-files overrides skip_untranslated_files: false in config 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File 'translations/it/1_android.xml' extracted
+◆  File 'translations/uk/1_android.xml' extracted"
+`;
+
+exports[`export options --no-skip-untranslated-strings overrides the project export setting 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File 'translations/it/1_android.xml' extracted
+◆  File 'translations/it/2_android.xml' extracted
+◆  File 'translations/uk/1_android.xml' extracted
+◆  File 'translations/uk/2_android.xml' extracted"
+`;
