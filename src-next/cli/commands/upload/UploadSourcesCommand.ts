@@ -31,8 +31,7 @@ import {
   buildExportOptions,
   buildImportOptions,
   buildStringsImportOptions,
-  getCommonPath,
-  resolveContextPath,
+  replaceFileDependentPlaceholders,
   resolveProjectPath,
 } from '@/lib/upload/fileOptions.ts';
 import { deleteObsoleteProjectEntries } from '@/lib/upload/obsoleteEntries.ts';
@@ -40,6 +39,7 @@ import { computeChecksum, loadSourceCache, saveSourceCache } from '@/lib/upload/
 import { sameItems } from '@/lib/utils/array.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
 import {
+  getCommonPath,
   stripBranchPrefix,
   stripLeadingSlashes,
   toPosixPath,
@@ -329,7 +329,7 @@ export default class UploadSourcesCommand {
             return undefined;
           }
 
-          const contextPath = resolveContextPath(patterns.context, localFilePath);
+          const contextPath = replaceFileDependentPlaceholders(patterns.context, localFilePath);
           return await Bun.file(path.join(config.basePath, contextPath)).text();
         };
 

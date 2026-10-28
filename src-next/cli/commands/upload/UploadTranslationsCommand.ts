@@ -25,9 +25,15 @@ import { assertFilesConfigured, type Config, isMultilingualFile } from '@/lib/co
 import { containsLanguagePlaceholder } from '@/lib/export/languagePlaceholders.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
-import { getCommonPath, resolveProjectPath } from '@/lib/upload/fileOptions.ts';
+import { resolveProjectPath } from '@/lib/upload/fileOptions.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
-import { stripBranchPrefix, stripLeadingSlashes, toProjectPath, toSortedRelativePaths } from '@/lib/utils/path.ts';
+import {
+  getCommonPath,
+  stripBranchPrefix,
+  stripLeadingSlashes,
+  toProjectPath,
+  toSortedRelativePaths,
+} from '@/lib/utils/path.ts';
 import { type UploadedFile, uploadedFileView } from './views.ts';
 
 interface UploadTranslationsOptions extends GlobalOptions {

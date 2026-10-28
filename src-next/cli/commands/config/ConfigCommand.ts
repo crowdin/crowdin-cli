@@ -13,8 +13,7 @@ import FileNotFoundError from '@/lib/common/errors/FileNotFoundError.ts';
 import SourceFileLoader from '@/lib/config/SourceFileLoader.ts';
 import { resolveTranslationPath } from '@/lib/config/translationPathResolver.ts';
 import { assertFilesConfigured, type Config } from '@/lib/config.ts';
-import { getCommonPath } from '@/lib/upload/fileOptions.ts';
-import { stripLeadingSlashes } from '@/lib/utils/path.ts';
+import { getCommonPath, stripLeadingSlashes } from '@/lib/utils/path.ts';
 
 export default class ConfigCommand {
   constructor(
