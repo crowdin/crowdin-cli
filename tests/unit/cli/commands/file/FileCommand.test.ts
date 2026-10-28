@@ -204,14 +204,14 @@ describe('FileCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
 
-    const resolveBranchId = spyOn(branchService, 'resolveBranchId').mockResolvedValue(5);
+    const resolveBranch = spyOn(branchService, 'resolveBranch').mockResolvedValue({ id: 5, name: 'feature' } as never);
     const loadProjectFiles = spyOn(fileService, 'loadProjectFiles').mockResolvedValue({ data: [] } as never);
 
     commandContext = createCommandContext({ ...globalOptions, branch: 'feature' });
 
     await fileCommand.listAction(commandContext);
 
-    expect(resolveBranchId).toHaveBeenCalledWith('feature');
+    expect(resolveBranch).toHaveBeenCalledWith('feature');
     expect(loadProjectFiles).toHaveBeenCalledWith(5);
   });
 
@@ -222,14 +222,14 @@ describe('FileCommand', () => {
     const fileCommand = createFileCommandWith(textOutput);
 
     spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
-    const resolveBranchId = spyOn(branchService, 'resolveBranchId').mockResolvedValue(undefined);
+    const resolveBranch = spyOn(branchService, 'resolveBranch').mockResolvedValue(undefined);
     const loadProjectFiles = spyOn(fileService, 'loadProjectFiles').mockResolvedValue({
       data: [{ data: { id: 2, path: '/docs/changelog.md', branchId: null } }],
     } as never);
 
     await fileCommand.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
-    expect(resolveBranchId).toHaveBeenCalledWith(undefined);
+    expect(resolveBranch).toHaveBeenCalledWith(undefined);
     expect(loadProjectFiles).toHaveBeenCalledWith(undefined);
     expect(console.log).toHaveBeenCalledWith(expect.stringContaining('docs/changelog.md'));
   });
@@ -238,12 +238,26 @@ describe('FileCommand', () => {
     const fileCommand = createFileCommand();
 
     spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
-    spyOn(branchService, 'resolveBranchId').mockResolvedValue(5);
+    spyOn(branchService, 'resolveBranch').mockResolvedValue({ id: 5, name: 'main' } as never);
     spyOn(fileService, 'loadProjectFiles').mockResolvedValue({
       data: [{ data: { id: 1, path: '/main/docs/readme.md', branchId: 5 } }],
     } as never);
 
     await fileCommand.listAction(createCommandContext({ ...globalOptions, branch: 'main' }));
+
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ id: 1, path: '/docs/readme.md' }], null, 2));
+  });
+
+  test('strips the stored branch name when --branch is sanitized', async () => {
+    const fileCommand = createFileCommand();
+
+    spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(branchService, 'resolveBranch').mockResolvedValue({ id: 5, name: 'feature.x' } as never);
+    spyOn(fileService, 'loadProjectFiles').mockResolvedValue({
+      data: [{ data: { id: 1, path: '/feature.x/docs/readme.md', branchId: 5 } }],
+    } as never);
+
+    await fileCommand.listAction(createCommandContext({ ...globalOptions, branch: 'feature/x' }));
 
     expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ id: 1, path: '/docs/readme.md' }], null, 2));
   });
@@ -478,6 +492,38 @@ describe('FileCommand', () => {
       undefined,
     );
     expect(createFile).not.toHaveBeenCalled();
+  });
+
+  test('updates an existing branch file when --branch is sanitized', async () => {
+    const fileCommand = createFileCommand();
+    const localFilePath = join(tempDir, 'remote.json');
+
+    await Bun.write(localFilePath, '{}');
+
+    spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(branchService, 'getOrCreateBranch').mockResolvedValue({
+      branch: { id: 7, name: 'feature.x' },
+      created: false,
+    } as never);
+    spyOn(storageService, 'addStorage').mockResolvedValue({ data: { id: 99 } } as never);
+
+    const loadProjectFiles = spyOn(fileService, 'loadProjectFiles').mockResolvedValue({
+      data: [{ data: { id: 42, path: '/feature.x/remote.json' } }],
+    } as never);
+    const updateProjectFile = spyOn(fileService, 'updateProjectFile').mockResolvedValue(undefined as never);
+    const createFile = spyOn(apiClient.sourceFilesApi, 'createFile');
+    const listSpy = spyOn(output, 'list');
+
+    commandContext = createCommandContext({ ...globalOptions, branch: 'feature/x', dest: 'remote.json' }, [
+      localFilePath,
+    ]);
+
+    await fileCommand.uploadAction(commandContext);
+
+    expect(loadProjectFiles).toHaveBeenCalledWith(7);
+    expect(updateProjectFile.mock.calls[0]?.[0]).toBe(42);
+    expect(createFile).not.toHaveBeenCalled();
+    expect(listSpy.mock.calls.at(-1)?.[0]).toEqual([{ path: 'feature.x/remote.json', action: 'updated' }]);
   });
 
   test('skips an existing file when --no-auto-update is set', async () => {
@@ -965,7 +1011,7 @@ describe('FileCommand', () => {
   test('deletes a file scoped to a branch', async () => {
     const deleteProjectFile = mock(async () => undefined);
     const loadProjectFiles = mock(async () => ({
-      data: [{ data: { id: 55, path: '/docs/readme.md' } }],
+      data: [{ data: { id: 55, path: '/feature.x/docs/readme.md' } }],
     }));
     const mockFileService = { loadProjectFiles, deleteProjectFile };
     const fileCommand = new FileCommand(
@@ -982,13 +1028,13 @@ describe('FileCommand', () => {
     );
 
     spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
-    spyOn(branchService, 'resolveBranchId').mockResolvedValue(9);
+    spyOn(branchService, 'resolveBranch').mockResolvedValue({ id: 9, name: 'feature.x' } as never);
 
-    commandContext = createCommandContext({ ...globalOptions, branch: 'feature' }, ['docs/readme.md']);
+    commandContext = createCommandContext({ ...globalOptions, branch: 'feature/x' }, ['docs/readme.md']);
 
     await fileCommand.deleteAction(commandContext);
 
     expect(loadProjectFiles).toHaveBeenCalledWith(9);
-    expect(deleteProjectFile).toHaveBeenCalledWith(55, '/docs/readme.md');
+    expect(deleteProjectFile).toHaveBeenCalledWith(55, '/feature.x/docs/readme.md');
   });
 });

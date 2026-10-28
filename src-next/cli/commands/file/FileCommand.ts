@@ -146,14 +146,14 @@ export default class FileCommand {
     const fileService = await this.getFileService(command);
     const branchService = await this.getBranchService(command);
     await projectService.loadProject();
-    const branchId = await branchService.resolveBranchId(options.branch);
+    const branch = await branchService.resolveBranch(options.branch);
     // loadProjectFiles is already scoped to the branch (root tree without one), so without
     // '--branch' a project whose files all live in branches lists nothing at all.
-    const projectFiles = await fileService.loadProjectFiles(branchId);
+    const projectFiles = await fileService.loadProjectFiles(branch?.id);
     // Paths inside a branch come back prefixed with the branch name; the listing shows project paths.
     const files = projectFiles.data.map((file) => ({
       ...file.data,
-      path: stripBranchPrefix(file.data.path, options.branch),
+      path: stripBranchPrefix(file.data.path, branch?.name),
     }));
 
     // Tree is an interactive-only rendering; a machine --output (json/toon/plain) is a parseable
@@ -249,7 +249,7 @@ export default class FileCommand {
     const projectFiles = await fileService.loadProjectFiles(branchId);
     // Server paths carry the branch name; the path given on the command line never does.
     const projectFilePaths = new Map(
-      projectFiles.data.map((file) => [stripBranchPrefix(file.data.path, options.branch), file.data.id]),
+      projectFiles.data.map((file) => [stripBranchPrefix(file.data.path, branch?.name), file.data.id]),
     );
     const projectFileContexts = new Map(projectFiles.data.map((file) => [file.data.id, file.data.context]));
     const projectFileExcludedLanguages = new Map(
@@ -262,11 +262,16 @@ export default class FileCommand {
     if (existingFile) {
       if (options.autoUpdate === false) {
         output.info(`Project already contains the file '${fileFullPath}'`);
-        this.reportUploaded(output, options, {
-          path: fileFullPath,
-          action: 'skipped',
-          reason: 'auto-update disabled',
-        });
+        // biome-ignore format: one argument per line
+        this.reportUploaded(
+          output,
+          options,
+          {
+            path: fileFullPath,
+            action: 'skipped',
+            reason: 'auto-update disabled',
+          },
+        );
         return;
       }
 
@@ -413,12 +418,12 @@ export default class FileCommand {
     storageId: number,
     onProgress: ImportProgress,
   ) => {
-    const fileService = await this.getFileService(command);
     const branchService = await this.getBranchService(command);
     const translationService = await this.getTranslationService(command);
-    const branchId = await branchService.resolveBranchId(options.branch);
 
     if (isStringsBased) {
+      const branchId = await branchService.resolveBranchId(options.branch);
+
       if (branchId === undefined) {
         throw new CliError('Branch is required for string-based projects');
       }
@@ -436,10 +441,7 @@ export default class FileCommand {
     }
 
     const wantedPath = destPath.startsWith('/') ? destPath : `/${destPath}`;
-    const projectFiles = await fileService.loadProjectFiles(branchId);
-    const sourceFile = projectFiles.data.find(
-      (file) => stripBranchPrefix(file.data.path, options.branch) === wantedPath,
-    );
+    const sourceFile = await this.findProjectFile(command, options.branch, wantedPath);
 
     if (!sourceFile) {
       throw new CliError(`File '${wantedPath}' not found in the Crowdin project`);
@@ -447,7 +449,7 @@ export default class FileCommand {
 
     return await translationService.importProjectTranslation(
       storageId,
-      sourceFile.data.id,
+      sourceFile.id,
       [languageId],
       filePath,
       undefined,
@@ -588,7 +590,6 @@ export default class FileCommand {
     const output = this.getOutput(command);
     const projectService = await this.getProjectService(command);
     const fileService = await this.getFileService(command);
-    const branchService = await this.getBranchService(command);
 
     if (!rawFilePath) {
       throw new CliError('File path is required');
@@ -617,32 +618,28 @@ export default class FileCommand {
       return;
     }
 
-    const branchId = await branchService.resolveBranchId(options.branch);
-    const projectFiles = await fileService.loadProjectFiles(branchId);
+    const projectFile = await this.findProjectFile(command, options.branch, wantedPath);
 
-    for (const projectFile of projectFiles.data) {
-      if (stripBranchPrefix(projectFile.data.path, options.branch) === wantedPath) {
-        const fullFilePath = options.dest
-          ? path.join(config.basePath, options.dest, path.basename(filePath))
-          : path.join(config.basePath, filePath);
-
-        try {
-          const downloadUrl = await fileService.getSourceFileDownloadUrl(projectFile.data.id);
-          await downloadToFile(downloadUrl, fullFilePath);
-        } catch (error) {
-          throw toCliError(error, `Failed to download '${filePath}'`);
-        }
-
-        output.success(`File '${filePath}'`);
-        this.reportDownloaded(output, options, [
-          // Machine formats report POSIX paths on every OS, so path.relative's separators are normalized.
-          { path: toPosixPath(path.relative(config.basePath, fullFilePath)), action: 'downloaded' },
-        ]);
-        return;
-      }
+    if (!projectFile) {
+      throw new CliError(`File '${filePath}' not found in the Crowdin project`);
     }
 
-    throw new CliError(`File '${filePath}' not found in the Crowdin project`);
+    const fullFilePath = options.dest
+      ? path.join(config.basePath, options.dest, path.basename(filePath))
+      : path.join(config.basePath, filePath);
+
+    try {
+      const downloadUrl = await fileService.getSourceFileDownloadUrl(projectFile.id);
+      await downloadToFile(downloadUrl, fullFilePath);
+    } catch (error) {
+      throw toCliError(error, `Failed to download '${filePath}'`);
+    }
+
+    output.success(`File '${filePath}'`);
+    this.reportDownloaded(output, options, [
+      // Machine formats report POSIX paths on every OS, so path.relative's separators are normalized.
+      { path: toPosixPath(path.relative(config.basePath, fullFilePath)), action: 'downloaded' },
+    ]);
   };
 
   // Download path when `--language` is set: build and save file translations.
@@ -654,8 +651,6 @@ export default class FileCommand {
     project: ResponseObject<ProjectsGroupsModel.Project | ProjectsGroupsModel.ProjectSettings>,
   ): Promise<void> => {
     const output = this.getOutput(command);
-    const branchService = await this.getBranchService(command);
-    const fileService = await this.getFileService(command);
     const translationService = await this.getTranslationService(command);
 
     if (project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED) {
@@ -681,11 +676,7 @@ export default class FileCommand {
       );
     }
 
-    const branchId = await branchService.resolveBranchId(options.branch);
-    const projectFiles = await fileService.loadProjectFiles(branchId);
-    const sourceFile = projectFiles.data.find(
-      (file) => stripBranchPrefix(file.data.path, options.branch) === wantedPath,
-    );
+    const sourceFile = await this.findProjectFile(command, options.branch, wantedPath);
 
     if (!sourceFile) {
       throw new CliError(`File '${wantedPath}' not found in the Crowdin project`);
@@ -695,12 +686,12 @@ export default class FileCommand {
 
     for (const language of languages) {
       const destPath = options.dest
-        ? resolveLanguagePlaceholders(`${options.dest}/${sourceFile.data.name}`, language)
+        ? resolveLanguagePlaceholders(`${options.dest}/${sourceFile.name}`, language)
         : `${language.id}${wantedPath}`;
       const fullFilePath = path.join(config.basePath, destPath);
 
       try {
-        const url = await translationService.buildProjectFileTranslation(sourceFile.data.id, language.id);
+        const url = await translationService.buildProjectFileTranslation(sourceFile.id, language.id);
         await downloadToFile(url, fullFilePath);
       } catch (error) {
         throw toCliError(error, `Failed to download '${destPath}'`);
@@ -719,7 +710,6 @@ export default class FileCommand {
     const output = this.getOutput(command);
     const projectService = await this.getProjectService(command);
     const fileService = await this.getFileService(command);
-    const branchService = await this.getBranchService(command);
 
     if (!rawFilePath) {
       throw new CliError('File path is required');
@@ -734,22 +724,33 @@ export default class FileCommand {
       return;
     }
 
-    const branchId = await branchService.resolveBranchId(options.branch);
-    const projectFiles = await fileService.loadProjectFiles(branchId);
+    const file = await this.findProjectFile(command, options.branch, wantedPath);
 
-    for (const file of projectFiles.data) {
-      if (stripBranchPrefix(file.data.path, options.branch) === wantedPath) {
-        try {
-          await fileService.deleteProjectFile(file.data.id, file.data.path);
-        } catch (error) {
-          throw toCliError(error, `Failed to delete '${filePath}'`);
-        }
-
-        output.success(`File '${filePath}' deleted`);
-        return;
-      }
+    if (!file) {
+      throw new CliError(`File '${filePath}' not found in the Crowdin project`);
     }
 
-    throw new CliError(`File '${filePath}' not found in the Crowdin project`);
+    try {
+      await fileService.deleteProjectFile(file.id, file.path);
+    } catch (error) {
+      throw toCliError(error, `Failed to delete '${filePath}'`);
+    }
+
+    output.success(`File '${filePath}' deleted`);
+  };
+
+  // Server paths inside a branch carry its stored (sanitized) name, so the prefix comes from the
+  // resolved branch, not the raw '--branch' value.
+  private findProjectFile = async (
+    command: Command,
+    branchName: string | undefined,
+    wantedPath: string,
+  ): Promise<SourceFilesModel.File | undefined> => {
+    const fileService = await this.getFileService(command);
+    const branchService = await this.getBranchService(command);
+    const branch = await branchService.resolveBranch(branchName);
+    const projectFiles = await fileService.loadProjectFiles(branch?.id);
+
+    return projectFiles.data.find((file) => stripBranchPrefix(file.data.path, branch?.name) === wantedPath)?.data;
   };
 }
