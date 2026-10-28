@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { CrowdinError } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import InitCommand from '@/cli/commands/init/InitCommand.ts';
 import AuthorizationError from '@/cli/errors/AuthorizationError.ts';
@@ -367,5 +368,37 @@ describe('InitCommand', () => {
     const promise = command.selectProject(apiClient, { ...globalOptions }, createOutput(globalOptions));
 
     expect(promise).rejects.toThrow('No projects with manager access found');
+  });
+
+  test('reports the authorized user on the spinner', async () => {
+    const command = new InitCommand(() => createOutput(globalOptions)) as InitCommand & Record<string, unknown>;
+    const output = createOutput(globalOptions);
+    const spinner = spyOn(output, 'spinner');
+    const apiClient = {
+      usersApi: { getAuthenticatedUser: async () => ({ data: { id: 1, username: 'agent' } }) },
+    };
+
+    // @ts-expect-error - exercising the private getAuthorizedUser with a stub client
+    const user = await command.getAuthorizedUser(apiClient, output);
+
+    expect(user.data.username).toBe('agent');
+    expect(spinner).toHaveBeenCalledWith('authorization', 'stop', 'Authorized as agent');
+  });
+
+  test('reports a rejected token on the spinner', async () => {
+    const command = new InitCommand(() => createOutput(globalOptions)) as InitCommand & Record<string, unknown>;
+    const output = createOutput(globalOptions);
+    const spinner = spyOn(output, 'spinner');
+    const apiClient = {
+      usersApi: {
+        getAuthenticatedUser: async () => {
+          throw new CrowdinError('Unauthorized', 401, {});
+        },
+      },
+    };
+
+    // @ts-expect-error - exercising the private getAuthorizedUser with a stub client
+    expect(command.getAuthorizedUser(apiClient, output)).rejects.toBeInstanceOf(AuthorizationError);
+    expect(spinner).toHaveBeenCalledWith('authorization', 'error', "Couldn't authorize. Check your 'api_token'");
   });
 });

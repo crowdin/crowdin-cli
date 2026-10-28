@@ -196,6 +196,19 @@ describe('DistributionCommand', () => {
     expect(distributionService.releaseDistribution).toHaveBeenCalledWith('hash-1', expect.any(Function));
   });
 
+  test('reports release progress on the spinner', async () => {
+    const distributionCommand = createDistributionCommand();
+    const spinner = spyOn(output, 'spinner');
+
+    distributionService.releaseDistribution.mockImplementation(async (_hash, onProgress) => {
+      onProgress?.(75);
+    });
+
+    await distributionCommand.releaseAction(createCommandContext(globalOptions, ['hash-1']));
+
+    expect(spinner).toHaveBeenCalledWith('distributionRelease', 'message', 'Releasing distribution hash-1: 75%');
+  });
+
   test('surfaces a failed release', async () => {
     const distributionCommand = createDistributionCommand();
     const commandContext = createCommandContext(globalOptions, ['hash-1']);

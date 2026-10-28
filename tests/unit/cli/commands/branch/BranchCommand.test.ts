@@ -441,6 +441,7 @@ describe('BranchCommand', () => {
     test('clones the branch and prints the result', async () => {
       const branchCommand = createBranchCommand();
       const clonedBranch = createBranch({ id: 20, name: 'cloned' });
+
       branchService.list.mockResolvedValue([createBranch({ id: 14, name: 'main' })]);
       branchService.cloneBranch.mockResolvedValue(clonedBranch);
 
@@ -448,6 +449,21 @@ describe('BranchCommand', () => {
 
       expect(branchService.cloneBranch).toHaveBeenCalledWith(14, { name: 'cloned' }, expect.any(Function));
       expect(console.log).toHaveBeenCalledWith(JSON.stringify({ id: 20, name: 'cloned' }, null, 2));
+    });
+
+    test('reports clone progress on the spinner', async () => {
+      const branchCommand = createBranchCommand();
+      const spinner = spyOn(output, 'spinner');
+
+      branchService.list.mockResolvedValue([createBranch({ id: 14, name: 'main' })]);
+      branchService.cloneBranch.mockImplementation(async (_branchId, _request, onProgress) => {
+        onProgress?.(40);
+        return createBranch({ id: 20, name: 'cloned' });
+      });
+
+      await branchCommand.cloneAction(createCommandContext({}, ['main', 'cloned']));
+
+      expect(spinner).toHaveBeenCalledWith('branchClone', 'message', 'Cloning branch (40%)');
     });
 
     test('normalizes target name and keeps original as title', async () => {
@@ -542,6 +558,30 @@ describe('BranchCommand', () => {
       expect(console.log).toHaveBeenCalledWith(
         expect.stringContaining('Merge summary: added: 1, deleted: 2, updated: 3, conflicted: 0'),
       );
+    });
+
+    test('reports merge progress on the spinner', async () => {
+      const branchCommand = createBranchCommand();
+      const spinner = spyOn(output, 'spinner');
+
+      branchService.list.mockResolvedValue([
+        createBranch({ id: 14, name: 'dev' }),
+        createBranch({ id: 15, name: 'main' }),
+      ]);
+      branchService.mergeBranch.mockImplementation(async (_branchId, _request, onProgress) => {
+        onProgress?.(60);
+        return {
+          status: 'merged',
+          sourceBranchId: 14,
+          targetBranchId: 15,
+          dryRun: false,
+          details: { added: 0, deleted: 0, updated: 0, conflicted: 0 },
+        } as SourceFilesModel.MergeBranchSummary;
+      });
+
+      await branchCommand.mergeAction(createCommandContext({}, ['dev', 'main']));
+
+      expect(spinner).toHaveBeenCalledWith('branchMerge', 'message', 'Merging branch (60%)');
     });
 
     test('passes dryrun and delete-after-merge options', async () => {

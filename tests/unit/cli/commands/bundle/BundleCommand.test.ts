@@ -461,6 +461,21 @@ describe('BundleCommand', () => {
       expect(stat(path.join(tempRoot, 'bundle-export-1.zip'))).rejects.toThrow();
     });
 
+    test('reports build progress on the spinner', async () => {
+      mockArchive();
+
+      bundleService.exportBundle.mockImplementation(async (_bundleId, onProgress) => {
+        onProgress?.(30);
+        return 'export-1';
+      });
+
+      const out = createOutput(textOptions());
+      const spinner = spyOn(out, 'spinner');
+      await createBundleCommand(out).downloadAction(createCommandContext(textOptions(), ['5']));
+
+      expect(spinner).toHaveBeenCalledWith('bundleBuild', 'message', 'Building bundle: 30%');
+    });
+
     test('throws when the export fails', async () => {
       bundleService.exportBundle.mockRejectedValue(new CliError('Failed to build the bundle'));
 
