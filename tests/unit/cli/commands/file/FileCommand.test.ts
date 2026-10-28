@@ -67,6 +67,7 @@ describe('FileCommand', () => {
     cleanupMode?: boolean;
     updateStrings?: boolean;
     context?: string;
+    excludedLanguage?: string[];
     language?: string;
     xliff?: boolean;
   };
@@ -441,6 +442,17 @@ describe('FileCommand', () => {
     );
   });
 
+  test.each(['abc', '2x'])('rejects a non-numeric --parser-version %p', async (parserVersion) => {
+    const fileCommand = createFileCommand();
+    const localFilePath = join(tempDir, 'example.json');
+
+    await Bun.write(localFilePath, '{}');
+
+    commandContext = createCommandContext({ ...globalOptions, type: 'json', parserVersion }, [localFilePath]);
+
+    expect(fileCommand.uploadAction(commandContext)).rejects.toThrow("The '--parser-version' value must be numeric");
+  });
+
   test('rejects a missing local file', async () => {
     const fileCommand = createFileCommand();
 
@@ -492,6 +504,69 @@ describe('FileCommand', () => {
       undefined,
     );
     expect(createFile).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    { excludedLanguage: ['fr'], context: 'same', newExcluded: ['fr'], newContext: undefined },
+    { excludedLanguage: ['de'], context: 'new', newExcluded: undefined, newContext: 'new' },
+  ])(
+    'sends only the changed excluded languages and context on update',
+    async ({ excludedLanguage, context, newExcluded, newContext }) => {
+      const fileCommand = createFileCommand();
+      const localFilePath = join(tempDir, 'remote.json');
+
+      await Bun.write(localFilePath, '{}');
+
+      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({ data: { id: 123 } } as never);
+      spyOn(storageService, 'addStorage').mockResolvedValue({ data: { id: 99 } } as never);
+      spyOn(fileService, 'loadProjectFiles').mockResolvedValue({
+        data: [{ data: { id: 42, path: '/remote.json', context: 'same', excludedTargetLanguages: ['de'] } }],
+      } as never);
+
+      const updateProjectFile = spyOn(fileService, 'updateProjectFile').mockResolvedValue(undefined as never);
+
+      commandContext = createCommandContext(
+        { ...globalOptions, dest: 'remote.json', excludedLanguage: [...excludedLanguage], context },
+        [localFilePath],
+      );
+
+      await fileCommand.uploadAction(commandContext);
+
+      expect(updateProjectFile).toHaveBeenCalledWith(
+        42,
+        99,
+        localFilePath,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        newExcluded,
+        undefined,
+        newContext,
+      );
+    },
+  );
+
+  test('renames a soft-matched project file to the source name on update', async () => {
+    const fileCommand = createFileCommand();
+    const localFilePath = join(tempDir, 'remote.json');
+
+    await Bun.write(localFilePath, '{}');
+
+    spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(storageService, 'addStorage').mockResolvedValue({ data: { id: 99 } } as never);
+    spyOn(fileService, 'loadProjectFiles').mockResolvedValue({
+      data: [{ data: { id: 42, path: '/docs/remote.yaml' } }],
+    } as never);
+
+    const updateProjectFile = spyOn(fileService, 'updateProjectFile').mockResolvedValue(undefined as never);
+
+    commandContext = createCommandContext({ ...globalOptions, dest: 'docs/remote.json' }, [localFilePath]);
+
+    await fileCommand.uploadAction(commandContext);
+
+    expect(updateProjectFile.mock.calls[0]?.[0]).toBe(42);
+    expect(updateProjectFile.mock.calls[0]?.[8]).toBe('remote.json');
   });
 
   test('updates an existing branch file when --branch is sanitized', async () => {

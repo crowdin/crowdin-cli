@@ -29,9 +29,10 @@ import { downloadToFile } from '@/cli/utils/downloadToFile.ts';
 import { printFileTree } from '@/cli/utils/fileTree.ts';
 import { isMachineFormat, isStructuredFormat } from '@/cli/utils/formatter.ts';
 import type { Output, View } from '@/cli/utils/output.ts';
+import { toNumberArray } from '@/cli/utils/parsing.ts';
 import { resolveLanguagePlaceholders } from '@/lib/export/languagePlaceholders.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
-import { fileLookup } from '@/lib/upload/fileLookup.ts';
+import { type FileLookupResult, fileLookup } from '@/lib/upload/fileLookup.ts';
 import { sameLanguageSet } from '@/lib/upload/fileOptions.ts';
 import { stripBranchPrefix, stripLeadingSlashes, toPosixPath, toProjectPath } from '@/lib/utils/path.ts';
 import { type DownloadedFile, downloadedFileView } from '../download/views.ts';
@@ -180,7 +181,7 @@ export default class FileCommand {
     const labelService = await this.getLabelService(command);
     const branchService = await this.getBranchService(command);
     const fileType = options.type as SourceFilesModel.FileType | undefined;
-    const parserVersion = options.parserVersion ? parseInt(options.parserVersion, 10) : undefined;
+    const [parserVersion] = toNumberArray(options.parserVersion, "The '--parser-version' value must be numeric");
 
     if (!filePath) {
       throw new CliError('File path is required');
@@ -251,62 +252,25 @@ export default class FileCommand {
     const projectFilePaths = new Map(
       projectFiles.data.map((file) => [stripBranchPrefix(file.data.path, branch?.name), file.data.id]),
     );
-    const projectFileContexts = new Map(projectFiles.data.map((file) => [file.data.id, file.data.context]));
-    const projectFileExcludedLanguages = new Map(
-      projectFiles.data.map((file) => [file.data.id, file.data.excludedTargetLanguages]),
-    );
     const existingFile = fileLookup(wantedPath, projectFilePaths);
     const excludedTargetLanguages = options.excludedLanguage?.length ? options.excludedLanguage : undefined;
     const pathDetails = path.parse(destPath);
 
     if (existingFile) {
-      if (options.autoUpdate === false) {
-        output.info(`Project already contains the file '${fileFullPath}'`);
-        // biome-ignore format: one argument per line
-        this.reportUploaded(
-          output,
-          options,
-          {
-            path: fileFullPath,
-            action: 'skipped',
-            reason: 'auto-update disabled',
-          },
-        );
-        return;
-      }
+      const projectFile = projectFiles.data.find((file) => file.data.id === existingFile.id)?.data;
 
-      const storage = await this.uploadToStorage(storageService, localFile, filePath);
+      await this.updateExistingFile(
+        command,
+        options,
+        filePath,
+        localFile,
+        fileFullPath,
+        pathDetails.base,
+        existingFile,
+        projectFile,
+        labelIds,
+      );
 
-      try {
-        await fileService.updateProjectFile(
-          existingFile.id,
-          storage.data.id,
-          filePath,
-          undefined,
-          undefined,
-          undefined,
-          labelIds,
-          excludedTargetLanguages !== undefined &&
-            !sameLanguageSet(excludedTargetLanguages, projectFileExcludedLanguages.get(existingFile.id))
-            ? excludedTargetLanguages
-            : undefined,
-          // On a soft match the project file has a different name/extension; rename it to the source.
-          existingFile.exact ? undefined : pathDetails.base,
-          options.context !== undefined && options.context !== projectFileContexts.get(existingFile.id)
-            ? options.context
-            : undefined,
-        );
-      } catch (error) {
-        if (error instanceof FileInUpdateError) {
-          output.warning(`File '${fileFullPath}' is currently being updated`);
-          return;
-        }
-
-        throw error;
-      }
-
-      output.success(`File '${fileFullPath}'`);
-      this.reportUploaded(output, options, { path: fileFullPath, action: 'updated' });
       return;
     }
 
@@ -335,6 +299,74 @@ export default class FileCommand {
 
       throw error;
     }
+  };
+
+  // Upload path for a file the project already has: update it in place, sending only the changed fields.
+  private updateExistingFile = async (
+    command: Command,
+    options: UploadFileCommandOptions,
+    filePath: string,
+    localFile: ReturnType<typeof Bun.file>,
+    fileFullPath: string,
+    fileName: string,
+    existingFile: FileLookupResult,
+    projectFile: SourceFilesModel.File | undefined,
+    labelIds: number[] | undefined,
+  ): Promise<void> => {
+    const output = this.getOutput(command);
+    const storageService = await this.getStorageService(command);
+    const fileService = await this.getFileService(command);
+
+    if (options.autoUpdate === false) {
+      output.info(`Project already contains the file '${fileFullPath}'`);
+      // biome-ignore format: one argument per line
+      this.reportUploaded(
+        output,
+        options,
+        {
+          path: fileFullPath,
+          action: 'skipped',
+          reason: 'auto-update disabled',
+        },
+      );
+      return;
+    }
+
+    const newExcludedLanguages =
+      options.excludedLanguage?.length &&
+      !sameLanguageSet(options.excludedLanguage, projectFile?.excludedTargetLanguages)
+        ? options.excludedLanguage
+        : undefined;
+    // On a soft match the project file has a different name/extension; rename it to the source.
+    const newName = existingFile.exact ? undefined : fileName;
+    const newContext =
+      options.context !== undefined && options.context !== projectFile?.context ? options.context : undefined;
+    const storage = await this.uploadToStorage(storageService, localFile, filePath);
+
+    try {
+      await fileService.updateProjectFile(
+        existingFile.id,
+        storage.data.id,
+        filePath,
+        undefined,
+        undefined,
+        undefined,
+        labelIds,
+        newExcludedLanguages,
+        newName,
+        newContext,
+      );
+    } catch (error) {
+      if (error instanceof FileInUpdateError) {
+        output.warning(`File '${fileFullPath}' is currently being updated`);
+        return;
+      }
+
+      throw error;
+    }
+
+    output.success(`File '${fileFullPath}'`);
+    this.reportUploaded(output, options, { path: fileFullPath, action: 'updated' });
   };
 
   // Upload path when `--language` is set: import translations for the file.
