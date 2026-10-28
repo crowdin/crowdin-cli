@@ -32,8 +32,8 @@ import type { Output, View } from '@/cli/utils/output.ts';
 import { toNumberArray } from '@/cli/utils/parsing.ts';
 import { resolveLanguagePlaceholders } from '@/lib/export/languagePlaceholders.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
-import { type FileLookupResult, fileLookup } from '@/lib/upload/fileLookup.ts';
-import { sameLanguageSet } from '@/lib/upload/fileOptions.ts';
+import { fileLookup } from '@/lib/upload/fileLookup.ts';
+import { sameItems } from '@/lib/utils/array.ts';
 import { stripBranchPrefix, stripLeadingSlashes, toPosixPath, toProjectPath } from '@/lib/utils/path.ts';
 import { type DownloadedFile, downloadedFileView } from '../download/views.ts';
 import { type UploadedFile, uploadedFileView } from '../upload/views.ts';
@@ -195,7 +195,6 @@ export default class FileCommand {
       throw new CliError('The specified file is a directory');
     }
 
-    const localFile = Bun.file(filePath);
     const destPath = toPosixPath(options.dest || filePath);
 
     if (!destPath) {
@@ -217,7 +216,7 @@ export default class FileCommand {
     const project = await projectService.loadProject();
 
     if (options.language) {
-      await this.uploadTranslation(command, options, filePath, localFile, destPath, project);
+      await this.uploadTranslation(command, options, filePath, destPath, project);
       return;
     }
 
@@ -242,7 +241,7 @@ export default class FileCommand {
     const labelIds = options.label?.length ? await labelService.resolveLabelIds(options.label) : undefined;
 
     if (isStringsBased) {
-      await this.uploadStringsBased(command, filePath, localFile, destPath, branchId, options, labelIds);
+      await this.uploadStringsBased(command, filePath, destPath, branchId, options, labelIds);
       return;
     }
 
@@ -255,27 +254,19 @@ export default class FileCommand {
     const existingFile = fileLookup(wantedPath, projectFilePaths);
     const excludedTargetLanguages = options.excludedLanguage?.length ? options.excludedLanguage : undefined;
     const pathDetails = path.parse(destPath);
+    const projectFile = existingFile && projectFiles.data.find((file) => file.data.id === existingFile.id)?.data;
 
-    if (existingFile) {
-      const projectFile = projectFiles.data.find((file) => file.data.id === existingFile.id)?.data;
+    if (existingFile && projectFile) {
+      // On a soft match the project file has a different name/extension; rename it to the source.
+      const newName = existingFile.exact ? undefined : pathDetails.base;
 
-      await this.updateExistingFile(
-        command,
-        options,
-        filePath,
-        localFile,
-        fileFullPath,
-        pathDetails.base,
-        existingFile,
-        projectFile,
-        labelIds,
-      );
+      await this.updateExistingFile(command, options, filePath, fileFullPath, projectFile, newName, labelIds);
 
       return;
     }
 
     const directoryId = await this.createDirectories(pathDetails.dir, directoryService, output, branch);
-    const storage = await this.uploadToStorage(storageService, localFile, filePath);
+    const storage = await this.uploadToStorage(storageService, filePath);
 
     try {
       const created = await fileService.createProjectFile({
@@ -306,11 +297,9 @@ export default class FileCommand {
     command: Command,
     options: UploadFileCommandOptions,
     filePath: string,
-    localFile: ReturnType<typeof Bun.file>,
     fileFullPath: string,
-    fileName: string,
-    existingFile: FileLookupResult,
-    projectFile: SourceFilesModel.File | undefined,
+    projectFile: SourceFilesModel.File,
+    newName: string | undefined,
     labelIds: number[] | undefined,
   ): Promise<void> => {
     const output = this.getOutput(command);
@@ -333,19 +322,16 @@ export default class FileCommand {
     }
 
     const newExcludedLanguages =
-      options.excludedLanguage?.length &&
-      !sameLanguageSet(options.excludedLanguage, projectFile?.excludedTargetLanguages)
+      options.excludedLanguage?.length && !sameItems(options.excludedLanguage, projectFile.excludedTargetLanguages)
         ? options.excludedLanguage
         : undefined;
-    // On a soft match the project file has a different name/extension; rename it to the source.
-    const newName = existingFile.exact ? undefined : fileName;
     const newContext =
-      options.context !== undefined && options.context !== projectFile?.context ? options.context : undefined;
-    const storage = await this.uploadToStorage(storageService, localFile, filePath);
+      options.context !== undefined && options.context !== projectFile.context ? options.context : undefined;
+    const storage = await this.uploadToStorage(storageService, filePath);
 
     try {
       await fileService.updateProjectFile(
-        existingFile.id,
+        projectFile.id,
         storage.data.id,
         filePath,
         undefined,
@@ -374,7 +360,6 @@ export default class FileCommand {
     command: Command,
     options: UploadFileCommandOptions,
     filePath: string,
-    localFile: ReturnType<typeof Bun.file>,
     destPath: string,
     project: ResponseObject<ProjectsGroupsModel.Project | ProjectsGroupsModel.ProjectSettings>,
   ): Promise<void> => {
@@ -394,7 +379,7 @@ export default class FileCommand {
     }
 
     const isStringsBased = project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED;
-    const storage = await this.uploadToStorage(storageService, localFile, filePath);
+    const storage = await this.uploadToStorage(storageService, filePath);
 
     // The percent message is unconditional here (unlike upload translations, where it is
     // verbose-only); the identifier is appended only under --verbose.
@@ -495,7 +480,6 @@ export default class FileCommand {
   private uploadStringsBased = async (
     command: Command,
     filePath: string,
-    localFile: ReturnType<typeof Bun.file>,
     destPath: string,
     branchId: number | undefined,
     options: UploadFileCommandOptions,
@@ -508,7 +492,7 @@ export default class FileCommand {
     const output = this.getOutput(command);
     const storageService = await this.getStorageService(command);
     const stringService = await this.getStringService(command);
-    const storage = await this.uploadToStorage(storageService, localFile, filePath);
+    const storage = await this.uploadToStorage(storageService, filePath);
 
     // Returns only once the upload has finished server-side.
     await stringService.uploadStrings(
@@ -557,11 +541,10 @@ export default class FileCommand {
 
   private uploadToStorage = async (
     storageService: Awaited<ReturnType<GetStorageService>>,
-    localFile: ReturnType<typeof Bun.file>,
     filePath: string,
   ): Promise<ResponseObject<UploadStorageModel.Storage>> => {
     try {
-      return await storageService.addStorage(localFile);
+      return await storageService.addStorage(Bun.file(filePath));
     } catch (error) {
       throw toCliError(error, `Failed to upload '${filePath}'`);
     }

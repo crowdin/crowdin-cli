@@ -34,10 +34,10 @@ import {
   getCommonPath,
   resolveContextPath,
   resolveProjectPath,
-  sameLanguageSet,
 } from '@/lib/upload/fileOptions.ts';
 import { deleteObsoleteProjectEntries } from '@/lib/upload/obsoleteEntries.ts';
 import { computeChecksum, loadSourceCache, saveSourceCache } from '@/lib/upload/sourceCache.ts';
+import { sameItems } from '@/lib/utils/array.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
 import {
   stripBranchPrefix,
@@ -367,7 +367,7 @@ export default class UploadSourcesCommand {
           const excludedTargetLanguages = fileOptions.excluded_target_languages;
           const changedExcludedLanguages =
             excludedTargetLanguages !== undefined &&
-            !sameLanguageSet(excludedTargetLanguages, projectFileExcludedLanguages.get(existingFile.id))
+            !sameItems(excludedTargetLanguages, projectFileExcludedLanguages.get(existingFile.id))
               ? excludedTargetLanguages
               : undefined;
 
