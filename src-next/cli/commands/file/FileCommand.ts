@@ -33,7 +33,7 @@ import { resolveLanguagePlaceholders } from '@/lib/export/languagePlaceholders.t
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
 import { sameLanguageSet } from '@/lib/upload/fileOptions.ts';
-import { stripBranchPrefix, stripLeadingSlashes, toPosixPath } from '@/lib/utils/path.ts';
+import { stripBranchPrefix, stripLeadingSlashes, toPosixPath, toProjectPath } from '@/lib/utils/path.ts';
 import { type DownloadedFile, downloadedFileView } from '../download/views.ts';
 import { type UploadedFile, uploadedFileView } from '../upload/views.ts';
 import { download, upload } from './options.ts';
@@ -245,7 +245,7 @@ export default class FileCommand {
       return;
     }
 
-    const wantedPath = destPath.startsWith('/') ? destPath : `/${destPath}`;
+    const wantedPath = toProjectPath(destPath);
     const projectFiles = await fileService.loadProjectFiles(branchId);
     // Server paths carry the branch name; the path given on the command line never does.
     const projectFilePaths = new Map(
@@ -440,7 +440,7 @@ export default class FileCommand {
       );
     }
 
-    const wantedPath = destPath.startsWith('/') ? destPath : `/${destPath}`;
+    const wantedPath = toProjectPath(destPath);
     const sourceFile = await this.findProjectFile(command, options.branch, wantedPath);
 
     if (!sourceFile) {
@@ -596,13 +596,8 @@ export default class FileCommand {
     }
 
     const filePath = toPosixPath(rawFilePath);
-    const wantedPath = filePath.startsWith('/') ? filePath : `/${filePath}`;
+    const wantedPath = toProjectPath(filePath);
     const project = await projectService.loadProject();
-
-    if (options.language) {
-      await this.downloadTranslation(command, options, wantedPath, config, project);
-      return;
-    }
 
     if (project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED) {
       output.warning('File management is not available for string-based projects');
@@ -615,6 +610,11 @@ export default class FileCommand {
     if (!hasManagerAccess(project)) {
       output.warning('You must have manager or developer role in the project to perform this action');
       this.reportDownloaded(output, options, []);
+      return;
+    }
+
+    if (options.language) {
+      await this.downloadTranslation(command, options, wantedPath, config, project);
       return;
     }
 
@@ -652,18 +652,6 @@ export default class FileCommand {
   ): Promise<void> => {
     const output = this.getOutput(command);
     const translationService = await this.getTranslationService(command);
-
-    if (project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED) {
-      output.warning('File management is not available for string-based projects');
-      this.reportDownloaded(output, options, []);
-      return;
-    }
-
-    if (!hasManagerAccess(project)) {
-      output.warning('You must have manager or developer role in the project to perform this action');
-      this.reportDownloaded(output, options, []);
-      return;
-    }
 
     const languages =
       options.language === 'all'
@@ -716,7 +704,7 @@ export default class FileCommand {
     }
 
     const filePath = toPosixPath(rawFilePath);
-    const wantedPath = filePath.startsWith('/') ? filePath : `/${filePath}`;
+    const wantedPath = toProjectPath(filePath);
     const project = await projectService.loadProject();
 
     if (project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED) {

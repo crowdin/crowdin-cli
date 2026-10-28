@@ -978,6 +978,34 @@ describe('FileCommand', () => {
     expect(build).not.toHaveBeenCalled();
   });
 
+  test('skips translation download without manager access', async () => {
+    const fileCommand = createFileCommand();
+
+    spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
+      data: { id: 123, targetLanguages: [{ id: 'uk' }], type: 0 },
+    } as never);
+
+    const loadProjectFiles = spyOn(fileService, 'loadProjectFiles').mockResolvedValue({
+      data: [{ data: { id: 40, path: '/main.json', name: 'main.json' } }],
+    } as never);
+    const build = spyOn(translationService, 'buildProjectFileTranslation').mockResolvedValue(
+      'https://example.test/uk.json',
+    );
+    const warning = spyOn(output, 'warning');
+    const listSpy = spyOn(output, 'list');
+
+    commandContext = createCommandContext({ ...globalOptions, language: 'uk' }, ['main.json']);
+
+    await fileCommand.downloadAction(commandContext);
+
+    expect(warning).toHaveBeenCalledWith(
+      'You must have manager or developer role in the project to perform this action',
+    );
+    expect(loadProjectFiles).not.toHaveBeenCalled();
+    expect(build).not.toHaveBeenCalled();
+    expect(listSpy.mock.calls.at(-1)?.[0]).toEqual([]);
+  });
+
   test('deletes matching project file', async () => {
     const deleteProjectFile = mock(async () => undefined);
     const mockFileService = {
