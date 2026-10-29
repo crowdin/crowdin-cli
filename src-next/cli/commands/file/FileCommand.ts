@@ -1,7 +1,11 @@
 import { existsSync, statSync } from 'node:fs';
 import path from 'node:path';
-import type { ResponseObject, SourceFilesModel, UploadStorageModel } from '@crowdin/crowdin-api-client';
-import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
+import type {
+  ProjectsGroupsModel,
+  ResponseObject,
+  SourceFilesModel,
+  UploadStorageModel,
+} from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { reportNoManagerAccess } from '@/cli/commands/common/managerAccess.ts';
 import { branch as branchOption, projectConfigGroup, tree as treeOption } from '@/cli/commands/common/options.ts';
@@ -32,6 +36,7 @@ import type { Output, View } from '@/cli/utils/output.ts';
 import { toNumberArray } from '@/cli/utils/parsing.ts';
 import { resolveLanguagePlaceholders } from '@/lib/export/languagePlaceholders.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
+import { FILE_MANAGEMENT_UNAVAILABLE, isStringsBasedProject } from '@/lib/project/type.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
 import { changedFileSettings } from '@/lib/upload/fileOptions.ts';
 import { stripBranchPrefix, stripLeadingSlashes, toPosixPath, toProjectPath } from '@/lib/utils/path.ts';
@@ -220,7 +225,7 @@ export default class FileCommand {
       return;
     }
 
-    const isStringsBased = project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED;
+    const isStringsBased = isStringsBasedProject(project.data);
 
     if (isStringsBased && options.context) {
       throw new CliError("'--context' parameter is only available for file-based projects");
@@ -369,7 +374,6 @@ export default class FileCommand {
       throw new CliError(`Language '${languageId}' doesn't exist in the project. Try specifying another language code`);
     }
 
-    const isStringsBased = project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED;
     const storage = await this.uploadToStorage(storageService, filePath);
 
     // The percent message is unconditional here (unlike upload translations, where it is
@@ -393,7 +397,7 @@ export default class FileCommand {
           filePath,
           destPath,
           languageId,
-          isStringsBased,
+          isStringsBasedProject(project.data),
           storage.data.id,
           onProgress,
         );
@@ -599,8 +603,8 @@ export default class FileCommand {
     const wantedPath = toProjectPath(filePath);
     const project = await projectService.loadProject();
 
-    if (project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED) {
-      output.warning('File management is not available for string-based projects');
+    if (isStringsBasedProject(project.data)) {
+      output.warning(FILE_MANAGEMENT_UNAVAILABLE);
       // An early exit still owes the machine formats a document; an absent stdout would read as an
       // empty result either way.
       this.reportDownloaded(output, options, []);
@@ -707,8 +711,8 @@ export default class FileCommand {
     const wantedPath = toProjectPath(filePath);
     const project = await projectService.loadProject();
 
-    if (project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED) {
-      output.warning('File management is not available for string-based projects');
+    if (isStringsBasedProject(project.data)) {
+      output.warning(FILE_MANAGEMENT_UNAVAILABLE);
       return;
     }
 

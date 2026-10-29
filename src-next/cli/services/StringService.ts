@@ -1,5 +1,4 @@
 import type { Client, PatchRequest, SourceStringsModel, Status } from '@crowdin/crowdin-api-client';
-import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import { pollUntilFinished } from '@/lib/api/pollStatus.ts';
 
@@ -10,15 +9,6 @@ export class StringService {
     private client: Client,
     private projectId: number,
   ) {}
-
-  async isStringsBasedProject(): Promise<boolean> {
-    try {
-      const project = await this.client.projectsGroupsApi.getProject(this.projectId);
-      return project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED;
-    } catch (error) {
-      throw toCliError(error, 'Failed to fetch project info');
-    }
-  }
 
   async list(params: SourceStringsModel.ListProjectStringsOptions): Promise<SourceStringsModel.String[]> {
     try {

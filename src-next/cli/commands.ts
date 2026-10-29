@@ -137,6 +137,7 @@ const statusCommand = new StatusCommand(
 );
 const stringCommand = new StringCommand(
   getOutput,
+  getProjectService,
   getStringService,
   getBranchService,
   getDirectoryService,

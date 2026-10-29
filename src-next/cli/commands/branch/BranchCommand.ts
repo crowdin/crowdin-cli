@@ -1,4 +1,4 @@
-import { type PatchRequest, ProjectsGroupsModel, type SourceFilesModel } from '@crowdin/crowdin-api-client';
+import type { PatchRequest, SourceFilesModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
@@ -8,6 +8,7 @@ import type { GetBranchService, GetOutput, GetProjectService } from '@/cli/servi
 import type { CommandDef } from '@/cli/types.ts';
 import { normalizeBranchName } from '@/cli/utils/parsing.ts';
 import { withSpinner } from '@/cli/utils/withSpinner.ts';
+import { isStringsBasedProject } from '@/lib/project/type.ts';
 import { add, edit, merge } from './options.ts';
 import { branchView, mergeView } from './views.ts';
 
@@ -296,7 +297,7 @@ export default class BranchCommand {
     const projectService = await this.getProjectService(command);
     const project = await projectService.loadProject();
 
-    if (project.data.type !== ProjectsGroupsModel.Type.STRINGS_BASED) {
+    if (!isStringsBasedProject(project.data)) {
       throw new CliError('This command is only available for string-based projects');
     }
   }

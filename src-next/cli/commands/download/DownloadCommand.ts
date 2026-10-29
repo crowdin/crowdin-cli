@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { ProjectsGroupsModel, type SourceFilesModel, type TranslationsModel } from '@crowdin/crowdin-api-client';
+import type { SourceFilesModel, TranslationsModel } from '@crowdin/crowdin-api-client';
 import AdmZip from 'adm-zip';
 import type { Command } from 'commander';
 import { printDryRunPaths } from '@/cli/commands/common/dryRunPaths.ts';
@@ -31,6 +31,7 @@ import { buildAllProjectTranslations, sortOmittedFiles } from '@/lib/download/pr
 import { buildTranslationMapping } from '@/lib/download/translationMapping.ts';
 import { originalPath } from '@/lib/export/patterns.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
+import { FILE_MANAGEMENT_UNAVAILABLE, isStringsBasedProject } from '@/lib/project/type.ts';
 import { prepareDest } from '@/lib/upload/fileOptions.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
 import { stripBranchPrefix, stripLeadingSlashes, toPosixPath, toSortedRelativePaths } from '@/lib/utils/path.ts';
@@ -167,8 +168,8 @@ export default class DownloadCommand {
 
     const project = await projectService.loadProject();
 
-    if (project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED) {
-      throw new CliError('File management is not available for string-based projects');
+    if (isStringsBasedProject(project.data)) {
+      throw new CliError(FILE_MANAGEMENT_UNAVAILABLE);
     }
 
     const branch = await branchService.resolveBranch(options.branch);
@@ -336,8 +337,8 @@ export default class DownloadCommand {
 
     const project = await projectService.loadProject();
 
-    if (project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED) {
-      throw new CliError('File management is not available for string-based projects');
+    if (isStringsBasedProject(project.data)) {
+      throw new CliError(FILE_MANAGEMENT_UNAVAILABLE);
     }
 
     if (!hasManagerAccess(project)) {

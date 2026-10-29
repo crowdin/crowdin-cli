@@ -1,5 +1,4 @@
 import type { ProjectsGroupsModel, ResponseObject, TranslationsModel } from '@crowdin/crowdin-api-client';
-import { ProjectsGroupsModel as ProjectsGroups } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
@@ -16,6 +15,7 @@ import type {
 import type { CommandDef } from '@/cli/types.ts';
 import { isMachineFormat } from '@/cli/utils/formatter.ts';
 import { normalizePath, toNumberArray } from '@/cli/utils/parsing.ts';
+import { FILE_MANAGEMENT_UNAVAILABLE, isStringsBasedProject } from '@/lib/project/type.ts';
 import { stripBranchPrefix } from '@/lib/utils/path.ts';
 import {
   aiPrompt,
@@ -204,7 +204,6 @@ export default class AutoTranslateCommand {
     }
 
     const project = await projectService.loadProject();
-    const isStringsBasedProject = project.data.type === ProjectsGroups.Type.STRINGS_BASED;
     const languages = await this.prepareLanguageIds(
       project,
       languageIds,
@@ -217,9 +216,9 @@ export default class AutoTranslateCommand {
     const labelIds = await this.prepareLabelIds(options.label, labelService, output);
     const excludeLabelIds = await this.prepareLabelIds(options.excludeLabel, labelService, output);
 
-    if (isStringsBasedProject) {
+    if (isStringsBasedProject(project.data)) {
       if (files.length > 0 || directoryPath) {
-        throw new CliError('File management is not available for string-based projects');
+        throw new CliError(FILE_MANAGEMENT_UNAVAILABLE);
       }
 
       const projectBranch = await branchService.getBranch(options.branch);

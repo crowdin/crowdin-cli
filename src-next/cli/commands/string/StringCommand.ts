@@ -10,12 +10,14 @@ import type {
   GetFileService,
   GetLabelService,
   GetOutput,
+  GetProjectService,
   GetStringService,
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { isStructuredFormat } from '@/cli/utils/formatter.ts';
 import type { View } from '@/cli/utils/output.ts';
 import { parseNumericId, toArray, toNumberArray } from '@/cli/utils/parsing.ts';
+import { isStringsBasedProject } from '@/lib/project/type.ts';
 import { add, edit, list } from './options.ts';
 import { createStringView } from './views.ts';
 
@@ -58,6 +60,7 @@ const PLURAL_KEYS = ['one', 'two', 'few', 'many', 'zero'] as const;
 export default class StringCommand {
   constructor(
     private getOutput: GetOutput,
+    private getProjectService: GetProjectService,
     private getStringService: GetStringService,
     private getBranchService: GetBranchService,
     private getDirectoryService: GetDirectoryService,
@@ -190,12 +193,13 @@ export default class StringCommand {
     }
 
     const output = this.getOutput(command);
+    const projectService = await this.getProjectService(command);
     const stringService = await this.getStringService(command);
     const branchService = await this.getBranchService(command);
     const directoryService = await this.getDirectoryService(command);
     const fileService = await this.getFileService(command);
     const labelService = await this.getLabelService(command);
-    const isStringsBased = await stringService.isStringsBasedProject();
+    const isStringsBased = isStringsBasedProject((await projectService.loadProject()).data);
 
     if (isStringsBased && (filePath || directory)) {
       throw new CliError("The '--file' and '--directory' options are not supported for string-based projects");
@@ -246,13 +250,14 @@ export default class StringCommand {
     }
 
     const output = this.getOutput(command);
+    const projectService = await this.getProjectService(command);
     const stringService = await this.getStringService(command);
     const branchService = await this.getBranchService(command);
     const fileService = await this.getFileService(command);
     const labelService = await this.getLabelService(command);
     const files = toArray(options.file);
     const labels = toArray(options.label);
-    const isStringsBased = await stringService.isStringsBasedProject();
+    const isStringsBased = isStringsBasedProject((await projectService.loadProject()).data);
     const labelIds = await labelService.resolveLabelIds(labels);
     const isPlural = PLURAL_KEYS.some((key) => options[key] !== undefined);
     const requestText = isPlural ? this.buildPluralText(options, text) : text;
@@ -326,6 +331,7 @@ export default class StringCommand {
     }
 
     const output = this.getOutput(command);
+    const projectService = await this.getProjectService(command);
     const stringService = await this.getStringService(command);
     const labelService = await this.getLabelService(command);
     const labelIds = await labelService.resolveLabelIds(labelNames);
@@ -334,7 +340,9 @@ export default class StringCommand {
     const verbose = Boolean(options.verbose);
     // Only the verbose text/plain detail lines split on this; json/toon keep the raw ids either way.
     const isStringsBased =
-      verbose && !isStructuredFormat(options.output) ? await stringService.isStringsBasedProject() : false;
+      verbose &&
+      !isStructuredFormat(options.output) &&
+      isStringsBasedProject((await projectService.loadProject()).data);
 
     output.success(`Source string #${id} was updated successfully`);
     output.item(updated, await this.buildStringView(command, { verbose, isStringsBased }));

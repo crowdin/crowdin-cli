@@ -1,5 +1,4 @@
-import type { PatchRequest, SourceStringsModel } from '@crowdin/crowdin-api-client';
-import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
+import type { PatchRequest, ProjectsGroupsModel, SourceStringsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { dryRun, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
@@ -27,6 +26,7 @@ import { isMachineFormat } from '@/cli/utils/formatter.ts';
 import { type Output, resolveOutputFormat } from '@/cli/utils/output.ts';
 import { toArray } from '@/cli/utils/parsing.ts';
 import { isPathMatch } from '@/cli/utils/pathMatcher.ts';
+import { isStringsBasedProject } from '@/lib/project/type.ts';
 import {
   all as allOption,
   byFile as byFileOption,
@@ -419,7 +419,7 @@ export default class ContextCommand {
     const fileService = await this.getFileService(command);
 
     const project = (await projectService.loadProject()).data;
-    const isStringsBased = project.type === ProjectsGroupsModel.Type.STRINGS_BASED;
+    const isStringsBased = isStringsBasedProject(project);
     const branch = await branchService.resolveBranch(options.branch);
     const branchId = branch?.id;
     const labelIds = await labelService.resolveLabelIds(toArray(options.label), false);

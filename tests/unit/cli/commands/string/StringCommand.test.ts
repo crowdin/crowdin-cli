@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
-import type { SourceStringsModel } from '@crowdin/crowdin-api-client';
+import { ProjectsGroupsModel, type SourceStringsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import StringCommand from '@/cli/commands/string/StringCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
@@ -8,13 +8,14 @@ import type { BranchService } from '@/cli/services/BranchService.ts';
 import type { DirectoryService } from '@/cli/services/DirectoryService.ts';
 import type { FileService } from '@/cli/services/FileService.ts';
 import type { LabelService } from '@/cli/services/LabelService.ts';
+import type { ProjectService } from '@/cli/services/ProjectService.ts';
 import type { StringService } from '@/cli/services/StringService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
 
 describe('StringCommand', () => {
   let output: Output;
+  let projectService: { loadProject: ReturnType<typeof mock<ProjectService['loadProject']>> };
   let stringService: {
-    isStringsBasedProject: ReturnType<typeof mock<StringService['isStringsBasedProject']>>;
     list: ReturnType<typeof mock<StringService['list']>>;
     add: ReturnType<typeof mock<StringService['add']>>;
     edit: ReturnType<typeof mock<StringService['edit']>>;
@@ -49,11 +50,19 @@ describe('StringCommand', () => {
     } as unknown as Command;
   };
 
+  const fileBasedProject = { data: { type: ProjectsGroupsModel.Type.FILES_BASED } } as Awaited<
+    ReturnType<ProjectService['loadProject']>
+  >;
+  const stringsBasedProject = { data: { type: ProjectsGroupsModel.Type.STRINGS_BASED } } as Awaited<
+    ReturnType<ProjectService['loadProject']>
+  >;
+
   const createStringCommand = () => createStringCommandWith(output);
 
   const createStringCommandWith = (commandOutput: Output) => {
     return new StringCommand(
       () => commandOutput,
+      async () => projectService as unknown as ProjectService,
       async () => stringService as unknown as StringService,
       async () => branchService as unknown as BranchService,
       async () => directoryService as unknown as DirectoryService,
@@ -89,8 +98,8 @@ describe('StringCommand', () => {
 
   beforeEach(() => {
     output = createOutput(globalOptions);
+    projectService = { loadProject: mock(async () => fileBasedProject) };
     stringService = {
-      isStringsBasedProject: mock(async () => false),
       list: mock(async () => []),
       add: mock(async () => createStringModel({ id: 1, text: 'added text', identifier: 'k1' })),
       edit: mock(async () => createStringModel({ id: 5, text: 'edited', identifier: 'k5' })),
@@ -184,7 +193,7 @@ describe('StringCommand', () => {
 
     test('throws for file/directory filters on string-based projects', async () => {
       const cmd = createStringCommand();
-      stringService.isStringsBasedProject.mockResolvedValue(true);
+      projectService.loadProject.mockResolvedValue(stringsBasedProject);
       const commandContext = createCommandContext({ ...globalOptions, file: 'a.yml' });
 
       expect(cmd.listAction(commandContext)).rejects.toThrow(
@@ -194,14 +203,7 @@ describe('StringCommand', () => {
 
     test('prints empty message when no strings found', async () => {
       const textOutput = createOutput({ ...globalOptions, output: 'text' });
-      const cmd = new StringCommand(
-        () => textOutput,
-        async () => stringService as unknown as StringService,
-        async () => branchService as unknown as BranchService,
-        async () => directoryService as unknown as DirectoryService,
-        async () => fileService as unknown as FileService,
-        async () => labelService as unknown as LabelService,
-      );
+      const cmd = createStringCommandWith(textOutput);
       const commandContext = createCommandContext({ ...globalOptions, output: 'text' });
       const infoSpy = spyOn(textOutput, 'info');
       stringService.list.mockResolvedValue([]);
@@ -359,7 +361,7 @@ describe('StringCommand', () => {
 
     test('requires branch for string-based projects', async () => {
       const cmd = createStringCommand();
-      stringService.isStringsBasedProject.mockResolvedValue(true);
+      projectService.loadProject.mockResolvedValue(stringsBasedProject);
       const commandContext = createCommandContext(globalOptions, ['hello']);
 
       expect(cmd.addAction(commandContext)).rejects.toThrow(
@@ -369,14 +371,7 @@ describe('StringCommand', () => {
 
     test('creates file-based string and warns about missing files', async () => {
       const textOutput = createOutput({ ...globalOptions, output: 'text' });
-      const cmd = new StringCommand(
-        () => textOutput,
-        async () => stringService as unknown as StringService,
-        async () => branchService as unknown as BranchService,
-        async () => directoryService as unknown as DirectoryService,
-        async () => fileService as unknown as FileService,
-        async () => labelService as unknown as LabelService,
-      );
+      const cmd = createStringCommandWith(textOutput);
       const warningSpy = spyOn(textOutput, 'warning');
       const commandContext = createCommandContext(
         { ...globalOptions, output: 'text', file: ['a.yml', 'missing.yml'], identifier: 'k1' },
@@ -398,7 +393,7 @@ describe('StringCommand', () => {
 
     test('sends max-length as a number', async () => {
       const cmd = createStringCommand();
-      stringService.isStringsBasedProject.mockResolvedValue(true);
+      projectService.loadProject.mockResolvedValue(stringsBasedProject);
       branchService.resolveBranchId.mockResolvedValue(555);
       const commandContext = createCommandContext({ ...globalOptions, branch: 'main', maxLength: '999' }, ['hello']);
 
@@ -416,7 +411,7 @@ describe('StringCommand', () => {
 
     test('creates string-based plural string', async () => {
       const cmd = createStringCommand();
-      stringService.isStringsBasedProject.mockResolvedValue(true);
+      projectService.loadProject.mockResolvedValue(stringsBasedProject);
       branchService.resolveBranchId.mockResolvedValue(555);
       const commandContext = createCommandContext({ ...globalOptions, branch: 'main', one: 'One value' }, ['hello']);
 
@@ -475,7 +470,7 @@ describe('StringCommand', () => {
 
       await cmd.editAction(createCommandContext({ ...globalOptions, text: 'updated' }, ['15']));
 
-      expect(stringService.isStringsBasedProject).not.toHaveBeenCalled();
+      expect(projectService.loadProject).not.toHaveBeenCalled();
       expect(labelService.listLabelsMap).not.toHaveBeenCalled();
       expect(fileService.listProjectFilePaths).not.toHaveBeenCalled();
     });
@@ -487,7 +482,7 @@ describe('StringCommand', () => {
         createCommandContext({ ...globalOptions, output: 'json', verbose: true, text: 'x' }, ['15']),
       );
 
-      expect(stringService.isStringsBasedProject).not.toHaveBeenCalled();
+      expect(projectService.loadProject).not.toHaveBeenCalled();
       expect(labelService.listLabelsMap).not.toHaveBeenCalled();
       expect(fileService.listProjectFilePaths).not.toHaveBeenCalled();
     });
@@ -523,7 +518,7 @@ describe('StringCommand', () => {
       const textOutput = createOutput({ ...globalOptions, output: 'text' });
       const cmd = createStringCommandWith(textOutput);
 
-      stringService.isStringsBasedProject.mockResolvedValue(true);
+      projectService.loadProject.mockResolvedValue(stringsBasedProject);
       stringService.edit.mockResolvedValue(
         createStringModel({ id: 15, identifier: 'welcome', text: 'Hello', fileId: 101, context: 'Greeting' }),
       );
@@ -547,14 +542,7 @@ describe('StringCommand', () => {
 
     test('deletes string by id', async () => {
       const textOutput = createOutput({ ...globalOptions, output: 'text' });
-      const cmd = new StringCommand(
-        () => textOutput,
-        async () => stringService as unknown as StringService,
-        async () => branchService as unknown as BranchService,
-        async () => directoryService as unknown as DirectoryService,
-        async () => fileService as unknown as FileService,
-        async () => labelService as unknown as LabelService,
-      );
+      const cmd = createStringCommandWith(textOutput);
       const successSpy = spyOn(textOutput, 'success');
       const commandContext = createCommandContext({ ...globalOptions, output: 'text' }, ['42']);
 

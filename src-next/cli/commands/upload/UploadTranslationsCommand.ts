@@ -1,6 +1,5 @@
 import path from 'node:path';
-import type { LanguagesModel } from '@crowdin/crowdin-api-client';
-import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
+import type { LanguagesModel, ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { printDryRunPaths } from '@/cli/commands/common/dryRunPaths.ts';
 import { EXECUTION_FINISHED_WITH_ERRORS, reportFailures } from '@/cli/commands/common/failures.ts';
@@ -24,6 +23,7 @@ import { resolveTranslationPath } from '@/lib/config/translationPathResolver.ts'
 import { assertFilesConfigured, type Config, isMultilingualFile } from '@/lib/config.ts';
 import { containsLanguagePlaceholder } from '@/lib/export/languagePlaceholders.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
+import { isStringsBasedProject } from '@/lib/project/type.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
 import { resolveProjectPath } from '@/lib/upload/fileOptions.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
@@ -86,7 +86,7 @@ export default class UploadTranslationsCommand {
     const targetLanguages = this.filterTargetLanguages(project.data.targetLanguages, options.language);
     const serverLanguageMapping = hasManagerAccess(project) ? project.data.languageMapping : undefined;
 
-    if (project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED) {
+    if (isStringsBasedProject(project.data)) {
       await this.uploadTranslationsStringsBased(
         options,
         config,

@@ -1,6 +1,5 @@
 import path from 'node:path';
 import type { LanguagesModel, SourceFilesModel, SourceStringsModel } from '@crowdin/crowdin-api-client';
-import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { printDryRunPaths } from '@/cli/commands/common/dryRunPaths.ts';
 import { EXECUTION_FINISHED_WITH_ERRORS, reportFailures } from '@/cli/commands/common/failures.ts';
@@ -26,6 +25,7 @@ import type { Output } from '@/cli/utils/output.ts';
 import SourceFileLoader from '@/lib/config/SourceFileLoader.ts';
 import { assertFilesConfigured } from '@/lib/config.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
+import { isStringsBasedProject } from '@/lib/project/type.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
 import {
   buildExportOptions,
@@ -93,7 +93,7 @@ export default class UploadSourcesCommand {
     assertFilesConfigured(config);
 
     const project = await projectService.loadProject();
-    const isStringsBasedProject = project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED;
+    const isStringsBased = isStringsBasedProject(project.data);
     const serverLanguageMapping = hasManagerAccess(project) ? project.data.languageMapping : undefined;
     const sourceFileLoader = new SourceFileLoader(config);
     const patternFilePaths = config.files.map((patterns) => {
@@ -128,7 +128,7 @@ export default class UploadSourcesCommand {
 
     // These options have no effect on strings-based projects (the strings upload request ignores
     // them), so warn instead of silently doing nothing.
-    if (isStringsBasedProject) {
+    if (isStringsBased) {
       if (containsExcludedLanguages) {
         output.warning("'excluded-languages' option can not be used for string-based projects");
       }
@@ -163,19 +163,19 @@ export default class UploadSourcesCommand {
       }
     }
 
-    if (isStringsBasedProject && !branch) {
+    if (isStringsBased && !branch) {
       throw new CliError('A branch is required to upload sources for a strings-based project');
     }
 
     const branchId = branch?.id;
     const branchName = branch?.name;
-    const projectFiles = isStringsBasedProject ? { data: [] } : await fileService.loadProjectFiles(branchId);
+    const projectFiles = isStringsBased ? { data: [] } : await fileService.loadProjectFiles(branchId);
     // Server paths carry the branch name; the project paths resolved from the config never do.
     const projectFilePaths = new Map(
       projectFiles.data.map((file) => [stripBranchPrefix(file.data.path, branchName), file.data.id]),
     );
     const projectFilesById = new Map(projectFiles.data.map((file) => [file.data.id, file.data]));
-    const projectDirectoryList = isStringsBasedProject ? [] : await directoryService.loadProjectDirectories(branchId);
+    const projectDirectoryList = isStringsBased ? [] : await directoryService.loadProjectDirectories(branchId);
     const projectDirectories = new Map(
       projectDirectoryList.map((directory) => [directory.data.path, directory.data.id]),
     );
@@ -183,7 +183,7 @@ export default class UploadSourcesCommand {
       patternFilePaths.flatMap(({ files }) => files.map(({ projectPath }) => toProjectPath(projectPath))),
     );
 
-    if (options.deleteObsolete && !isStringsBasedProject) {
+    if (options.deleteObsolete && !isStringsBased) {
       await deleteObsoleteProjectEntries(
         projectFiles.data,
         projectDirectoryList,
@@ -241,7 +241,7 @@ export default class UploadSourcesCommand {
         continue;
       }
 
-      if (isStringsBasedProject && patterns.context) {
+      if (isStringsBased && patterns.context) {
         output.warning('Context can not be used for string-based projects');
       }
 
@@ -251,7 +251,7 @@ export default class UploadSourcesCommand {
       let srxStorageIdPromise: Promise<number> | undefined;
 
       // Strings-based import options ignore srxStorageId, so skip uploading the srx storage there.
-      if (patterns.custom_segmentation && !options.dryrun && !isStringsBasedProject) {
+      if (patterns.custom_segmentation && !options.dryrun && !isStringsBased) {
         if (!srxStorageIds.has(patterns.custom_segmentation)) {
           srxStorageIds.set(
             patterns.custom_segmentation,
@@ -281,7 +281,7 @@ export default class UploadSourcesCommand {
           return;
         }
 
-        if (isStringsBasedProject) {
+        if (isStringsBased) {
           if (options.dryrun) {
             output.info(`File '${projectPath}' would be uploaded`);
             return;
