@@ -105,6 +105,48 @@ describe('TranslationService', () => {
     });
   });
 
+  describe('importProjectTranslationStringsBased', () => {
+    test('imports into the branch with the given flags', async () => {
+      const spy = spyOn(apiClient.translationsApi, 'importTranslations').mockResolvedValue({
+        data: { identifier: 'import-1', status: 'finished', progress: 100 },
+      } as never);
+
+      await translationService.importProjectTranslationStringsBased(10, 7, ['fr'], 'fr.csv', undefined, {
+        autoApproveImported: true,
+        importEqSuggestions: false,
+        translateHidden: true,
+      });
+
+      expect(spy).toHaveBeenCalledWith(PROJECT_ID, {
+        storageId: 10,
+        branchId: 7,
+        languageIds: ['fr'],
+        autoApproveImported: true,
+        importEqSuggestions: false,
+        translateHidden: true,
+      });
+    });
+  });
+
+  describe('importXliffTranslation', () => {
+    test('imports without a file or branch and reports progress', async () => {
+      const spy = spyOn(apiClient.translationsApi, 'importTranslations').mockResolvedValue({
+        data: { identifier: 'import-1', status: 'created', progress: 0 },
+      } as never);
+      spyOn(apiClient.translationsApi, 'importTranslationsStatus').mockResolvedValue({
+        data: { identifier: 'import-1', status: 'finished', progress: 100 },
+      } as never);
+      const progress: number[] = [];
+
+      await translationService.importXliffTranslation(10, ['fr'], 'fr.xliff', (status) =>
+        progress.push(status.progress),
+      );
+
+      expect(spy).toHaveBeenCalledWith(PROJECT_ID, { storageId: 10, languageIds: ['fr'] });
+      expect(progress).toEqual([100]);
+    });
+  });
+
   describe('buildProjectTranslations', () => {
     test('polls until finished and returns build', async () => {
       const build = { data: { id: 77, status: 'created' } };
