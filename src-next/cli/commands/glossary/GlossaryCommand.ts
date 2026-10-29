@@ -11,6 +11,7 @@ import type { GlossaryService } from '@/cli/services/GlossaryService.ts';
 import type { GetApiClient, GetConfig, GetGlossaryService, GetOutput, GetStorageService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { downloadToFile } from '@/cli/utils/downloadToFile.ts';
+import type { Output } from '@/cli/utils/output.ts';
 import { parseNumericId, parseScheme, toArray } from '@/cli/utils/parsing.ts';
 import { assertProjectConfigured } from '@/lib/config.ts';
 import { toSafeFileName } from '@/lib/utils/path.ts';
@@ -231,7 +232,7 @@ export default class GlossaryCommand {
   };
 
   private async loadTerms(
-    output: ReturnType<GetOutput>,
+    output: Output,
     glossaryService: GlossaryService,
     glossaries: GlossariesModel.Glossary[],
   ): Promise<Map<number, GlossariesModel.Term[]>> {

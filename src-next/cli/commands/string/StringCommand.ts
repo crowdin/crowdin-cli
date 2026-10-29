@@ -3,7 +3,7 @@ import type { Command } from 'commander';
 import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { ProjectFilePath } from '@/cli/services/FileService.ts';
+import type { FileService, ProjectFilePath } from '@/cli/services/FileService.ts';
 import type {
   GetBranchService,
   GetDirectoryService,
@@ -389,7 +389,7 @@ export default class StringCommand {
   }
 
   private async resolveSingleFileId(
-    fileService: Awaited<ReturnType<GetFileService>>,
+    fileService: FileService,
     filePath: string,
     branch?: SourceFilesModel.Branch,
   ): Promise<number> {

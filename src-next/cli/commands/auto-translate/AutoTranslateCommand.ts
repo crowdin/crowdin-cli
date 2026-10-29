@@ -3,7 +3,8 @@ import type { Command } from 'commander';
 import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { PreTranslationStatus } from '@/cli/services/TranslationService.ts';
+import type { LabelService } from '@/cli/services/LabelService.ts';
+import type { PreTranslationStatus, TranslationService } from '@/cli/services/TranslationService.ts';
 import type {
   GetBranchService,
   GetFileService,
@@ -14,6 +15,7 @@ import type {
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { isMachineFormat } from '@/cli/utils/formatter.ts';
+import type { Output } from '@/cli/utils/output.ts';
 import { normalizePath, toNumberArray } from '@/cli/utils/parsing.ts';
 import { FILE_MANAGEMENT_UNAVAILABLE, isStringsBasedProject } from '@/lib/project/type.ts';
 import { stripBranchPrefix } from '@/lib/utils/path.ts';
@@ -305,9 +307,9 @@ export default class AutoTranslateCommand {
   };
 
   private async run(
-    translationService: Awaited<ReturnType<GetTranslationService>>,
+    translationService: TranslationService,
     request: TranslationsModel.PreTranslateRequest | TranslationsModel.PreTranslateStringsRequest,
-    output: ReturnType<GetOutput>,
+    output: Output,
     options: AutoTranslateCommandOptions,
   ): Promise<void> {
     if (options.async) {
@@ -323,7 +325,7 @@ export default class AutoTranslateCommand {
     await this.reportResult(translationService, status, output, verbose, options.output);
   }
 
-  private findFileIds(paths: Map<string, number>, files: string[], output: ReturnType<GetOutput>): number[] {
+  private findFileIds(paths: Map<string, number>, files: string[], output: Output): number[] {
     const fileIds: number[] = [];
 
     for (const filePath of files) {
@@ -414,7 +416,7 @@ export default class AutoTranslateCommand {
   private resolveAutoApproveOption(
     value: string | undefined,
     translateMethod: Method,
-    output: ReturnType<GetOutput>,
+    output: Output,
   ): AutoApproveOption | undefined {
     if (!value) {
       return undefined;
@@ -458,8 +460,8 @@ export default class AutoTranslateCommand {
     excludeLanguageIds: string[] | undefined,
     translateMethod: Method,
     engineIdValue: number | undefined,
-    translationService: Awaited<ReturnType<GetTranslationService>>,
-    output: ReturnType<GetOutput>,
+    translationService: TranslationService,
+    output: Output,
   ): Promise<string[]> {
     const projectLanguages = project.data.targetLanguages.map((targetLanguage) => targetLanguage.id);
     const excludedLanguages = this.prepareExcludedLanguageIds(excludeLanguageIds, projectLanguages);
@@ -521,8 +523,8 @@ export default class AutoTranslateCommand {
 
   private async prepareLabelIds(
     labelNames: string[] | undefined,
-    labelService: Awaited<ReturnType<GetLabelService>>,
-    output: ReturnType<GetOutput>,
+    labelService: LabelService,
+    output: Output,
   ): Promise<number[] | undefined> {
     if (!labelNames || labelNames.length === 0) {
       return undefined;
@@ -549,9 +551,9 @@ export default class AutoTranslateCommand {
    * plain, which prints the identifier alone either way, never asks for it.
    */
   private async reportResult(
-    translationService: Awaited<ReturnType<GetTranslationService>>,
+    translationService: TranslationService,
     status: { identifier: string; status?: string },
-    output: ReturnType<GetOutput>,
+    output: Output,
     verbose: boolean,
     format?: string,
   ): Promise<void> {

@@ -7,6 +7,9 @@ import { reportNoManagerAccess } from '@/cli/commands/common/managerAccess.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import WrongLanguageError from '@/cli/errors/WrongLanguageError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import type { BranchService } from '@/cli/services/BranchService.ts';
+import type { StorageService } from '@/cli/services/StorageService.ts';
+import type { TranslationService } from '@/cli/services/TranslationService.ts';
 import type {
   GetBranchService,
   GetConfig,
@@ -306,9 +309,9 @@ export default class UploadTranslationsCommand {
     options: UploadTranslationsOptions,
     config: Config,
     output: Output,
-    branchService: Awaited<ReturnType<GetBranchService>>,
-    storageService: Awaited<ReturnType<GetStorageService>>,
-    translationService: Awaited<ReturnType<GetTranslationService>>,
+    branchService: BranchService,
+    storageService: StorageService,
+    translationService: TranslationService,
     targetLanguages: LanguagesModel.Language[],
     serverLanguageMapping?: ProjectsGroupsModel.LanguageMapping,
   ) {

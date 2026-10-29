@@ -15,6 +15,8 @@ import FileInUpdateError from '@/cli/errors/FileInUpdateError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import WrongLanguageError from '@/cli/errors/WrongLanguageError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import type { DirectoryService } from '@/cli/services/DirectoryService.ts';
+import type { StorageService } from '@/cli/services/StorageService.ts';
 import type { ImportProgress } from '@/cli/services/TranslationService.ts';
 import type {
   GetBranchService,
@@ -34,6 +36,7 @@ import { printFileTree } from '@/cli/utils/fileTree.ts';
 import { isMachineFormat, isStructuredFormat } from '@/cli/utils/formatter.ts';
 import type { Output, View } from '@/cli/utils/output.ts';
 import { toNumberArray } from '@/cli/utils/parsing.ts';
+import type { Config } from '@/lib/config.ts';
 import { resolveLanguagePlaceholders } from '@/lib/export/languagePlaceholders.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { FILE_MANAGEMENT_UNAVAILABLE, isStringsBasedProject } from '@/lib/project/type.ts';
@@ -529,7 +532,7 @@ export default class FileCommand {
   }
 
   private uploadToStorage = async (
-    storageService: Awaited<ReturnType<GetStorageService>>,
+    storageService: StorageService,
     filePath: string,
   ): Promise<ResponseObject<UploadStorageModel.Storage>> => {
     try {
@@ -543,8 +546,8 @@ export default class FileCommand {
   // segment carries the branchId (nested segments inherit it via their parent).
   private createDirectories = async (
     dir: string,
-    directoryService: Awaited<ReturnType<GetDirectoryService>>,
-    output: Awaited<ReturnType<GetOutput>>,
+    directoryService: DirectoryService,
+    output: Output,
     branch: SourceFilesModel.Branch | undefined,
   ): Promise<number | undefined> => {
     if (!dir) {
@@ -651,7 +654,7 @@ export default class FileCommand {
     command: Command,
     options: UploadFileCommandOptions,
     wantedPath: string,
-    config: Awaited<ReturnType<GetConfig>>,
+    config: Config,
     project: ResponseObject<ProjectsGroupsModel.Project | ProjectsGroupsModel.ProjectSettings>,
   ): Promise<void> => {
     const output = this.getOutput(command);
