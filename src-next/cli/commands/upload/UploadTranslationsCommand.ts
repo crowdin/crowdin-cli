@@ -154,10 +154,12 @@ export default class UploadTranslationsCommand {
           entry.fileId as number,
           entry.languageIds,
           entry.translationPath,
-          options.autoApproveImported,
-          options.importEqSuggestions,
-          options.translateHidden,
           (status) => output.debug(this.progressMessage(entry.translationPath, status)),
+          {
+            autoApproveImported: options.autoApproveImported,
+            importEqSuggestions: options.importEqSuggestions,
+            translateHidden: options.translateHidden,
+          },
         );
       } catch (error) {
         if (error instanceof WrongLanguageError) {
@@ -355,10 +357,12 @@ export default class UploadTranslationsCommand {
         branch.id,
         entry.languageIds,
         entry.translationPath,
-        options.autoApproveImported,
-        options.importEqSuggestions,
-        options.translateHidden,
         (status) => output.debug(this.progressMessage(entry.translationPath, status)),
+        {
+          autoApproveImported: options.autoApproveImported,
+          importEqSuggestions: options.importEqSuggestions,
+          translateHidden: options.translateHidden,
+        },
       );
 
       output.success(`File '${entry.translationPath}'`);

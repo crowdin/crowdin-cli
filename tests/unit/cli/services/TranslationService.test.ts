@@ -38,7 +38,11 @@ describe('TranslationService', () => {
     test('calls API with all required args', async () => {
       const spy = spyOn(apiClient.translationsApi, 'importTranslations').mockResolvedValue(finished as never);
 
-      await translationService.importProjectTranslation(10, 5, ['fr', 'de'], '/docs/readme.md', true, false, true);
+      await translationService.importProjectTranslation(10, 5, ['fr', 'de'], '/docs/readme.md', undefined, {
+        autoApproveImported: true,
+        importEqSuggestions: false,
+        translateHidden: true,
+      });
 
       expect(spy).toHaveBeenCalledWith(PROJECT_ID, {
         storageId: 10,
@@ -62,15 +66,8 @@ describe('TranslationService', () => {
       );
       const progress: number[] = [];
 
-      await translationService.importProjectTranslation(
-        10,
-        5,
-        ['fr'],
-        '/docs/readme.md',
-        undefined,
-        undefined,
-        undefined,
-        (status) => progress.push(status.progress),
+      await translationService.importProjectTranslation(10, 5, ['fr'], '/docs/readme.md', (status) =>
+        progress.push(status.progress),
       );
 
       expect(statusSpy).toHaveBeenCalledWith(PROJECT_ID, 'import-1');

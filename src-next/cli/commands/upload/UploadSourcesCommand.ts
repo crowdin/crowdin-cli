@@ -31,12 +31,12 @@ import {
   buildExportOptions,
   buildImportOptions,
   buildStringsImportOptions,
+  changedFileSettings,
   replaceFileDependentPlaceholders,
   resolveProjectPath,
 } from '@/lib/upload/fileOptions.ts';
 import { deleteObsoleteProjectEntries } from '@/lib/upload/obsoleteEntries.ts';
 import { computeChecksum, loadSourceCache, saveSourceCache } from '@/lib/upload/sourceCache.ts';
-import { sameItems } from '@/lib/utils/array.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
 import {
   getCommonPath,
@@ -174,10 +174,7 @@ export default class UploadSourcesCommand {
     const projectFilePaths = new Map(
       projectFiles.data.map((file) => [stripBranchPrefix(file.data.path, branchName), file.data.id]),
     );
-    const projectFileContexts = new Map(projectFiles.data.map((file) => [file.data.id, file.data.context]));
-    const projectFileExcludedLanguages = new Map(
-      projectFiles.data.map((file) => [file.data.id, file.data.excludedTargetLanguages ?? undefined]),
-    );
+    const projectFilesById = new Map(projectFiles.data.map((file) => [file.data.id, file.data]));
     const projectDirectoryList = isStringsBasedProject ? [] : await directoryService.loadProjectDirectories(branchId);
     const projectDirectories = new Map(
       projectDirectoryList.map((directory) => [directory.data.path, directory.data.id]),
@@ -361,30 +358,21 @@ export default class UploadSourcesCommand {
 
           const srxStorageId = srxStorageIdPromise ? await srxStorageIdPromise : undefined;
           const storage = await storageService.addStorage(localFile);
-          const context = await readContext();
-          const changedContext =
-            context !== undefined && context !== projectFileContexts.get(existingFile.id) ? context : undefined;
-          const excludedTargetLanguages = fileOptions.excluded_target_languages;
-          const changedExcludedLanguages =
-            excludedTargetLanguages !== undefined &&
-            !sameItems(excludedTargetLanguages, projectFileExcludedLanguages.get(existingFile.id))
-              ? excludedTargetLanguages
-              : undefined;
+          const changedSettings = changedFileSettings(projectFilesById.get(existingFile.id), {
+            context: await readContext(),
+            excludedTargetLanguages: fileOptions.excluded_target_languages,
+          });
 
           try {
-            await fileService.updateProjectFile(
-              existingFile.id,
-              storage.data.id,
-              localFilePath,
-              buildExportOptions(localFilePath, patterns, patterns.translation),
-              buildImportOptions(localFilePath, patterns, srxStorageId),
-              patterns.update_option as SourceFilesModel.UpdateOption | undefined,
-              labelIds,
-              changedExcludedLanguages,
+            await fileService.updateProjectFile(existingFile.id, storage.data.id, localFilePath, {
+              exportOptions: buildExportOptions(localFilePath, patterns, patterns.translation),
+              importOptions: buildImportOptions(localFilePath, patterns, srxStorageId),
+              updateOption: patterns.update_option as SourceFilesModel.UpdateOption | undefined,
+              attachLabelIds: labelIds,
               // On a soft match the project file has a different name/extension; rename it to the source.
-              existingFile.exact ? undefined : path.parse(localFilePath).base,
-              changedContext,
-            );
+              name: existingFile.exact ? undefined : path.parse(localFilePath).base,
+              ...changedSettings,
+            });
           } catch (error) {
             if (error instanceof FileInUpdateError) {
               output.warning(`File '${projectPath}' is currently being updated`);

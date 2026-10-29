@@ -33,7 +33,7 @@ import { toNumberArray } from '@/cli/utils/parsing.ts';
 import { resolveLanguagePlaceholders } from '@/lib/export/languagePlaceholders.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
-import { sameItems } from '@/lib/utils/array.ts';
+import { changedFileSettings } from '@/lib/upload/fileOptions.ts';
 import { stripBranchPrefix, stripLeadingSlashes, toPosixPath, toProjectPath } from '@/lib/utils/path.ts';
 import { type DownloadedFile, downloadedFileView } from '../download/views.ts';
 import { type UploadedFile, uploadedFileView } from '../upload/views.ts';
@@ -321,27 +321,18 @@ export default class FileCommand {
       return;
     }
 
-    const newExcludedLanguages =
-      options.excludedLanguage?.length && !sameItems(options.excludedLanguage, projectFile.excludedTargetLanguages)
-        ? options.excludedLanguage
-        : undefined;
-    const newContext =
-      options.context !== undefined && options.context !== projectFile.context ? options.context : undefined;
+    const changedSettings = changedFileSettings(projectFile, {
+      context: options.context,
+      excludedTargetLanguages: options.excludedLanguage?.length ? options.excludedLanguage : undefined,
+    });
     const storage = await this.uploadToStorage(storageService, filePath);
 
     try {
-      await fileService.updateProjectFile(
-        projectFile.id,
-        storage.data.id,
-        filePath,
-        undefined,
-        undefined,
-        undefined,
-        labelIds,
-        newExcludedLanguages,
-        newName,
-        newContext,
-      );
+      await fileService.updateProjectFile(projectFile.id, storage.data.id, filePath, {
+        attachLabelIds: labelIds,
+        name: newName,
+        ...changedSettings,
+      });
     } catch (error) {
       if (error instanceof FileInUpdateError) {
         output.warning(`File '${fileFullPath}' is currently being updated`);
@@ -450,9 +441,6 @@ export default class FileCommand {
         branchId,
         [languageId],
         filePath,
-        undefined,
-        undefined,
-        undefined,
         onProgress,
       );
     }
@@ -469,9 +457,6 @@ export default class FileCommand {
       sourceFile.id,
       [languageId],
       filePath,
-      undefined,
-      undefined,
-      undefined,
       onProgress,
     );
   };

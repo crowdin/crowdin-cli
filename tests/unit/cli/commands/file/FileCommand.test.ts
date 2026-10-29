@@ -491,18 +491,7 @@ describe('FileCommand', () => {
 
     expect(listSpy.mock.calls.at(-1)?.[0]).toEqual([{ path: 'remote.json', action: 'updated' }]);
 
-    expect(updateProjectFile).toHaveBeenCalledWith(
-      42,
-      99,
-      localFilePath,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-    );
+    expect(updateProjectFile).toHaveBeenCalledWith(42, 99, localFilePath, {});
     expect(createFile).not.toHaveBeenCalled();
   });
 
@@ -532,17 +521,15 @@ describe('FileCommand', () => {
 
       await fileCommand.uploadAction(commandContext);
 
+      // biome-ignore format: one argument per line
       expect(updateProjectFile).toHaveBeenCalledWith(
         42,
         99,
         localFilePath,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        newExcluded,
-        undefined,
-        newContext,
+        {
+          excludedTargetLanguages: newExcluded,
+          context: newContext,
+        },
       );
     },
   );
@@ -566,7 +553,7 @@ describe('FileCommand', () => {
     await fileCommand.uploadAction(commandContext);
 
     expect(updateProjectFile.mock.calls[0]?.[0]).toBe(42);
-    expect(updateProjectFile.mock.calls[0]?.[8]).toBe('remote.json');
+    expect(updateProjectFile.mock.calls[0]?.[3]?.name).toBe('remote.json');
   });
 
   test('updates an existing branch file when --branch is sanitized', async () => {
@@ -750,14 +737,12 @@ describe('FileCommand', () => {
 
     await fileCommand.uploadAction(commandContext);
 
+    // biome-ignore format: one argument per line
     expect(importProjectTranslation).toHaveBeenCalledWith(
       99,
       40,
       ['uk'],
       localFilePath,
-      undefined,
-      undefined,
-      undefined,
       expect.any(Function),
     );
     expect(listSpy.mock.calls.at(-1)?.[0]).toEqual([{ path: localFilePath, action: 'uploaded' }]);
@@ -783,7 +768,7 @@ describe('FileCommand', () => {
     spyOn(translationService, 'importProjectTranslation').mockImplementation((async (
       ...args: Parameters<typeof translationService.importProjectTranslation>
     ) => {
-      args[7]?.({ progress: 50, identifier: 'import-1' } as never);
+      args[4]?.({ progress: 50, identifier: 'import-1' } as never);
     }) as never);
 
     const log = spyOn(output, 'log');

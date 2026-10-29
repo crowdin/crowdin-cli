@@ -96,10 +96,8 @@ describe('UploadTranslationsCommand', () => {
       77,
       ['es'],
       'locale/es/app.json',
-      undefined,
-      undefined,
-      undefined,
       expect.any(Function),
+      {},
     );
   });
 
@@ -140,10 +138,8 @@ describe('UploadTranslationsCommand', () => {
       77,
       ['es'],
       'es/app.json',
-      undefined,
-      undefined,
-      undefined,
       expect.any(Function),
+      {},
     );
     expect(output.warning).not.toHaveBeenCalledWith("File 's/app.json' does not exist in the specified location");
   });
@@ -201,10 +197,8 @@ describe('UploadTranslationsCommand', () => {
       77,
       ['es'],
       'emails/es/welcome.json',
-      undefined,
-      undefined,
-      undefined,
       expect.any(Function),
+      {},
     );
     expect(translationService.importProjectTranslation).not.toHaveBeenCalledWith(
       expect.anything(),
@@ -266,10 +260,12 @@ describe('UploadTranslationsCommand', () => {
       77,
       ['es'],
       'locale/es/app.json',
-      true,
-      true,
-      true,
       expect.any(Function),
+      {
+        autoApproveImported: true,
+        importEqSuggestions: true,
+        translateHidden: true,
+      },
     );
     expect(output.success).toHaveBeenCalledWith("File 'locale/es/app.json'");
   });
@@ -294,7 +290,7 @@ describe('UploadTranslationsCommand', () => {
       ...baseTranslationServiceMock(),
       // Drive the service's onProgress callback so the command's wiring is exercised.
       importProjectTranslation: mock(async (...args: Parameters<TranslationService['importProjectTranslation']>) => {
-        args[7]?.({ progress: 50, identifier: 'import-1' } as never);
+        args[4]?.({ progress: 50, identifier: 'import-1' } as never);
       }),
     };
     const output = createOutputMock();
@@ -402,10 +398,8 @@ describe('UploadTranslationsCommand', () => {
       77,
       ['es'],
       'locale/es/app.json',
-      undefined,
-      undefined,
-      undefined,
       expect.any(Function),
+      {},
     );
     expect(output.success).toHaveBeenCalledWith("File 'locale/es/app.json'");
   });
@@ -537,20 +531,16 @@ describe('UploadTranslationsCommand', () => {
       77,
       ['es'],
       'locale/es/app.json',
-      undefined,
-      undefined,
-      undefined,
       expect.any(Function),
+      {},
     );
     expect(translationService.importProjectTranslation).toHaveBeenCalledWith(
       expect.any(Number),
       77,
       ['fr'],
       'locale/fr/app.json',
-      undefined,
-      undefined,
-      undefined,
       expect.any(Function),
+      {},
     );
     expect(output.success).toHaveBeenCalledWith("File 'locale/es/app.json'");
     expect(output.success).toHaveBeenCalledWith("File 'locale/fr/app.json'");
@@ -720,10 +710,8 @@ describe('UploadTranslationsCommand', () => {
       77,
       ['fr'],
       'locale/fr/app.json',
-      undefined,
-      undefined,
-      undefined,
       expect.any(Function),
+      {},
     );
   });
 
@@ -790,10 +778,8 @@ describe('UploadTranslationsCommand', () => {
       5,
       ['es'],
       'locale/es/app.json',
-      undefined,
-      undefined,
-      undefined,
       expect.any(Function),
+      {},
     );
     expect(output.success).toHaveBeenCalledWith("File 'locale/es/app.json'");
   });
@@ -867,10 +853,8 @@ describe('UploadTranslationsCommand', () => {
       88,
       ['es'],
       'locale/es/app.json',
-      undefined,
-      undefined,
-      undefined,
       expect.any(Function),
+      {},
     );
   });
 
@@ -946,10 +930,8 @@ describe('UploadTranslationsCommand', () => {
       77,
       ['es'],
       'locale/es/app.json',
-      undefined,
-      undefined,
-      undefined,
       expect.any(Function),
+      {},
     );
   });
 
@@ -994,10 +976,8 @@ describe('UploadTranslationsCommand', () => {
       90,
       ['es', 'fr'],
       'translations.csv',
-      undefined,
-      undefined,
-      undefined,
       expect.any(Function),
+      {},
     );
   });
 
@@ -1044,10 +1024,8 @@ describe('UploadTranslationsCommand', () => {
       90,
       ['es', 'fr'],
       'Localizable.xcstrings',
-      undefined,
-      undefined,
-      undefined,
       expect.any(Function),
+      {},
     );
   });
 
@@ -1129,10 +1107,8 @@ describe('UploadTranslationsCommand', () => {
       77,
       ['ua'],
       'locale/ua/messages.po',
-      undefined,
-      undefined,
-      undefined,
       expect.any(Function),
+      {},
     );
   });
 

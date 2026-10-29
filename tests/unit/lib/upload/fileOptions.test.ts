@@ -4,6 +4,7 @@ import { type Config, ConfigSchema } from '@/lib/config.ts';
 import {
   buildExportOptions,
   buildImportOptions,
+  changedFileSettings,
   prepareDest,
   replaceFileDependentPlaceholders,
 } from '@/lib/upload/fileOptions.ts';
@@ -218,5 +219,31 @@ describe('** in dest and context', () => {
 
   test('keeps a folder whose name merely starts with the last segment of a multi-segment prefix', () => {
     expect(prepareDest('/a/b/**/%original_file_name%', 'a/bc/deep/app.json')).toBe('a/b/a/bc/deep/app.json');
+  });
+});
+
+describe('changedFileSettings', () => {
+  const projectFile = { context: 'ctx', excludedTargetLanguages: ['de', 'fr'] };
+
+  test('drops values that match the project file', () => {
+    expect(changedFileSettings(projectFile, { context: 'ctx', excludedTargetLanguages: ['fr', 'de'] })).toEqual({
+      context: undefined,
+      excludedTargetLanguages: undefined,
+    });
+  });
+
+  test('keeps values that differ from the project file', () => {
+    expect(changedFileSettings(projectFile, { context: 'new', excludedTargetLanguages: ['de'] })).toEqual({
+      context: 'new',
+      excludedTargetLanguages: ['de'],
+    });
+  });
+
+  test('sends nothing for unset values', () => {
+    expect(changedFileSettings(projectFile, {})).toEqual({ context: undefined, excludedTargetLanguages: undefined });
+  });
+
+  test('sends an empty list to clear exclusions', () => {
+    expect(changedFileSettings(projectFile, { excludedTargetLanguages: [] }).excludedTargetLanguages).toEqual([]);
   });
 });

@@ -13,6 +13,12 @@ export type ImportProgress = (
   >,
 ) => void;
 
+export interface ImportTranslationOptions {
+  autoApproveImported?: boolean;
+  importEqSuggestions?: boolean;
+  translateHidden?: boolean;
+}
+
 const PRE_TRANSLATE_FAILURE = 'Failed to auto-translate the project. Please contact our support team for help';
 
 export type PreTranslationStatus = Status<TranslationsModel.PreTranslationStatusAttributes>;
@@ -29,11 +35,11 @@ export class TranslationService {
     fileId: number,
     languageIds: string[],
     filePath: string,
-    autoApproveImported?: boolean,
-    importEqSuggestions?: boolean,
-    translateHidden?: boolean,
     onProgress?: ImportProgress,
+    options: ImportTranslationOptions = {},
   ) {
+    const { autoApproveImported, importEqSuggestions, translateHidden } = options;
+
     return await this.importAndWait(
       { storageId, fileId, languageIds, autoApproveImported, importEqSuggestions, translateHidden },
       filePath,
@@ -46,11 +52,11 @@ export class TranslationService {
     branchId: number,
     languageIds: string[],
     filePath: string,
-    autoApproveImported?: boolean,
-    importEqSuggestions?: boolean,
-    translateHidden?: boolean,
     onProgress?: ImportProgress,
+    options: ImportTranslationOptions = {},
   ) {
+    const { autoApproveImported, importEqSuggestions, translateHidden } = options;
+
     return await this.importAndWait(
       { storageId, branchId, languageIds, autoApproveImported, importEqSuggestions, translateHidden },
       filePath,

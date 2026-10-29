@@ -2,6 +2,7 @@ import path from 'node:path';
 import { SourceFilesModel, type SourceStringsModel } from '@crowdin/crowdin-api-client';
 import type { Config } from '@/lib/config.ts';
 import { fileExtension, fileName, originalFileName, originalPath } from '@/lib/export/patterns.ts';
+import { sameItems } from '@/lib/utils/array.ts';
 import { expandDestDoubleAsterisk, replaceDoubleAsterisk } from '@/lib/utils/doubleAsterisk.ts';
 import { collapseSeparators, stripLeadingSlashes, toPosixPath } from '@/lib/utils/path.ts';
 
@@ -166,4 +167,23 @@ export function replaceFileDependentPlaceholders(pattern: string, localFilePath:
  */
 export function prepareDest(dest: string, localFilePath: string): string {
   return toPosixPath(replaceFileDependentPlaceholders(dest, localFilePath));
+}
+
+/**
+ * The context and excluded languages a file update has to send: each only when it is set and differs
+ * from the project file, so an unchanged file is not patched.
+ */
+export function changedFileSettings(
+  projectFile: Pick<SourceFilesModel.File, 'context' | 'excludedTargetLanguages'> | undefined,
+  wanted: { context?: string; excludedTargetLanguages?: string[] },
+): { context?: string; excludedTargetLanguages?: string[] } {
+  const { context, excludedTargetLanguages } = wanted;
+
+  return {
+    context: context !== undefined && context !== projectFile?.context ? context : undefined,
+    excludedTargetLanguages:
+      excludedTargetLanguages !== undefined && !sameItems(excludedTargetLanguages, projectFile?.excludedTargetLanguages)
+        ? excludedTargetLanguages
+        : undefined,
+  };
 }
