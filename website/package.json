@@ -30,6 +30,14 @@
     "@docusaurus/types": "3.10.2",
     "typescript": "~6.0.3"
   },
+  "overrides": {
+    "tinypool": "^2.2.0",
+    "serialize-javascript": "^7.1.4",
+    "sockjs": {
+      "uuid": "^11.1.1"
+    },
+    "qs": "^6.16.1"
+  },
   "browserslist": {
     "production": [
       ">0.5%",
