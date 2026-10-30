@@ -49,7 +49,7 @@ describe('browserAuth', () => {
     const response = await fetch(`${CALLBACK_URL}?error=access_denied`);
 
     expect(await response.text()).toContain('Something went wrong.');
-    await expect(authorization).rejects.toThrow('access_denied');
+    expect(authorization).rejects.toThrow('access_denied');
   });
 
   test('answers 404 on any other path and keeps waiting', async () => {
@@ -57,11 +57,11 @@ describe('browserAuth', () => {
     const response = await fetch('http://localhost:46221/elsewhere');
 
     expect(response.status).toBe(404);
-    await expect(authorization).rejects.toThrow('Timed out waiting for browser authorization');
+    expect(authorization).rejects.toThrow('Timed out waiting for browser authorization');
   });
 
   test('rejects when no callback arrives before the timeout', async () => {
-    await expect(startBrowserAuthorization(10)).rejects.toThrow('Timed out waiting for browser authorization');
+    expect(startBrowserAuthorization(10)).rejects.toThrow('Timed out waiting for browser authorization');
   });
 
   test('opens the browser and waits for the callback', async () => {
@@ -92,8 +92,8 @@ describe('browserAuth', () => {
 
       await fetch(`${CALLBACK_URL}?error=access_denied`);
 
-      await expect(authorization).rejects.toThrow('access_denied');
-      expect(spinner).toHaveBeenLastCalledWith('browserAuth', 'error', 'Browser authorization failed');
+      expect(authorization).rejects.toThrow('access_denied');
+      expect(spinner).toHaveBeenLastCalledWith('browserAuth', 'error', 'Browser authorization failed. access_denied');
     } finally {
       openUrl.mockRestore();
     }

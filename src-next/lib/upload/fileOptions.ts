@@ -2,6 +2,7 @@ import path from 'node:path';
 import { SourceFilesModel, type SourceStringsModel } from '@crowdin/crowdin-api-client';
 import type { Config } from '@/lib/config.ts';
 import { fileExtension, fileName, originalFileName, originalPath } from '@/lib/export/patterns.ts';
+import { sameItems } from '@/lib/utils/array.ts';
 import { expandDestDoubleAsterisk, replaceDoubleAsterisk } from '@/lib/utils/doubleAsterisk.ts';
 import { collapseSeparators, stripLeadingSlashes, toPosixPath } from '@/lib/utils/path.ts';
 
@@ -128,10 +129,6 @@ export function resolveProjectPath(localFilePath: string, patterns: { dest?: str
   return localFilePath;
 }
 
-export function resolveContextPath(pattern: string, localFilePath: string): string {
-  return replaceFileDependentPlaceholders(pattern, localFilePath);
-}
-
 /**
  * Substitutes the file-dependent placeholders (`%file_name%`, `%original_path%`, …) in a `dest` or
  * `context` pattern.
@@ -173,43 +170,20 @@ export function prepareDest(dest: string, localFilePath: string): string {
 }
 
 /**
- * Computes the common directory prefix of the given POSIX file paths (relative to basePath).
- * Returns a string ending in '/' or an empty string.
+ * The context and excluded languages a file update has to send: each only when it is set and differs
+ * from the project file, so an unchanged file is not patched.
  */
-export function getCommonPath(filePaths: string[]): string {
-  if (filePaths.length === 0) {
-    return '';
-  }
+export function changedFileSettings(
+  projectFile: Pick<SourceFilesModel.File, 'context' | 'excludedTargetLanguages'> | undefined,
+  wanted: { context?: string; excludedTargetLanguages?: string[] },
+): { context?: string; excludedTargetLanguages?: string[] } {
+  const { context, excludedTargetLanguages } = wanted;
 
-  const commonPrefix = longestCommonPrefix(filePaths);
-  const lastSeparator = commonPrefix.lastIndexOf('/');
-
-  return lastSeparator >= 0 ? commonPrefix.slice(0, lastSeparator + 1) : '';
-}
-
-function longestCommonPrefix(values: string[]): string {
-  let prefix = values[0] as string;
-
-  for (const value of values) {
-    let index = 0;
-
-    while (index < prefix.length && index < value.length && prefix[index] === value[index]) {
-      index++;
-    }
-
-    prefix = prefix.slice(0, index);
-
-    if (prefix === '') {
-      break;
-    }
-  }
-
-  return prefix;
-}
-
-export function sameLanguageSet(left: string[] | null | undefined, right: string[] | null | undefined): boolean {
-  const a = [...(left ?? [])].sort();
-  const b = [...(right ?? [])].sort();
-
-  return a.length === b.length && a.every((value, index) => value === b[index]);
+  return {
+    context: context !== undefined && context !== projectFile?.context ? context : undefined,
+    excludedTargetLanguages:
+      excludedTargetLanguages !== undefined && !sameItems(excludedTargetLanguages, projectFile?.excludedTargetLanguages)
+        ? excludedTargetLanguages
+        : undefined,
+  };
 }

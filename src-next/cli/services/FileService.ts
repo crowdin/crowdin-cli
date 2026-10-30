@@ -15,6 +15,16 @@ type ProjectBranch = Pick<SourceFilesModel.Branch, 'id' | 'name'>;
 /** A project file path with its branch kept apart from the path instead of prefixed onto it. */
 export type ProjectFilePath = { path: string; branch?: string };
 
+export interface ProjectFileUpdate {
+  exportOptions?: SourceFilesModel.ExportOptions;
+  importOptions?: SourceFilesModel.ImportOptions;
+  updateOption?: SourceFilesModel.UpdateOption;
+  attachLabelIds?: number[];
+  excludedTargetLanguages?: string[];
+  name?: string;
+  context?: string;
+}
+
 export class FileService {
   constructor(
     private apiClient: Client,
@@ -34,18 +44,10 @@ export class FileService {
     }
   }
 
-  async updateProjectFile(
-    fileId: number,
-    storageId: number,
-    localFilePath: string,
-    exportOptions?: SourceFilesModel.ExportOptions,
-    importOptions?: SourceFilesModel.ImportOptions,
-    updateOption?: SourceFilesModel.UpdateOption,
-    attachLabelIds?: number[],
-    excludedTargetLanguages?: string[],
-    name?: string,
-    context?: string,
-  ) {
+  async updateProjectFile(fileId: number, storageId: number, localFilePath: string, update: ProjectFileUpdate = {}) {
+    const { exportOptions, importOptions, updateOption, attachLabelIds, excludedTargetLanguages, name, context } =
+      update;
+
     try {
       await this.apiClient.sourceFilesApi.updateOrRestoreFile(this.projectId, fileId, {
         storageId,

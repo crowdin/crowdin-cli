@@ -1,5 +1,4 @@
 import type { Client, PatchRequest, SourceStringsModel, Status } from '@crowdin/crowdin-api-client';
-import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import { pollUntilFinished } from '@/lib/api/pollStatus.ts';
 
@@ -11,20 +10,9 @@ export class StringService {
     private projectId: number,
   ) {}
 
-  async isStringsBasedProject(): Promise<boolean> {
-    try {
-      const project = await this.client.projectsGroupsApi.getProject(this.projectId);
-
-      return project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED;
-    } catch (error) {
-      throw toCliError(error, 'Failed to fetch project info');
-    }
-  }
-
   async list(params: SourceStringsModel.ListProjectStringsOptions): Promise<SourceStringsModel.String[]> {
     try {
       const response = await this.client.sourceStringsApi.withFetchAll().listProjectStrings(this.projectId, params);
-
       return response.data.map((entry) => entry.data);
     } catch (error) {
       throw toCliError(error, 'Failed to list source strings');
@@ -36,7 +24,6 @@ export class StringService {
   ): Promise<SourceStringsModel.String> {
     try {
       const response = await this.client.sourceStringsApi.addString(this.projectId, request);
-
       return response.data;
     } catch (error) {
       throw toCliError(error, 'Source string was not added');
@@ -85,7 +72,6 @@ export class StringService {
   async edit(stringId: number, patch: PatchRequest[]): Promise<SourceStringsModel.String> {
     try {
       const response = await this.client.sourceStringsApi.editString(this.projectId, stringId, patch);
-
       return response.data;
     } catch (error) {
       throw toCliError(error, `Failed to edit source string #${stringId}`);

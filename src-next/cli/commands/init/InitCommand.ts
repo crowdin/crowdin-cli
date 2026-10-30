@@ -6,7 +6,6 @@ import type { Command } from 'commander';
 import { load as loadYaml } from 'js-yaml';
 import AuthorizationError from '@/cli/errors/AuthorizationError.ts';
 import CliError from '@/cli/errors/CliError.ts';
-import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
@@ -15,6 +14,7 @@ import { colors } from '@/cli/utils/colors.ts';
 import { expandTilde } from '@/cli/utils/localPath.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import { buildUserAgent } from '@/cli/utils/userAgent.ts';
+import { withSpinner } from '@/cli/utils/withSpinner.ts';
 import { generate } from '@/lib/config/yamlGenerator.ts';
 import patterns, { validTranslationPattern } from '@/lib/export/patterns.ts';
 import { DEFAULT_IDENTITY_FILE, getIdentityFilePath, saveCredentials } from '@/lib/identityFiles.ts';
@@ -270,18 +270,16 @@ export default class InitCommand {
   }
 
   private async getAuthorizedUser(apiClient: Client, output: Output) {
-    output.spinner('authorization', 'start', 'Authorizing...');
-
-    try {
-      const user = await apiClient.usersApi.getAuthenticatedUser();
-
-      output.spinner('authorization', 'stop', `Authorized as ${user.data.username}`);
-
-      return user;
-    } catch (error) {
-      output.spinner('authorization', 'error', 'Authorization failed');
-      throw toCliError(error, 'Authorization failed');
-    }
+    return await withSpinner(
+      output,
+      'authorization',
+      {
+        start: 'Authorizing...',
+        stop: (user) => `Authorized as ${user.data.username}`,
+        fail: 'Authorization failed',
+      },
+      () => apiClient.usersApi.getAuthenticatedUser(),
+    );
   }
 
   private async selectProject(apiClient: Client, options: InitCommandOptions, output: Output) {
@@ -312,18 +310,16 @@ export default class InitCommand {
       this.cancelHandler(projectId, output);
     }
 
-    output.spinner('projectValidation', 'start', 'Validating project...');
-
-    try {
-      const project = await apiClient.projectsGroupsApi.getProject(Number(projectId));
-
-      output.spinner('projectValidation', 'stop', 'Project validation was successful');
-
-      return project;
-    } catch (error) {
-      output.spinner('projectValidation', 'error', 'Project validation failed');
-      throw toCliError(error, 'Project validation failed');
-    }
+    return await withSpinner(
+      output,
+      'projectValidation',
+      {
+        start: 'Validating project...',
+        stop: 'Project validation was successful',
+        fail: 'Project validation failed',
+      },
+      () => apiClient.projectsGroupsApi.getProject(Number(projectId)),
+    );
   }
 
   private async selectProjectDirectory(options: InitCommandOptions, output: Output) {

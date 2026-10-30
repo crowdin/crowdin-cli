@@ -24,7 +24,7 @@ export function createGlossaryView({
         `${colors.yellow(`#${glossary.id}`)} ${glossary.name} (${colors.green(`terms: ${glossary.terms ?? 0}`)})`,
         ...(verbose ? (terms.get(glossary.id) ?? []).map(termLine) : []),
       ].join('\n'),
-    plain: (glossary) => glossary.name,
+    plain: (glossary) => glossary.name ?? '',
     // The verbose term lines come from a separate request, not from the glossary, so json/toon
     // carry the same three keys either way.
     keys: ['id', 'name', 'terms'],

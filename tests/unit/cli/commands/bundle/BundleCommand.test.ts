@@ -66,6 +66,11 @@ describe('BundleCommand', () => {
     exportPattern: '/%locale%/app.json',
     isMultilingual: false,
     includeProjectSourceLanguage: false,
+    includeInContextPseudoLanguage: false,
+    sourceLanguageExportPattern: '',
+    labelMatchRule: null,
+    excludeLabelMatchRule: null,
+    languageIds: null,
     labelIds: [],
     excludeLabelIds: [],
     createdAt: '',
@@ -410,7 +415,7 @@ describe('BundleCommand', () => {
 
       bundleService.get.mockResolvedValue(null);
 
-      await expect(cmd.downloadAction(createCommandContext(textOptions(), ['5']))).rejects.toMatchObject({
+      expect(cmd.downloadAction(createCommandContext(textOptions(), ['5']))).rejects.toMatchObject({
         message: "Couldn't find bundle by the specified ID",
         exitCode: 102,
       });
@@ -454,6 +459,21 @@ describe('BundleCommand', () => {
 
       // Archive removed by default (no --keep-archive).
       expect(stat(path.join(tempRoot, 'bundle-export-1.zip'))).rejects.toThrow();
+    });
+
+    test('reports build progress on the spinner', async () => {
+      mockArchive();
+
+      bundleService.exportBundle.mockImplementation(async (_bundleId, onProgress) => {
+        onProgress?.(30);
+        return 'export-1';
+      });
+
+      const out = createOutput(textOptions());
+      const spinner = spyOn(out, 'spinner');
+      await createBundleCommand(out).downloadAction(createCommandContext(textOptions(), ['5']));
+
+      expect(spinner).toHaveBeenCalledWith('bundleBuild', 'message', 'Building bundle: 30%');
     });
 
     test('throws when the export fails', async () => {

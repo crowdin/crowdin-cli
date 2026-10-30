@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { stripBranchPrefix, toPosixPath, toSafeFileName } from '@/lib/utils/path.ts';
+import { getCommonPath, stripBranchPrefix, toPosixPath, toSafeFileName } from '@/lib/utils/path.ts';
 
 describe('stripBranchPrefix', () => {
   test('drops the branch segment', () => {
@@ -71,5 +71,32 @@ describe('toSafeFileName', () => {
 
   test('replaces characters Windows rejects in file names', () => {
     expect(toSafeFileName('a:b*c?d"e<f>g|h\tI')).toBe('a_b_c_d_e_f_g_h_I');
+  });
+});
+
+describe('getCommonPath', () => {
+  test('returns the shared parent directory with a trailing slash', () => {
+    expect(getCommonPath(['src/foo/a.json', 'src/foo/b.json'])).toBe('src/foo/');
+  });
+
+  test('trims back to the last separator when files diverge inside a directory', () => {
+    expect(getCommonPath(['src/foo/a.json', 'src/bar/b.json'])).toBe('src/');
+  });
+
+  test('does not strip a partial directory-name match', () => {
+    // Raw string prefix is "src/foo", but it must trim to "src/" so "foobar" is not cut mid-name.
+    expect(getCommonPath(['src/foo/a.json', 'src/foobar/b.json'])).toBe('src/');
+  });
+
+  test('returns the directory of a single file', () => {
+    expect(getCommonPath(['src/foo/a.json'])).toBe('src/foo/');
+  });
+
+  test('returns empty string for top-level files with no shared directory', () => {
+    expect(getCommonPath(['a.json', 'b.json'])).toBe('');
+  });
+
+  test('returns empty string for no files', () => {
+    expect(getCommonPath([])).toBe('');
   });
 });

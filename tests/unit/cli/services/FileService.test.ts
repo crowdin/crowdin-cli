@@ -218,15 +218,10 @@ describe('FileService', () => {
     test('calls updateOrRestoreFile with correct args', async () => {
       const updateSpy = spyOn(apiClient.sourceFilesApi, 'updateOrRestoreFile').mockResolvedValue({} as never);
 
-      await fileService.updateProjectFile(
-        10,
-        99,
-        'local.md',
-        { exportPattern: '%file_name%.md' },
-        undefined,
-        undefined,
-        [1, 2],
-      );
+      await fileService.updateProjectFile(10, 99, 'local.md', {
+        exportOptions: { exportPattern: '%file_name%.md' },
+        attachLabelIds: [1, 2],
+      });
 
       expect(updateSpy).toHaveBeenCalledWith(PROJECT_ID, 10, {
         storageId: 99,
@@ -241,7 +236,7 @@ describe('FileService', () => {
       spyOn(apiClient.sourceFilesApi, 'updateOrRestoreFile').mockResolvedValue({} as never);
       const editSpy = spyOn(apiClient.sourceFilesApi, 'editFile').mockResolvedValue({} as never);
 
-      await fileService.updateProjectFile(10, 99, 'local.md', undefined, undefined, undefined, undefined, ['fr', 'de']);
+      await fileService.updateProjectFile(10, 99, 'local.md', { excludedTargetLanguages: ['fr', 'de'] });
 
       expect(editSpy).toHaveBeenCalledWith(PROJECT_ID, 10, [
         { op: 'replace', path: '/excludedTargetLanguages', value: ['fr', 'de'] },
@@ -252,18 +247,10 @@ describe('FileService', () => {
       spyOn(apiClient.sourceFilesApi, 'updateOrRestoreFile').mockResolvedValue({} as never);
       const editSpy = spyOn(apiClient.sourceFilesApi, 'editFile').mockResolvedValue({} as never);
 
-      await fileService.updateProjectFile(
-        10,
-        99,
-        'local.md',
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        ['fr'],
-        undefined,
-        'some context',
-      );
+      await fileService.updateProjectFile(10, 99, 'local.md', {
+        excludedTargetLanguages: ['fr'],
+        context: 'some context',
+      });
 
       expect(editSpy).toHaveBeenCalledWith(PROJECT_ID, 10, [
         { op: 'replace', path: '/excludedTargetLanguages', value: ['fr'] },

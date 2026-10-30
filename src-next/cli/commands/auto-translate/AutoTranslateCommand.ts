@@ -1,10 +1,10 @@
 import type { ProjectsGroupsModel, ResponseObject, TranslationsModel } from '@crowdin/crowdin-api-client';
-import { ProjectsGroupsModel as ProjectsGroups } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { PreTranslationStatus } from '@/cli/services/TranslationService.ts';
+import type { LabelService } from '@/cli/services/LabelService.ts';
+import type { PreTranslationStatus, TranslationService } from '@/cli/services/TranslationService.ts';
 import type {
   GetBranchService,
   GetFileService,
@@ -15,7 +15,9 @@ import type {
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { isMachineFormat } from '@/cli/utils/formatter.ts';
-import { normalizePath } from '@/cli/utils/parsing.ts';
+import type { Output } from '@/cli/utils/output.ts';
+import { normalizePath, toNumberArray } from '@/cli/utils/parsing.ts';
+import { FILE_MANAGEMENT_UNAVAILABLE, isStringsBasedProject } from '@/lib/project/type.ts';
 import { stripBranchPrefix } from '@/lib/utils/path.ts';
 import {
   aiPrompt,
@@ -166,8 +168,8 @@ export default class AutoTranslateCommand {
     const translationService = await this.getTranslationService(command);
 
     const translateMethod = this.resolveMethod(options.method);
-    const engineIdValue = this.toNumber(options.engineId);
-    const aiPromptId = this.toNumber(options.aiPrompt);
+    const [engineIdValue] = toNumberArray(options.engineId, "The '--engine-id' value must be numeric");
+    const [aiPromptId] = toNumberArray(options.aiPrompt, "The '--ai-prompt' value must be numeric");
     const files = (options.file ?? []).map((value) => normalizePath(value));
     const directoryPath = options.directory ? normalizePath(options.directory) : undefined;
     const languageIds = options.language;
@@ -204,7 +206,6 @@ export default class AutoTranslateCommand {
     }
 
     const project = await projectService.loadProject();
-    const isStringsBasedProject = project.data.type === ProjectsGroups.Type.STRINGS_BASED;
     const languages = await this.prepareLanguageIds(
       project,
       languageIds,
@@ -216,14 +217,13 @@ export default class AutoTranslateCommand {
     );
     const labelIds = await this.prepareLabelIds(options.label, labelService, output);
     const excludeLabelIds = await this.prepareLabelIds(options.excludeLabel, labelService, output);
-    const branchName = this.normalizeBranch(options.branch);
 
-    if (isStringsBasedProject) {
+    if (isStringsBasedProject(project.data)) {
       if (files.length > 0 || directoryPath) {
-        throw new CliError('File management is not available for string-based projects');
+        throw new CliError(FILE_MANAGEMENT_UNAVAILABLE);
       }
 
-      const projectBranch = branchName ? await branchService.getBranch(branchName) : undefined;
+      const projectBranch = await branchService.getBranch(options.branch);
 
       if (!projectBranch) {
         throw new CliError('Branch is required for string-based projects');
@@ -253,60 +253,25 @@ export default class AutoTranslateCommand {
       return;
     }
 
-    let branchId: number | undefined;
-
-    if (branchName) {
-      const projectBranch = await branchService.getBranch(branchName);
-
-      if (!projectBranch) {
-        throw new CliError(`Branch '${branchName}' doesn't exist in the project`);
-      }
-
-      branchId = projectBranch.id;
-    }
-
-    const projectFiles = await fileService.loadProjectFiles(branchId);
-    const paths = new Map<string, number>();
-
+    const branch = await branchService.resolveBranch(options.branch);
+    const projectFiles = await fileService.loadProjectFiles(branch?.id);
     // loadProjectFiles is already scoped to the branch (root tree without one); server paths carry
     // the branch name, the paths passed via --file never do.
-    for (const entry of projectFiles.data) {
-      paths.set(stripBranchPrefix(normalizePath(entry.data.path), branchName), entry.data.id);
-    }
+    const paths = new Map(
+      projectFiles.data.map((entry) => [
+        stripBranchPrefix(normalizePath(entry.data.path), branch?.name),
+        entry.data.id,
+      ]),
+    );
 
-    const fileIds: number[] = [];
-    let containsError = false;
+    let fileIds: number[];
 
     if (files.length > 0) {
-      for (const filePath of files) {
-        const fileId = paths.get(filePath);
-
-        if (fileId === undefined) {
-          const message = `Project doesn't contain the '${filePath}' file`;
-
-          if (files.length > 1) {
-            containsError = true;
-            output.warning(message);
-            continue;
-          }
-
-          throw new CliError(message);
-        }
-
-        fileIds.push(fileId);
-      }
+      fileIds = this.findFileIds(paths, files, output);
     } else if (directoryPath) {
-      // Compare against the separator too: a bare prefix would pull '/enterprise/app.json' into
-      // '--directory en'.
-      const directoryPrefix = `${directoryPath}/`;
-
-      for (const [path, fileId] of paths) {
-        if (path.startsWith(directoryPrefix)) {
-          fileIds.push(fileId);
-        }
-      }
+      fileIds = this.findDirectoryFileIds(paths, directoryPath);
     } else {
-      fileIds.push(...paths.values());
+      fileIds = [...paths.values()];
     }
 
     if (fileIds.length === 0) {
@@ -335,10 +300,68 @@ export default class AutoTranslateCommand {
 
     await this.run(translationService, request, output, options);
 
-    if (containsError) {
+    // Each --file resolves to at most one id, and a lone missing file already threw.
+    if (fileIds.length < files.length) {
       throw new CliError('Some of the specified files were not found in the project');
     }
   };
+
+  private async run(
+    translationService: TranslationService,
+    request: TranslationsModel.PreTranslateRequest | TranslationsModel.PreTranslateStringsRequest,
+    output: Output,
+    options: AutoTranslateCommandOptions,
+  ): Promise<void> {
+    if (options.async) {
+      const status = await translationService.startPreTranslation(request);
+
+      output.item({ identifier: status.identifier, status: status.status }, autoTranslationView, { mark: false });
+      return;
+    }
+
+    const verbose = Boolean(options.verbose);
+    const status = await translationService.preTranslate(request, verbose);
+
+    await this.reportResult(translationService, status, output, verbose, options.output);
+  }
+
+  private findFileIds(paths: Map<string, number>, files: string[], output: Output): number[] {
+    const fileIds: number[] = [];
+
+    for (const filePath of files) {
+      const fileId = paths.get(filePath);
+
+      if (fileId === undefined) {
+        const message = `Project doesn't contain the '${filePath}' file`;
+
+        if (files.length > 1) {
+          output.warning(message);
+          continue;
+        }
+
+        throw new CliError(message);
+      }
+
+      fileIds.push(fileId);
+    }
+
+    return fileIds;
+  }
+
+  private findDirectoryFileIds(paths: Map<string, number>, directoryPath: string): number[] {
+    // Compare against the separator too: a bare prefix would pull '/enterprise/app.json' into
+    // '--directory en'.
+    const directoryPrefix = `${directoryPath}/`;
+    const fileIds: number[] = [];
+
+    for (const [path, fileId] of paths) {
+      if (path.startsWith(directoryPrefix)) {
+        fileIds.push(fileId);
+      }
+    }
+
+    return fileIds;
+  }
 
   statusAction = async (command: Command) => {
     const [id] = command.args;
@@ -376,25 +399,6 @@ export default class AutoTranslateCommand {
     output.list(jobs, options.verbose ? jobVerboseView : jobView, { empty: 'No auto-translations found' });
   };
 
-  private async run(
-    translationService: Awaited<ReturnType<GetTranslationService>>,
-    request: TranslationsModel.PreTranslateRequest | TranslationsModel.PreTranslateStringsRequest,
-    output: ReturnType<GetOutput>,
-    options: AutoTranslateCommandOptions,
-  ): Promise<void> {
-    if (options.async) {
-      const status = await translationService.startPreTranslation(request);
-
-      output.item({ identifier: status.identifier, status: status.status }, autoTranslationView, { mark: false });
-      return;
-    }
-
-    const verbose = Boolean(options.verbose);
-    const status = await translationService.preTranslate(request, verbose);
-
-    await this.reportResult(translationService, status, output, verbose, options.output);
-  }
-
   private resolveMethod(value?: string): Method {
     if (!value) {
       throw new CliError("Missing required option '--method'. Supported values: mt, tm, ai");
@@ -412,7 +416,7 @@ export default class AutoTranslateCommand {
   private resolveAutoApproveOption(
     value: string | undefined,
     translateMethod: Method,
-    output: ReturnType<GetOutput>,
+    output: Output,
   ): AutoApproveOption | undefined {
     if (!value) {
       return undefined;
@@ -456,8 +460,8 @@ export default class AutoTranslateCommand {
     excludeLanguageIds: string[] | undefined,
     translateMethod: Method,
     engineIdValue: number | undefined,
-    translationService: Awaited<ReturnType<GetTranslationService>>,
-    output: ReturnType<GetOutput>,
+    translationService: TranslationService,
+    output: Output,
   ): Promise<string[]> {
     const projectLanguages = project.data.targetLanguages.map((targetLanguage) => targetLanguage.id);
     const excludedLanguages = this.prepareExcludedLanguageIds(excludeLanguageIds, projectLanguages);
@@ -519,8 +523,8 @@ export default class AutoTranslateCommand {
 
   private async prepareLabelIds(
     labelNames: string[] | undefined,
-    labelService: Awaited<ReturnType<GetLabelService>>,
-    output: ReturnType<GetOutput>,
+    labelService: LabelService,
+    output: Output,
   ): Promise<number[] | undefined> {
     if (!labelNames || labelNames.length === 0) {
       return undefined;
@@ -547,9 +551,9 @@ export default class AutoTranslateCommand {
    * plain, which prints the identifier alone either way, never asks for it.
    */
   private async reportResult(
-    translationService: Awaited<ReturnType<GetTranslationService>>,
+    translationService: TranslationService,
     status: { identifier: string; status?: string },
-    output: ReturnType<GetOutput>,
+    output: Output,
     verbose: boolean,
     format?: string,
   ): Promise<void> {
@@ -588,46 +592,6 @@ export default class AutoTranslateCommand {
     output.log(`\t- skipped: ${totals.skipped}`);
   }
 
-  private isAllLanguages(languages: string[]): boolean {
-    return languages.length === 1 && languages[0]?.toLowerCase() === 'all';
-  }
-
-  private normalizeBranch(value?: string): string | undefined {
-    if (!value || value === 'none') {
-      return undefined;
-    }
-
-    return value;
-  }
-
-  private toNumber(value: number | string | undefined): number | undefined {
-    if (value === undefined || value === null || value === '') {
-      return undefined;
-    }
-
-    const parsed = Number(value);
-
-    return Number.isNaN(parsed) ? undefined : parsed;
-  }
-
-  private toAutoTranslationJob(status: PreTranslationStatus): AutoTranslationJob {
-    const { attributes } = status;
-
-    return {
-      identifier: status.identifier,
-      status: status.status,
-      // The API can report a just-finished job at 0% for a moment.
-      progress: status.status === 'finished' ? 100 : status.progress,
-      method: attributes.method,
-      priority: attributes.priority,
-      createdAt: status.createdAt,
-      finishedAt: status.finishedAt ?? null,
-      languageIds: attributes.languageIds ?? [],
-      fileCount: attributes.fileIds?.length,
-      branchCount: attributes.branchIds?.length,
-    };
-  }
-
   private summarizeReport(report: TranslationsModel.PreTranslationReport) {
     let files = 0;
     let phrases = 0;
@@ -649,5 +613,27 @@ export default class AutoTranslateCommand {
     }
 
     return { files, phrases, words, skipped };
+  }
+
+  private isAllLanguages(languages: string[]): boolean {
+    return languages.length === 1 && languages[0]?.toLowerCase() === 'all';
+  }
+
+  private toAutoTranslationJob(status: PreTranslationStatus): AutoTranslationJob {
+    const { attributes } = status;
+
+    return {
+      identifier: status.identifier,
+      status: status.status,
+      // The API can report a just-finished job at 0% for a moment.
+      progress: status.status === 'finished' ? 100 : status.progress,
+      method: attributes.method,
+      priority: attributes.priority,
+      createdAt: status.createdAt,
+      finishedAt: status.finishedAt ?? null,
+      languageIds: attributes.languageIds ?? [],
+      fileCount: attributes.fileIds?.length,
+      branchCount: attributes.branchIds?.length,
+    };
   }
 }

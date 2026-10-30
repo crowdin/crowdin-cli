@@ -1,4 +1,4 @@
-import { toPosixPath } from '@/lib/utils/path.ts';
+import { toPosixPath, toProjectPath } from '@/lib/utils/path.ts';
 
 /**
  * Matches a project file path against a **user-supplied CLI filter** (`--file`, `--filter`), not
@@ -13,14 +13,10 @@ import { toPosixPath } from '@/lib/utils/path.ts';
  * - square brackets are treated literally (not as character classes)
  */
 export function isPathMatch(path: string, pattern: string): boolean {
-  const normalizedPath = ensureLeadingSlash(toPosixPath(path));
-  const normalizedPattern = ensureLeadingSlash(toPosixPath(pattern));
+  const normalizedPath = toProjectPath(toPosixPath(path));
+  const normalizedPattern = toProjectPath(toPosixPath(pattern));
 
   return globToRegExp(normalizedPattern).test(normalizedPath);
-}
-
-function ensureLeadingSlash(value: string): string {
-  return value.startsWith('/') ? value : `/${value}`;
 }
 
 function globToRegExp(pattern: string): RegExp {

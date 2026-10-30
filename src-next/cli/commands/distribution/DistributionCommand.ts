@@ -8,6 +8,7 @@ import type { CommandDef } from '@/cli/types.ts';
 import { colors } from '@/cli/utils/colors.ts';
 import type { View } from '@/cli/utils/output.ts';
 import { toNumberArray } from '@/cli/utils/parsing.ts';
+import { withSpinner } from '@/cli/utils/withSpinner.ts';
 import { bundleId, name } from './options.ts';
 
 interface DistributionOptions extends GlobalOptions {
@@ -157,17 +158,18 @@ export default class DistributionCommand {
 
     await distributionService.getByHash(hash);
 
-    output.spinner('distributionRelease', 'start', `Releasing distribution ${hash}`);
-
-    try {
-      await distributionService.releaseDistribution(hash, (progress) =>
-        output.spinner('distributionRelease', 'message', `Releasing distribution ${hash}: ${progress}%`),
-      );
-
-      output.spinner('distributionRelease', 'stop', `Distribution '${hash}' has been successfully released`);
-    } catch (error) {
-      output.spinner('distributionRelease', 'error', 'Distribution release failed');
-      throw error;
-    }
+    await withSpinner(
+      output,
+      'distributionRelease',
+      {
+        start: `Releasing distribution ${hash}`,
+        stop: `Distribution '${hash}' has been successfully released`,
+        fail: 'Distribution release failed',
+      },
+      () =>
+        distributionService.releaseDistribution(hash, (progress) =>
+          output.spinner('distributionRelease', 'message', `Releasing distribution ${hash}: ${progress}%`),
+        ),
+    );
   };
 }

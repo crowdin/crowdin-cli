@@ -16,6 +16,7 @@ import { isMachineFormat } from '@/cli/utils/formatter.ts';
 import { openUrl } from '@/cli/utils/open.ts';
 import type { View } from '@/cli/utils/output.ts';
 import { parseNumericId, toArray } from '@/cli/utils/parsing.ts';
+import { withSpinner } from '@/cli/utils/withSpinner.ts';
 import { stripLeadingSlashes, toPosixPath } from '@/lib/utils/path.ts';
 import { dryRun } from '../common/options.ts';
 import { keepArchive } from '../download/options.ts';
@@ -260,20 +261,19 @@ export default class BundleCommand {
       throw new NotFoundError("Couldn't find bundle by the specified ID");
     }
 
-    output.spinner('bundle-build', 'start', 'Building bundle');
-
-    let exportId: string;
-
-    try {
-      exportId = await bundleService.exportBundle(id, (progress) =>
-        output.spinner('bundle-build', 'message', `Building bundle: ${progress}%`),
-      );
-
-      output.spinner('bundle-build', 'stop', 'Building bundle: 100%');
-    } catch (error) {
-      output.spinner('bundle-build', 'error', 'Build has failed');
-      throw error;
-    }
+    const exportId = await withSpinner(
+      output,
+      'bundleBuild',
+      {
+        start: 'Building bundle',
+        stop: 'Building bundle: 100%',
+        fail: 'Build has failed',
+      },
+      () =>
+        bundleService.exportBundle(id, (progress) =>
+          output.spinner('bundleBuild', 'message', `Building bundle: ${progress}%`),
+        ),
+    );
 
     // Archive and extracted files both land under basePath (matches `download` keep-archive behaviour).
     const archivePath = path.join(config.basePath, `bundle-${exportId}.zip`);

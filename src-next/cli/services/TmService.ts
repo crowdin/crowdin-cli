@@ -20,7 +20,7 @@ export class TmService {
       }
 
       return tms.filter(
-        ({ projectIds, defaultProjectIds }) => projectIds.includes(projectId) || defaultProjectIds.includes(projectId),
+        ({ projectIds, defaultProjectIds }) => projectIds?.includes(projectId) || defaultProjectIds.includes(projectId),
       );
     } catch (error) {
       throw toCliError(error, 'Failed to list translation memories');

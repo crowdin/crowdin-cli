@@ -1,9 +1,4 @@
-import type {
-  LanguagesModel,
-  ResponseObject,
-  SourceFilesModel,
-  TranslationStatusModel,
-} from '@crowdin/crowdin-api-client';
+import type { LanguagesModel, ResponseObject, TranslationStatusModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
@@ -87,7 +82,6 @@ export default class StatusCommand {
     const progressService = await this.getProgressService(command);
     const project = await projectService.loadProject();
     const languageId = options.language || null;
-    const branchName = this.normalizeBranch(options.branch);
     const filePath = options.file;
     const directoryPath = options.directory;
     const failIfIncomplete = Boolean(options.failIfIncomplete);
@@ -101,19 +95,8 @@ export default class StatusCommand {
       throw new CliError("Only one of the following options can be used at a time: '--file', '--directory'");
     }
 
+    const projectBranch = await branchService.resolveBranch(options.branch);
     let progressData: LanguageProgress[];
-    let projectBranch: SourceFilesModel.Branch | undefined;
-
-    if (branchName) {
-      const branches = await branchService.list();
-      projectBranch = branches.find((branch) => branch.name === branchName);
-
-      if (!projectBranch) {
-        throw new CliError(
-          "The branch with the specified name doesn't exist in the project. Try specifying another branch name",
-        );
-      }
-    }
 
     if (filePath) {
       const projectFiles = await fileService.loadProjectFiles(projectBranch?.id);
@@ -150,7 +133,6 @@ export default class StatusCommand {
 
       return entry.data.languageId === languageId;
     });
-
     const rows = this.toRows(filteredProgressData, project.data.targetLanguages);
     const progress = toProgressList(rows, show, options.verbose);
 
@@ -190,18 +172,6 @@ export default class StatusCommand {
     return toProjectPath(toPosixPath(value));
   }
 
-  private normalizeBranch(value?: string): string | null {
-    if (!value || value === 'none') {
-      return null;
-    }
-
-    return value;
-  }
-
-  private hasNothingToTranslate(progress: LanguageProgress): boolean {
-    return progress.data.words?.total === 0;
-  }
-
   private getTranslationProgress(progress: LanguageProgress): number {
     if (this.hasNothingToTranslate(progress)) {
       return 100;
@@ -216,6 +186,10 @@ export default class StatusCommand {
     }
 
     return progress.data.approvalProgress;
+  }
+
+  private hasNothingToTranslate(progress: LanguageProgress): boolean {
+    return progress.data.words?.total === 0;
   }
 
   private throwIfIncomplete(show: ProgressView, progressData: LanguageProgress[]): void {

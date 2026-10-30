@@ -213,6 +213,6 @@ describe('status', () => {
   test('rejects a branch that does not exist', async () => {
     const result = await ctx.runner.run(['status', '-b', 'nope']);
 
-    expectFailure(result, 1, "The branch with the specified name doesn't exist in the project");
+    expectFailure(result, 1, "Project doesn't contain the 'nope' branch");
   });
 });

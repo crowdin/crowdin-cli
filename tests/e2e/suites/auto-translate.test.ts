@@ -133,7 +133,7 @@ describe('auto-translate', () => {
   test('fails on a branch the project does not hold', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'tm', '-b', 'no-such-branch']);
 
-    expectFailure(result, 1, "Branch 'no-such-branch' doesn't exist in the project");
+    expectFailure(result, 1, "Project doesn't contain the 'no-such-branch' branch");
   });
 
   test('fails on a single --file the project does not hold', async () => {

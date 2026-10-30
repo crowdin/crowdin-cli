@@ -168,7 +168,7 @@ describe('StatusCommand', () => {
       data: [createProgress('fr', 99, 100)],
     } as never);
 
-    await expect(
+    expect(
       statusCommand.translationStatusAction(createCommandContext({ ...globalOptions, failIfIncomplete: true })),
     ).rejects.toThrow(new CliError('The current project is incomplete'));
 
@@ -247,7 +247,7 @@ describe('StatusCommand', () => {
       data: [createProgress('fr', 99, 100)],
     } as never);
 
-    await expect(
+    expect(
       statusCommand.translationStatusAction(
         createCommandContext({ ...globalOptions, verbose: true, failIfIncomplete: true }),
       ),
@@ -309,14 +309,14 @@ describe('StatusCommand', () => {
     });
 
     spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
-    const loadProjectBranches = spyOn(branchService, 'list').mockResolvedValue([{ id: 15, name: 'release' }] as never);
+    const getBranch = spyOn(branchService, 'getBranch').mockResolvedValue({ id: 15, name: 'release' } as never);
     const loadBranchProgress = spyOn(progressService, 'loadBranchProgress').mockResolvedValue({
       data: [createProgress('fr', 100, 100)],
     } as never);
 
     await statusCommand.defaultAction(commandContext);
 
-    expect(loadProjectBranches).toHaveBeenCalledTimes(1);
+    expect(getBranch).toHaveBeenCalledWith('release');
     expect(loadBranchProgress).toHaveBeenCalledWith(15);
   });
 
@@ -346,7 +346,7 @@ describe('StatusCommand', () => {
     commandContext = createCommandContext({ ...globalOptions, file: 'docs/readme.md', branch: 'feature' });
 
     spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
-    spyOn(branchService, 'list').mockResolvedValue([{ id: 7, name: 'feature' }] as never);
+    spyOn(branchService, 'getBranch').mockResolvedValue({ id: 7, name: 'feature' } as never);
     const loadProjectFiles = spyOn(fileService, 'loadProjectFiles').mockResolvedValue({
       data: [{ data: { id: 44, path: '/feature/docs/readme.md' } }],
     } as never);

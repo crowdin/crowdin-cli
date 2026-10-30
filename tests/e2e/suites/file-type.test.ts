@@ -24,7 +24,8 @@ interface UploadedFileType {
 async function getUploadedFileType(ctx: SuiteContext): Promise<UploadedFileType> {
   const files = await ctx.client.sourceFilesApi.listProjectFiles(ctx.project.id);
   const file = files.data.find((f) => f.data.name === 'android.xml')?.data;
-  return { type: file?.type, parserVersion: file?.parserVersion };
+
+  return { type: file?.type, parserVersion: file?.parserVersion ?? undefined };
 }
 
 describe('file type', () => {

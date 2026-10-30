@@ -1,6 +1,7 @@
-import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
+import type { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import { colors } from '@/cli/utils/colors.ts';
 import type { View } from '@/cli/utils/output.ts';
+import { isStringsBasedProject } from '@/lib/project/type.ts';
 
 type Project = ProjectsGroupsModel.Project;
 
@@ -42,7 +43,7 @@ export const projectAddView: View<Project> = {
 export const projectVerboseView: View<Project> = {
   text: (project) =>
     `${colors.yellow(`#${project.id}`)} ${colors.green(project.name)} ${colors.green(
-      project.type === ProjectsGroupsModel.Type.STRINGS_BASED ? 'string-based' : 'file-based',
+      isStringsBasedProject(project) ? 'string-based' : 'file-based',
     )} ${colors.red((project.visibility ?? 'private').toString().toLowerCase())} ${colors.blue(
       formatLastActivity(project.lastActivity),
     )}`,

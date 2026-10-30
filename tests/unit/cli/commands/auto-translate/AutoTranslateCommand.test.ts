@@ -141,6 +141,29 @@ describe('AutoTranslateCommand', () => {
     expect(request.method).toBe('tm');
   });
 
+  // Crowdin stores 'feature/x' as 'feature.x', so the server paths carry the stored name.
+  test('resolves --file inside a branch whose name was sanitized', async () => {
+    const command = createCommand();
+    commandContext = createCommandContext({
+      ...globalOptions,
+      method: 'tm',
+      file: ['src/app.po'],
+      branch: 'feature/x',
+    });
+
+    spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
+    spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'feature.x' } as never);
+    spyOn(fileService, 'loadProjectFiles').mockResolvedValue({
+      data: [{ data: { id: 107, path: '/feature.x/src/app.po' } }],
+    } as never);
+    const preTranslate = spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
+
+    await command.defaultAction(commandContext);
+
+    const request = preTranslate.mock.calls[0]?.[0] as unknown as Record<string, unknown>;
+    expect(request.fileIds).toEqual([107]);
+  });
+
   test('auto-translates all files in a directory', async () => {
     const command = createCommand();
     commandContext = createCommandContext({
@@ -512,6 +535,17 @@ describe('AutoTranslateCommand', () => {
       );
     });
 
+    test.each([
+      ['engineId', 'abc', "The '--engine-id' value must be numeric"],
+      ['engineId', '1.5', "The '--engine-id' value must be numeric"],
+      ['aiPrompt', '0x10', "The '--ai-prompt' value must be numeric"],
+    ])("rejects a non-integer '%s' value %p", async (option, value, message) => {
+      const command = createCommand();
+      commandContext = createCommandContext({ ...globalOptions, method: 'mt', [option]: value });
+
+      expect(command.defaultAction(commandContext)).rejects.toThrow(new CliError(message));
+    });
+
     test("throws when '--translate-with-perfect-match-only' is used with a non-tm method", async () => {
       const command = createCommand();
       commandContext = createCommandContext({
@@ -616,7 +650,7 @@ describe('AutoTranslateCommand', () => {
       spyOn(branchService, 'getBranch').mockResolvedValue(undefined as never);
 
       expect(command.defaultAction(commandContext)).rejects.toThrow(
-        new CliError("Branch 'missing' doesn't exist in the project"),
+        new CliError("Project doesn't contain the 'missing' branch"),
       );
     });
 

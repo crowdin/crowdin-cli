@@ -60,6 +60,41 @@ export function toSortedRelativePaths(paths: string[]): string[] {
 }
 
 /**
+ * Computes the common directory prefix of the given POSIX file paths (relative to basePath).
+ * Returns a string ending in '/' or an empty string.
+ */
+export function getCommonPath(filePaths: string[]): string {
+  if (filePaths.length === 0) {
+    return '';
+  }
+
+  const commonPrefix = longestCommonPrefix(filePaths);
+  const lastSeparator = commonPrefix.lastIndexOf('/');
+
+  return lastSeparator >= 0 ? commonPrefix.slice(0, lastSeparator + 1) : '';
+}
+
+function longestCommonPrefix(values: string[]): string {
+  let prefix = values[0] as string;
+
+  for (const value of values) {
+    let index = 0;
+
+    while (index < prefix.length && index < value.length && prefix[index] === value[index]) {
+      index++;
+    }
+
+    prefix = prefix.slice(0, index);
+
+    if (prefix === '') {
+      break;
+    }
+  }
+
+  return prefix;
+}
+
+/**
  * Turns an entity name from the API (a glossary, TM or style guide) into a single file name for the
  * current directory. Separators become '_' so a name like '../outside' or 'UI/UX' can't point the
  * write anywhere else, and so do the characters Windows rejects in file names.

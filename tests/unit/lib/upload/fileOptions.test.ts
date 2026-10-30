@@ -4,9 +4,9 @@ import { type Config, ConfigSchema } from '@/lib/config.ts';
 import {
   buildExportOptions,
   buildImportOptions,
-  getCommonPath,
+  changedFileSettings,
   prepareDest,
-  resolveContextPath,
+  replaceFileDependentPlaceholders,
 } from '@/lib/upload/fileOptions.ts';
 
 function fileConfig(overrides: Record<string, unknown> = {}) {
@@ -139,8 +139,10 @@ describe('%original_path%', () => {
     expect(prepareDest('/out/%original_path%/%original_file_name%', 'app.json')).toBe('out/app.json');
   });
 
-  test('resolveContextPath resolves it to the parent directory', () => {
-    expect(resolveContextPath('context/%original_path%.md', 'src/nested/app.json')).toBe('context/src/nested.md');
+  test('replaceFileDependentPlaceholders resolves it to the parent directory', () => {
+    expect(replaceFileDependentPlaceholders('context/%original_path%.md', 'src/nested/app.json')).toBe(
+      'context/src/nested.md',
+    );
   });
 });
 
@@ -168,7 +170,9 @@ describe('** in dest and context', () => {
   });
 
   test('expands in a context pattern too', () => {
-    expect(resolveContextPath('ctx/**/%file_name%.md', 'src/nested/deep/app.json')).toBe('ctx/src/nested/deep/app.md');
+    expect(replaceFileDependentPlaceholders('ctx/**/%file_name%.md', 'src/nested/deep/app.json')).toBe(
+      'ctx/src/nested/deep/app.md',
+    );
   });
 
   test('leaves a pattern without the wildcard untouched', () => {
@@ -218,29 +222,28 @@ describe('** in dest and context', () => {
   });
 });
 
-describe('getCommonPath', () => {
-  test('returns the shared parent directory with a trailing slash', () => {
-    expect(getCommonPath(['src/foo/a.json', 'src/foo/b.json'])).toBe('src/foo/');
+describe('changedFileSettings', () => {
+  const projectFile = { context: 'ctx', excludedTargetLanguages: ['de', 'fr'] };
+
+  test('drops values that match the project file', () => {
+    expect(changedFileSettings(projectFile, { context: 'ctx', excludedTargetLanguages: ['fr', 'de'] })).toEqual({
+      context: undefined,
+      excludedTargetLanguages: undefined,
+    });
   });
 
-  test('trims back to the last separator when files diverge inside a directory', () => {
-    expect(getCommonPath(['src/foo/a.json', 'src/bar/b.json'])).toBe('src/');
+  test('keeps values that differ from the project file', () => {
+    expect(changedFileSettings(projectFile, { context: 'new', excludedTargetLanguages: ['de'] })).toEqual({
+      context: 'new',
+      excludedTargetLanguages: ['de'],
+    });
   });
 
-  test('does not strip a partial directory-name match', () => {
-    // Raw string prefix is "src/foo", but it must trim to "src/" so "foobar" is not cut mid-name.
-    expect(getCommonPath(['src/foo/a.json', 'src/foobar/b.json'])).toBe('src/');
+  test('sends nothing for unset values', () => {
+    expect(changedFileSettings(projectFile, {})).toEqual({ context: undefined, excludedTargetLanguages: undefined });
   });
 
-  test('returns the directory of a single file', () => {
-    expect(getCommonPath(['src/foo/a.json'])).toBe('src/foo/');
-  });
-
-  test('returns empty string for top-level files with no shared directory', () => {
-    expect(getCommonPath(['a.json', 'b.json'])).toBe('');
-  });
-
-  test('returns empty string for no files', () => {
-    expect(getCommonPath([])).toBe('');
+  test('sends an empty list to clear exclusions', () => {
+    expect(changedFileSettings(projectFile, { excludedTargetLanguages: [] }).excludedTargetLanguages).toEqual([]);
   });
 });

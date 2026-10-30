@@ -6,6 +6,7 @@ import { ProjectsGroupsModel, SourceFilesModel } from '@crowdin/crowdin-api-clie
 import CliError from '@/cli/errors/CliError.ts';
 import FileExistsError from '@/cli/errors/FileExistsError.ts';
 import FileInUpdateError from '@/cli/errors/FileInUpdateError.ts';
+import type { ProjectFileUpdate } from '@/cli/services/FileService.ts';
 import { computeChecksum } from '@/lib/upload/sourceCache.ts';
 import {
   baseBranchServiceMock,
@@ -479,22 +480,14 @@ describe('UploadSourcesCommand', () => {
 
     await command.uploadSourcesAction(commandContext({}));
 
-    expect(fileService.updateProjectFile).toHaveBeenCalledWith(
-      77,
-      10,
-      'src/app.properties',
-      {
+    expect(fileService.updateProjectFile).toHaveBeenCalledWith(77, 10, 'src/app.properties', {
+      exportOptions: {
         exportPattern: '/locale/%two_letters_code%/%original_file_name%',
         escapeQuotes: 2,
         escapeSpecialCharacters: 1,
       },
-      undefined,
-      'keep_translations_and_approvals',
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-    );
+      updateOption: 'keep_translations_and_approvals',
+    });
   });
 
   test('uploads custom segmentation file and attaches srxStorageId to import options', async () => {
@@ -635,18 +628,10 @@ describe('UploadSourcesCommand', () => {
 
     await command.uploadSourcesAction(commandContext({}));
 
-    expect(fileService.updateProjectFile).toHaveBeenCalledWith(
-      77,
-      10,
-      'src/app.json',
-      expect.anything(),
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      'Context for app.json',
-    );
+    expect(fileService.updateProjectFile).toHaveBeenCalledWith(77, 10, 'src/app.json', {
+      exportOptions: expect.anything(),
+      context: 'Context for app.json',
+    });
   });
 
   test('sends excluded languages on update only when they differ from the project file', async () => {
@@ -675,7 +660,9 @@ describe('UploadSourcesCommand', () => {
 
       await command.uploadSourcesAction(commandContext({}));
 
-      return (fileService.updateProjectFile.mock.calls[0] as unknown[])?.[7] as string[] | undefined;
+      const [, , , update] = (fileService.updateProjectFile.mock.calls[0] ?? []) as unknown[];
+
+      return (update as ProjectFileUpdate | undefined)?.excludedTargetLanguages;
     };
 
     // Same set, different order -> nothing to change.
@@ -712,18 +699,9 @@ describe('UploadSourcesCommand', () => {
 
     await command.uploadSourcesAction(commandContext({}));
 
-    expect(fileService.updateProjectFile).toHaveBeenCalledWith(
-      77,
-      10,
-      'src/app.json',
-      expect.anything(),
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-    );
+    expect(fileService.updateProjectFile).toHaveBeenCalledWith(77, 10, 'src/app.json', {
+      exportOptions: expect.anything(),
+    });
   });
 
   test('warns and skips context for strings-based projects', async () => {
@@ -1050,18 +1028,9 @@ describe('UploadSourcesCommand', () => {
 
     await command.uploadSourcesAction(commandContext({}));
 
-    expect(fileService.updateProjectFile).toHaveBeenCalledWith(
-      77,
-      expect.any(Number),
-      'src/app.json',
-      { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-    );
+    expect(fileService.updateProjectFile).toHaveBeenCalledWith(77, expect.any(Number), 'src/app.json', {
+      exportOptions: { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
+    });
     expect(fileService.createProjectFile).toHaveBeenCalledWith({
       storageId: expect.any(Number),
       name: 'new.json',
@@ -1100,18 +1069,10 @@ describe('UploadSourcesCommand', () => {
     await command.uploadSourcesAction(commandContext({}));
 
     expect(fileService.createProjectFile).not.toHaveBeenCalled();
-    expect(fileService.updateProjectFile).toHaveBeenCalledWith(
-      77,
-      10,
-      'src/app.json',
-      { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      'app.json',
-      undefined,
-    );
+    expect(fileService.updateProjectFile).toHaveBeenCalledWith(77, 10, 'src/app.json', {
+      exportOptions: { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
+      name: 'app.json',
+    });
     expect(output.success).toHaveBeenCalledWith("File 'src/app.json'");
   });
 
@@ -1363,18 +1324,10 @@ describe('UploadSourcesCommand', () => {
     // Soft-matched file is updated/renamed, never deleted.
     expect(fileService.deleteProjectFile).not.toHaveBeenCalledWith(77, expect.anything());
     expect(fileService.deleteProjectFile).toHaveBeenCalledWith(88, '/src/stale.json');
-    expect(fileService.updateProjectFile).toHaveBeenCalledWith(
-      77,
-      10,
-      'src/app.json',
-      { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      'app.json',
-      undefined,
-    );
+    expect(fileService.updateProjectFile).toHaveBeenCalledWith(77, 10, 'src/app.json', {
+      exportOptions: { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
+      name: 'app.json',
+    });
     expect(output.success).toHaveBeenCalledWith("'src/stale.json' file was deleted");
     expect(output.success).toHaveBeenCalledWith('No obsolete directories found');
     expect(output.success).not.toHaveBeenCalledWith('No obsolete files were found');
