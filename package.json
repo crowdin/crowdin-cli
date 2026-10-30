@@ -35,26 +35,26 @@
   "dependencies": {
     "@bomb.sh/tab": "^0.0.22",
     "@clack/prompts": "^1.8.1",
-    "@crowdin/crowdin-api-client": "^1.59.1",
+    "@crowdin/crowdin-api-client": "^1.59.2",
     "@toon-format/toon": "^4.4.0",
     "adm-zip": "^0.6.1",
     "commander": "^15.0.0",
     "console-table-printer": "^2.16.1",
-    "jose": "^6.2.12",
+    "jose": "^6.2.14",
     "js-yaml": "^4.3.2",
-    "zod": "^4.6.6"
+    "zod": "^4.6.7"
   },
   "lint-staged": {
     "*.ts": "biome check --write --no-errors-on-unmatched"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.15",
+    "@biomejs/biome": "^2.6.4",
     "@semantic-release/changelog": "^7.0.0",
     "@semantic-release/git": "^11.0.1",
     "@types/bun": "latest",
     "@types/js-yaml": "^4.0.9",
     "husky": "^9.1.7",
-    "knip": "^6.41.0",
+    "knip": "^6.44.0",
     "lint-staged": "^17.6.0",
     "semantic-release": "^25.0.9",
     "semantic-release-replace-plugin": "^1.2.7",
