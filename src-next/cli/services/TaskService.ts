@@ -24,9 +24,7 @@ export class TaskService {
 
   async add(request: TasksModel.CreateTaskRequest): Promise<TaskRecord> {
     try {
-      const response = await this.client.tasksApi.addTask(this.projectId, request);
-
-      return response.data;
+      return (await this.client.tasksApi.addTask(this.projectId, request)).data;
     } catch (error) {
       throw toCliError(error, 'Task was not added');
     }

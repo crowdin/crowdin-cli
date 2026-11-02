@@ -51,8 +51,7 @@ export class ScreenshotService {
 
   async get(id: number): Promise<ScreenshotView | null> {
     try {
-      const response = await this.client.screenshotsApi.getScreenshot(this.projectId, id);
-      return response.data;
+      return (await this.client.screenshotsApi.getScreenshot(this.projectId, id)).data;
     } catch (error) {
       if (this.isNotFoundError(error)) {
         return null;
@@ -64,8 +63,7 @@ export class ScreenshotService {
 
   async upload(request: ScreenshotsModel.CreateScreenshotRequest): Promise<ScreenshotView> {
     try {
-      const response = await this.client.screenshotsApi.addScreenshot(this.projectId, request);
-      return response.data;
+      return (await this.client.screenshotsApi.addScreenshot(this.projectId, request)).data;
     } catch (error) {
       throw toCliError(error, 'Screenshot was not uploaded');
     }
@@ -73,8 +71,7 @@ export class ScreenshotService {
 
   async update(id: number, request: ScreenshotsModel.UpdateScreenshotRequest): Promise<ScreenshotView> {
     try {
-      const response = await this.client.screenshotsApi.updateScreenshot(this.projectId, id, request);
-      return response.data;
+      return (await this.client.screenshotsApi.updateScreenshot(this.projectId, id, request)).data;
     } catch (error) {
       throw toCliError(error, 'Screenshot was not updated');
     }
@@ -83,9 +80,14 @@ export class ScreenshotService {
   async replaceLabels(id: number, labelIds: number[]): Promise<ScreenshotView> {
     try {
       // labelIds is not part of the update form, only the patch one
-      const response = await this.client.screenshotsApi.editScreenshot(this.projectId, id, [
-        { op: 'replace', path: '/labelIds', value: labelIds },
-      ]);
+      // biome-ignore format: one argument per line
+      const response = await this.client.screenshotsApi.editScreenshot(
+        this.projectId,
+        id,
+        [
+          { op: 'replace', path: '/labelIds', value: labelIds },
+        ],
+      );
       return response.data;
     } catch (error) {
       throw toCliError(error, `Failed to update labels for screenshot #${id}`);

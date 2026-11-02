@@ -31,8 +31,7 @@ export class BundleService {
 
   async add(payload: AddBundlePayload): Promise<BundleView> {
     try {
-      const response = await this.client.bundlesApi.addBundle(this.projectId, payload);
-      return response.data;
+      return (await this.client.bundlesApi.addBundle(this.projectId, payload)).data;
     } catch (error) {
       throw toCliError(error, `Bundle was not added: '${JSON.stringify(payload)}'`);
     }
@@ -40,8 +39,7 @@ export class BundleService {
 
   async get(bundleId: number): Promise<BundleView | null> {
     try {
-      const response = await this.client.bundlesApi.getBundle(this.projectId, bundleId);
-      return response.data;
+      return (await this.client.bundlesApi.getBundle(this.projectId, bundleId)).data;
     } catch (error) {
       if (error instanceof CrowdinError && Number(error.code) === 404) {
         return null;

@@ -14,7 +14,7 @@ export class BranchService {
     private projectId: number,
   ) {}
 
-  async getBranch(name?: string) {
+  async getBranch(name?: string): Promise<SourceFilesModel.Branch | undefined> {
     if (!name || name === 'none') {
       return undefined;
     }

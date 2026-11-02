@@ -22,8 +22,7 @@ export class StyleGuideService {
 
   async get(id: number): Promise<StyleGuidesModel.StyleGuide> {
     try {
-      const response = await this.apiClient.styleGuidesApi.getStyleGuide(id);
-      return response.data;
+      return (await this.apiClient.styleGuidesApi.getStyleGuide(id)).data;
     } catch (error) {
       throw toCliError(error, `Failed to get style guide #${id}`);
     }
@@ -31,8 +30,7 @@ export class StyleGuideService {
 
   async add(request: StyleGuidesModel.CreateStyleGuideRequest): Promise<StyleGuidesModel.StyleGuide> {
     try {
-      const response = await this.apiClient.styleGuidesApi.createStyleGuide(request);
-      return response.data;
+      return (await this.apiClient.styleGuidesApi.createStyleGuide(request)).data;
     } catch (error) {
       throw toCliError(error, `Failed to add style guide '${request.name}'`);
     }
@@ -40,9 +38,13 @@ export class StyleGuideService {
 
   async replaceFile(id: number, storageId: number): Promise<StyleGuidesModel.StyleGuide> {
     try {
-      const response = await this.apiClient.styleGuidesApi.editStyleGuide(id, [
-        { op: 'replace', path: '/storageId', value: storageId },
-      ]);
+      // biome-ignore format: one argument per line
+      const response = await this.apiClient.styleGuidesApi.editStyleGuide(
+        id,
+        [
+          { op: 'replace', path: '/storageId', value: storageId }
+        ],
+      );
       return response.data;
     } catch (error) {
       throw toCliError(error, `Failed to update style guide #${id}`);

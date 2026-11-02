@@ -44,7 +44,12 @@ export class FileService {
     }
   }
 
-  async updateProjectFile(fileId: number, storageId: number, localFilePath: string, update: ProjectFileUpdate = {}) {
+  async updateProjectFile(
+    fileId: number,
+    storageId: number,
+    localFilePath: string,
+    update: ProjectFileUpdate = {},
+  ): Promise<void> {
     const { exportOptions, importOptions, updateOption, attachLabelIds, excludedTargetLanguages, name, context } =
       update;
 
@@ -80,7 +85,7 @@ export class FileService {
     }
   }
 
-  async deleteProjectFile(fileId: number, projectFilePath: string) {
+  async deleteProjectFile(fileId: number, projectFilePath: string): Promise<void> {
     try {
       await this.apiClient.sourceFilesApi.deleteFile(this.projectId, fileId);
     } catch (error) {

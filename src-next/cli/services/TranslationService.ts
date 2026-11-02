@@ -37,10 +37,10 @@ export class TranslationService {
     filePath: string,
     onProgress?: ImportProgress,
     options: ImportTranslationOptions = {},
-  ) {
+  ): Promise<void> {
     const { autoApproveImported, importEqSuggestions, translateHidden } = options;
 
-    return await this.importAndWait(
+    await this.importAndWait(
       { storageId, fileId, languageIds, autoApproveImported, importEqSuggestions, translateHidden },
       filePath,
       onProgress,
@@ -54,10 +54,10 @@ export class TranslationService {
     filePath: string,
     onProgress?: ImportProgress,
     options: ImportTranslationOptions = {},
-  ) {
+  ): Promise<void> {
     const { autoApproveImported, importEqSuggestions, translateHidden } = options;
 
-    return await this.importAndWait(
+    await this.importAndWait(
       { storageId, branchId, languageIds, autoApproveImported, importEqSuggestions, translateHidden },
       filePath,
       onProgress,
@@ -69,8 +69,8 @@ export class TranslationService {
     languageIds: string[],
     filePath: string,
     onProgress?: ImportProgress,
-  ) {
-    return await this.importAndWait({ storageId, languageIds }, filePath, onProgress);
+  ): Promise<void> {
+    await this.importAndWait({ storageId, languageIds }, filePath, onProgress);
   }
 
   // The import is queued server-side, so the request alone proves nothing: wait for the status to
@@ -80,7 +80,7 @@ export class TranslationService {
     request: TranslationsModel.ImportTranslationsRequest | TranslationsModel.ImportTranslationsStringsRequest,
     filePath: string,
     onProgress?: ImportProgress,
-  ) {
+  ): Promise<void> {
     const failureMessage = `Failed to upload the translation file '${filePath}'. Please contact our support team for help`;
     let response: Awaited<ReturnType<Client['translationsApi']['importTranslations']>>;
 
@@ -94,7 +94,7 @@ export class TranslationService {
       throw toCliError(error, failureMessage);
     }
 
-    return await pollUntilFinished(
+    await pollUntilFinished(
       response,
       ({ identifier }) => this.getImportTranslationsStatus(identifier),
       failureMessage,
@@ -187,11 +187,11 @@ export class TranslationService {
   async preTranslate(
     request: TranslationsModel.PreTranslateRequest | TranslationsModel.PreTranslateStringsRequest,
     verbose: boolean,
-  ) {
+  ): Promise<PreTranslationStatus> {
     return await this.pollPreTranslation(() => this.startPreTranslation(request), verbose);
   }
 
-  async waitForPreTranslation(preTranslationId: string, verbose: boolean) {
+  async waitForPreTranslation(preTranslationId: string, verbose: boolean): Promise<PreTranslationStatus> {
     return await this.pollPreTranslation(() => this.getPreTranslationStatus(preTranslationId), verbose);
   }
 

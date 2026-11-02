@@ -47,9 +47,14 @@ export class CommentService {
 
   async resolve(id: number): Promise<StringCommentsModel.StringComment> {
     try {
-      const response = await this.client.stringCommentsApi.editStringComment(this.projectId, id, [
-        { op: 'replace', path: '/issueStatus', value: 'resolved' },
-      ]);
+      // biome-ignore format: one argument per line
+      const response = await this.client.stringCommentsApi.editStringComment(
+        this.projectId,
+        id,
+        [
+          { op: 'replace', path: '/issueStatus', value: 'resolved' },
+        ],
+      );
 
       return response.data;
     } catch (error) {

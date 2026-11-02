@@ -39,7 +39,7 @@ export class DirectoryService {
     }
   }
 
-  async deleteProjectDirectory(directoryId: number, directoryPath: string) {
+  async deleteProjectDirectory(directoryId: number, directoryPath: string): Promise<void> {
     try {
       await this.apiClient.sourceFilesApi.deleteDirectory(this.projectId, directoryId);
     } catch (error) {
