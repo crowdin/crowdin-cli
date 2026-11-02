@@ -83,13 +83,11 @@ describe('LanguageCommand', () => {
     const languageCommand = createLanguageCommand();
 
     spyOn(projectService, 'loadProject').mockResolvedValue({
-      data: {
-        languageMapping: {},
-        targetLanguages: [
-          { id: 'fr', name: 'French', twoLettersCode: 'fr' },
-          { id: 'de', name: 'German', twoLettersCode: 'de' },
-        ],
-      },
+      languageMapping: {},
+      targetLanguages: [
+        { id: 'fr', name: 'French', twoLettersCode: 'fr' },
+        { id: 'de', name: 'German', twoLettersCode: 'de' },
+      ],
     } as never);
 
     await languageCommand.listAction(commandContext);
@@ -116,9 +114,7 @@ describe('LanguageCommand', () => {
     });
 
     spyOn(projectService, 'loadProject').mockResolvedValue({
-      data: {
-        languageMapping: {},
-      },
+      languageMapping: {},
     } as never);
     const listSupportedLanguages = mock().mockResolvedValue({
       data: [
@@ -147,14 +143,12 @@ describe('LanguageCommand', () => {
     });
 
     spyOn(projectService, 'loadProject').mockResolvedValue({
-      data: {
-        languageMapping: {
-          uk: {
-            locale: 'uk_UA',
-          },
+      languageMapping: {
+        uk: {
+          locale: 'uk_UA',
         },
-        targetLanguages: [{ id: 'uk', name: 'Ukrainian', locale: 'uk-UA' }],
       },
+      targetLanguages: [{ id: 'uk', name: 'Ukrainian', locale: 'uk-UA' }],
     } as never);
 
     await languageCommand.listAction(commandContext);
@@ -222,7 +216,7 @@ describe('LanguageCommand', () => {
     const languageCommand = createLanguageCommand();
     const errorSpy = spyOn(output, 'error');
 
-    spyOn(projectService, 'loadProject').mockResolvedValue({ data: {} } as never);
+    spyOn(projectService, 'loadProject').mockResolvedValue({} as never);
 
     // globalOptions is json, so this takes the machine-format branch.
     expect(languageCommand.listAction(commandContext)).rejects.toMatchObject({ exitCode: 103 });
@@ -239,13 +233,11 @@ describe('LanguageCommand', () => {
     output = createOutput({ ...globalOptions, output: 'plain' });
 
     spyOn(projectService, 'loadProject').mockResolvedValue({
-      data: {
-        languageMapping: {},
-        targetLanguages: [
-          { id: 'fr', name: 'French' },
-          { id: 'de', name: 'German' },
-        ],
-      },
+      languageMapping: {},
+      targetLanguages: [
+        { id: 'fr', name: 'French' },
+        { id: 'de', name: 'German' },
+      ],
     } as never);
 
     await new LanguageCommand(
@@ -265,10 +257,8 @@ describe('LanguageCommand', () => {
     commandContext = createCommandContext({ ...globalOptions, output: 'text', code: 'locale' });
 
     spyOn(projectService, 'loadProject').mockResolvedValue({
-      data: {
-        languageMapping: { uk: { locale: 'uk_UA' } },
-        targetLanguages: [{ id: 'uk', name: 'Ukrainian', locale: 'uk-UA' }],
-      },
+      languageMapping: { uk: { locale: 'uk_UA' } },
+      targetLanguages: [{ id: 'uk', name: 'Ukrainian', locale: 'uk-UA' }],
     } as never);
 
     await new LanguageCommand(
@@ -286,17 +276,15 @@ describe('LanguageCommand', () => {
     commandContext = createCommandContext({ ...globalOptions, output: 'text', verbose: true });
 
     spyOn(projectService, 'loadProject').mockResolvedValue({
-      data: {
-        languageMapping: {},
-        targetLanguages: [
-          {
-            id: 'uk',
-            name: 'Ukrainian',
-            textDirection: 'ltr',
-            pluralCategoryNames: ['one', 'few', 'many', 'other'],
-          },
-        ],
-      },
+      languageMapping: {},
+      targetLanguages: [
+        {
+          id: 'uk',
+          name: 'Ukrainian',
+          textDirection: 'ltr',
+          pluralCategoryNames: ['one', 'few', 'many', 'other'],
+        },
+      ],
     } as never);
 
     await createLanguageCommand().listAction(commandContext);
@@ -310,17 +298,15 @@ describe('LanguageCommand', () => {
     commandContext = createCommandContext({ ...globalOptions, verbose: true });
 
     spyOn(projectService, 'loadProject').mockResolvedValue({
-      data: {
-        languageMapping: {},
-        targetLanguages: [
-          {
-            id: 'ar',
-            name: 'Arabic',
-            textDirection: 'rtl',
-            pluralCategoryNames: ['zero', 'one', 'two', 'few', 'many', 'other'],
-          },
-        ],
-      },
+      languageMapping: {},
+      targetLanguages: [
+        {
+          id: 'ar',
+          name: 'Arabic',
+          textDirection: 'rtl',
+          pluralCategoryNames: ['zero', 'one', 'two', 'few', 'many', 'other'],
+        },
+      ],
     } as never);
 
     await createLanguageCommand().listAction(commandContext);
@@ -346,13 +332,11 @@ describe('LanguageCommand', () => {
     commandContext = createCommandContext({ ...globalOptions, output: 'toon', verbose: true });
 
     spyOn(projectService, 'loadProject').mockResolvedValue({
-      data: {
-        languageMapping: {},
-        targetLanguages: [
-          { id: 'uk', name: 'Ukrainian', textDirection: 'ltr', pluralCategoryNames: ['one', 'few', 'many', 'other'] },
-          { id: 'ja', name: 'Japanese', textDirection: 'ltr', pluralCategoryNames: ['other'] },
-        ],
-      },
+      languageMapping: {},
+      targetLanguages: [
+        { id: 'uk', name: 'Ukrainian', textDirection: 'ltr', pluralCategoryNames: ['one', 'few', 'many', 'other'] },
+        { id: 'ja', name: 'Japanese', textDirection: 'ltr', pluralCategoryNames: ['other'] },
+      ],
     } as never);
 
     await createLanguageCommand().listAction(commandContext);
@@ -372,12 +356,10 @@ describe('LanguageCommand', () => {
     commandContext = createCommandContext({ ...globalOptions, output: 'plain', verbose: true });
 
     spyOn(projectService, 'loadProject').mockResolvedValue({
-      data: {
-        languageMapping: {},
-        targetLanguages: [
-          { id: 'uk', name: 'Ukrainian', textDirection: 'ltr', pluralCategoryNames: ['one', 'few', 'many', 'other'] },
-        ],
-      },
+      languageMapping: {},
+      targetLanguages: [
+        { id: 'uk', name: 'Ukrainian', textDirection: 'ltr', pluralCategoryNames: ['one', 'few', 'many', 'other'] },
+      ],
     } as never);
 
     await createLanguageCommand().listAction(commandContext);
@@ -394,9 +376,7 @@ describe('LanguageCommand', () => {
     });
 
     spyOn(projectService, 'loadProject').mockResolvedValue({
-      data: {
-        languageMapping: {},
-      },
+      languageMapping: {},
     } as never);
     spyOn(apiClient.languagesApi, 'withFetchAll').mockReturnValue({
       listSupportedLanguages: mock().mockRejectedValue(new Error('network failure')),

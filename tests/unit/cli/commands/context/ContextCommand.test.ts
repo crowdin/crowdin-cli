@@ -66,9 +66,7 @@ describe('ContextCommand', () => {
     }) as SourceStringsModel.String;
 
   const mockProject = (type: 0 | 1 = 0) => {
-    projectService.loadProject.mockResolvedValue({
-      data: { id: 123, name: 'Test Project', type },
-    } as never);
+    projectService.loadProject.mockResolvedValue({ id: 123, name: 'Test Project', type } as never);
   };
 
   beforeEach(async () => {

@@ -418,7 +418,7 @@ export default class ContextCommand {
     const labelService = await this.getLabelService(command);
     const fileService = await this.getFileService(command);
 
-    const project = (await projectService.loadProject()).data;
+    const project = await projectService.loadProject();
     const isStringsBased = isStringsBasedProject(project);
     const branch = await branchService.resolveBranch(options.branch);
     const branchId = branch?.id;

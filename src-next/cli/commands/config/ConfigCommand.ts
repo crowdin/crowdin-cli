@@ -95,7 +95,7 @@ export default class ConfigCommand {
     const project = await projectService.loadProject();
 
     // Only managers/developers get a ProjectSettings response, so its presence is the access probe.
-    if (!('translateDuplicates' in project.data)) {
+    if (!('translateDuplicates' in project)) {
       const message = 'You must have manager or developer role in the project to perform this action';
 
       // A machine format owes the caller a result document, and a warning followed by exit 0 reads
@@ -113,12 +113,11 @@ export default class ConfigCommand {
       return;
     }
 
-    const settings = project.data;
-    const serverLanguageMapping = settings.languageMapping;
-    const languages = [...settings.targetLanguages];
+    const serverLanguageMapping = project.languageMapping;
+    const languages = [...project.targetLanguages];
 
-    if (settings.inContext && settings.inContextPseudoLanguage) {
-      languages.push(settings.inContextPseudoLanguage);
+    if (project.inContext && project.inContextPseudoLanguage) {
+      languages.push(project.inContextPseudoLanguage);
     }
 
     const sourceFileLoader = new SourceFileLoader(config);

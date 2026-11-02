@@ -161,8 +161,7 @@ export class TranslationService {
     request: TranslationsModel.PreTranslateRequest | TranslationsModel.PreTranslateStringsRequest,
   ): Promise<PreTranslationStatus> {
     try {
-      const response = await this.apiClient.translationsApi.applyPreTranslation(this.projectId, request);
-      return response.data;
+      return (await this.apiClient.translationsApi.applyPreTranslation(this.projectId, request)).data;
     } catch (error) {
       throw toCliError(error, PRE_TRANSLATE_FAILURE);
     }
@@ -170,8 +169,7 @@ export class TranslationService {
 
   async getPreTranslationStatus(preTranslationId: string): Promise<PreTranslationStatus> {
     try {
-      const response = await this.apiClient.translationsApi.preTranslationStatus(this.projectId, preTranslationId);
-      return response.data;
+      return (await this.apiClient.translationsApi.preTranslationStatus(this.projectId, preTranslationId)).data;
     } catch (error) {
       throw toCliError(error, `Failed to get the auto-translation '${preTranslationId}'`);
     }
@@ -231,14 +229,15 @@ export class TranslationService {
 
   async getPreTranslationReport(preTranslationId: string): Promise<TranslationsModel.PreTranslationReport> {
     try {
-      const response = await this.apiClient.translationsApi.getPreTranslationReport(this.projectId, preTranslationId);
-      return response.data;
+      return (await this.apiClient.translationsApi.getPreTranslationReport(this.projectId, preTranslationId)).data;
     } catch (error) {
       throw toCliError(error, 'Failed to fetch the auto-translation report');
     }
   }
 
-  async buildProjectTranslations(request?: TranslationsModel.BuildRequest | TranslationsModel.PseudoBuildRequest) {
+  async buildProjectTranslations(
+    request?: TranslationsModel.BuildRequest | TranslationsModel.PseudoBuildRequest,
+  ): Promise<TranslationsModel.Build> {
     return await withSpinner(
       this.output,
       'build',
@@ -257,7 +256,7 @@ export class TranslationService {
               : 'Translations build failed',
         );
 
-        return build;
+        return build.data;
       },
     );
   }

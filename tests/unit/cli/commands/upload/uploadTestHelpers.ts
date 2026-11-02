@@ -19,11 +19,9 @@ export function flatOptions(options: (OptionDef | OptionGroupDef)[]): OptionDef[
 export function baseProjectServiceMock() {
   return {
     loadProject: mock(async () => ({
-      data: {
-        id: 123,
-        languageMapping: {},
-        targetLanguages: [language('es', 'es', 'spa'), language('uk', 'uk', 'ukr'), language('fr', 'fr', 'fra')],
-      },
+      id: 123,
+      languageMapping: {},
+      targetLanguages: [language('es', 'es', 'spa'), language('uk', 'uk', 'ukr'), language('fr', 'fr', 'fra')],
     })),
   };
 }

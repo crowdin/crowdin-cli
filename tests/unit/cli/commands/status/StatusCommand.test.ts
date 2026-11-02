@@ -35,10 +35,8 @@ const createCommandContext = (options: StatusTestOptions) => {
 };
 
 const mockProject = {
-  data: {
-    id: 123,
-    targetLanguages: [{ id: 'fr' }, { id: 'de' }],
-  },
+  id: 123,
+  targetLanguages: [{ id: 'fr' }, { id: 'de' }],
 };
 
 const createProgress = (
@@ -125,7 +123,8 @@ describe('StatusCommand', () => {
     const statusCommand = createStatusCommand();
 
     spyOn(projectService, 'loadProject').mockResolvedValue({
-      data: { ...mockProject.data, targetLanguages: [{ id: 'fr', name: 'French' }] },
+      ...mockProject,
+      targetLanguages: [{ id: 'fr', name: 'French' }],
     } as never);
     spyOn(progressService, 'loadProjectProgress').mockResolvedValue([createProgress('fr', 87, 75)] as never);
 
@@ -174,7 +173,8 @@ describe('StatusCommand', () => {
     const statusCommand = createStatusCommand();
 
     spyOn(projectService, 'loadProject').mockResolvedValue({
-      data: { ...mockProject.data, targetLanguages: [{ id: 'fr', name: 'French' }] },
+      ...mockProject,
+      targetLanguages: [{ id: 'fr', name: 'French' }],
     } as never);
     spyOn(progressService, 'loadProjectProgress').mockResolvedValue([
       {
@@ -208,7 +208,8 @@ describe('StatusCommand', () => {
     const statusCommand = createStatusCommand();
 
     spyOn(projectService, 'loadProject').mockResolvedValue({
-      data: { ...mockProject.data, targetLanguages: [{ id: 'fr', name: 'French' }] },
+      ...mockProject,
+      targetLanguages: [{ id: 'fr', name: 'French' }],
     } as never);
     spyOn(progressService, 'loadProjectProgress').mockResolvedValue([createProgress('fr', 87, 75)] as never);
 

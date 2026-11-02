@@ -168,7 +168,7 @@ export default class DownloadCommand {
 
     const project = await projectService.loadProject();
 
-    if (isStringsBasedProject(project.data)) {
+    if (isStringsBasedProject(project)) {
       throw new CliError(FILE_MANAGEMENT_UNAVAILABLE);
     }
 
@@ -197,7 +197,7 @@ export default class DownloadCommand {
         config,
         downloads,
         branch,
-        project.data.sourceLanguageId,
+        project.sourceLanguageId,
         options,
         output,
       );
@@ -337,7 +337,7 @@ export default class DownloadCommand {
 
     const project = await projectService.loadProject();
 
-    if (isStringsBasedProject(project.data)) {
+    if (isStringsBasedProject(project)) {
       throw new CliError(FILE_MANAGEMENT_UNAVAILABLE);
     }
 
@@ -346,18 +346,17 @@ export default class DownloadCommand {
       return;
     }
 
-    const inContextPseudoLanguage =
-      'inContextPseudoLanguage' in project.data ? project.data.inContextPseudoLanguage : undefined;
+    const inContextPseudoLanguage = 'inContextPseudoLanguage' in project ? project.inContextPseudoLanguage : undefined;
     const projectLanguages = inContextPseudoLanguage
-      ? [...project.data.targetLanguages, inContextPseudoLanguage]
-      : project.data.targetLanguages;
+      ? [...project.targetLanguages, inContextPseudoLanguage]
+      : project.targetLanguages;
     const { languages: resolvedLanguages, languageIds: resolvedLanguageIds } = resolveDownloadLanguages(
       projectLanguages,
       options,
       config.exportLanguages,
     );
 
-    const serverLanguageMapping = project.data.languageMapping;
+    const serverLanguageMapping = project.languageMapping;
     const branch = await branchService.resolveBranch(options.branch);
     const branchId = branch?.id;
 
@@ -396,7 +395,7 @@ export default class DownloadCommand {
     const isOrganization = projectService.isEnterprise();
     const buildGroups = this.buildExportGroups(config, options, branchId, resolvedLanguageIds, isOrganization, output);
     const projectSkipUntranslatedFiles =
-      'skipUntranslatedFiles' in project.data ? Boolean(project.data.skipUntranslatedFiles) : false;
+      'skipUntranslatedFiles' in project ? Boolean(project.skipUntranslatedFiles) : false;
 
     output.info('Downloading translations');
 
@@ -430,7 +429,7 @@ export default class DownloadCommand {
           ? await translationService.buildProjectTranslations(group.pseudo)
           : await translationService.buildProjectTranslations(group.request);
 
-        const downloadUrl = await translationService.getTranslationDownloadUrl(build.data.id);
+        const downloadUrl = await translationService.getTranslationDownloadUrl(build.id);
 
         const tempDir = await mkdtemp(path.join(tmpdir(), 'crowdin-translations-'));
         tempDirs.push(tempDir);

@@ -138,9 +138,7 @@ describe('FileCommand', () => {
   test('lists project files', async () => {
     const fileCommand = createFileCommand();
 
-    spyOn(projectService, 'loadProject').mockResolvedValue({
-      data: { id: 123 },
-    } as never);
+    spyOn(projectService, 'loadProject').mockResolvedValue({ id: 123 } as never);
     spyOn(fileService, 'loadProjectFiles').mockResolvedValue([
       { id: 1, path: '/docs/readme.md' },
       { id: 2, path: '/docs/changelog.md' },
@@ -164,7 +162,7 @@ describe('FileCommand', () => {
     const textOutput = createOutput({ ...globalOptions, output: 'text' });
     const fileCommand = createFileCommandWith(textOutput);
 
-    spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(projectService, 'loadProject').mockResolvedValue({ id: 123 } as never);
     spyOn(fileService, 'loadProjectFiles').mockResolvedValue([] as never);
 
     await fileCommand.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
@@ -176,7 +174,7 @@ describe('FileCommand', () => {
     const textOutput = createOutput({ ...globalOptions, output: 'text' });
     const fileCommand = createFileCommandWith(textOutput);
 
-    spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(projectService, 'loadProject').mockResolvedValue({ id: 123 } as never);
     spyOn(fileService, 'loadProjectFiles').mockResolvedValue([{ id: 1, path: '/docs/readme.md' }] as never);
 
     await fileCommand.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
@@ -189,7 +187,7 @@ describe('FileCommand', () => {
     const textOutput = createOutput({ ...globalOptions, output: 'text' });
     const fileCommand = createFileCommandWith(textOutput);
 
-    spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(projectService, 'loadProject').mockResolvedValue({ id: 123 } as never);
     spyOn(fileService, 'loadProjectFiles').mockResolvedValue([
       { id: 1, path: '/docs/readme.md', type: 'md', parserVersion: 4, revisionId: 7 },
     ] as never);
@@ -202,7 +200,7 @@ describe('FileCommand', () => {
   test('lists files under the given branch', async () => {
     const fileCommand = createFileCommand();
 
-    spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(projectService, 'loadProject').mockResolvedValue({ id: 123 } as never);
 
     const resolveBranch = spyOn(branchService, 'resolveBranch').mockResolvedValue({ id: 5, name: 'feature' } as never);
     const loadProjectFiles = spyOn(fileService, 'loadProjectFiles').mockResolvedValue([] as never);
@@ -221,7 +219,7 @@ describe('FileCommand', () => {
     const textOutput = createOutput({ ...globalOptions, output: 'text' });
     const fileCommand = createFileCommandWith(textOutput);
 
-    spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(projectService, 'loadProject').mockResolvedValue({ id: 123 } as never);
     const resolveBranch = spyOn(branchService, 'resolveBranch').mockResolvedValue(undefined);
     const loadProjectFiles = spyOn(fileService, 'loadProjectFiles').mockResolvedValue([
       { id: 2, path: '/docs/changelog.md', branchId: null },
@@ -237,7 +235,7 @@ describe('FileCommand', () => {
   test('lists the branch files once --branch names the branch', async () => {
     const fileCommand = createFileCommand();
 
-    spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(projectService, 'loadProject').mockResolvedValue({ id: 123 } as never);
     spyOn(branchService, 'resolveBranch').mockResolvedValue({ id: 5, name: 'main' } as never);
     spyOn(fileService, 'loadProjectFiles').mockResolvedValue([
       { id: 1, path: '/main/docs/readme.md', branchId: 5 },
@@ -251,7 +249,7 @@ describe('FileCommand', () => {
   test('strips the stored branch name when --branch is sanitized', async () => {
     const fileCommand = createFileCommand();
 
-    spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(projectService, 'loadProject').mockResolvedValue({ id: 123 } as never);
     spyOn(branchService, 'resolveBranch').mockResolvedValue({ id: 5, name: 'feature.x' } as never);
     spyOn(fileService, 'loadProjectFiles').mockResolvedValue([
       { id: 1, path: '/feature.x/docs/readme.md', branchId: 5 },
@@ -266,7 +264,7 @@ describe('FileCommand', () => {
     const textOutput = createOutput({ ...globalOptions, output: 'text' });
     const fileCommand = createFileCommandWith(textOutput);
 
-    spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(projectService, 'loadProject').mockResolvedValue({ id: 123 } as never);
     spyOn(branchService, 'resolveBranchId').mockResolvedValue(undefined);
     spyOn(fileService, 'loadProjectFiles').mockResolvedValue([{ id: 1, path: '/docs/readme.md' }] as never);
 
@@ -284,7 +282,7 @@ describe('FileCommand', () => {
     const listSpy = spyOn(jsonOutput, 'list');
     const fileCommand = createFileCommandWith(jsonOutput);
 
-    spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(projectService, 'loadProject').mockResolvedValue({ id: 123 } as never);
     spyOn(branchService, 'resolveBranchId').mockResolvedValue(undefined);
     spyOn(fileService, 'loadProjectFiles').mockResolvedValue([{ id: 1, path: '/docs/readme.md' }] as never);
 
@@ -920,7 +918,8 @@ describe('FileCommand', () => {
     );
 
     spyOn(projectService, 'loadProject').mockResolvedValue({
-      data: { id: 123, type: ProjectsGroupsModel.Type.STRINGS_BASED },
+      id: 123,
+      type: ProjectsGroupsModel.Type.STRINGS_BASED,
     } as never);
 
     commandContext = createCommandContext(globalOptions, ['docs/readme.md']);
@@ -1066,7 +1065,7 @@ describe('FileCommand', () => {
       async () => stringService,
     );
 
-    spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(projectService, 'loadProject').mockResolvedValue({ id: 123 } as never);
 
     commandContext = createCommandContext(globalOptions, ['docs/readme.md']);
 
@@ -1092,7 +1091,7 @@ describe('FileCommand', () => {
       async () => stringService,
     );
 
-    spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(projectService, 'loadProject').mockResolvedValue({ id: 123 } as never);
     spyOn(branchService, 'resolveBranch').mockResolvedValue({ id: 9, name: 'feature.x' } as never);
 
     commandContext = createCommandContext({ ...globalOptions, branch: 'feature/x' }, ['docs/readme.md']);

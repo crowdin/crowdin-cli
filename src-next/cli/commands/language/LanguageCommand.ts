@@ -116,11 +116,9 @@ export default class LanguageCommand {
       return;
     }
 
-    const languages = options.all
-      ? await languageService.listSupportedLanguages()
-      : (project.data.targetLanguages ?? []);
+    const languages = options.all ? await languageService.listSupportedLanguages() : (project.targetLanguages ?? []);
 
-    this.printLanguages(output, languages, project.data.languageMapping, codeFormat, view);
+    this.printLanguages(output, languages, project.languageMapping, codeFormat, view);
   };
 
   private printLanguages(

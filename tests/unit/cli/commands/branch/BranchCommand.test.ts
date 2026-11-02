@@ -42,12 +42,12 @@ describe('BranchCommand', () => {
   const createBranch = (overrides: Partial<SourceFilesModel.Branch> = {}): SourceFilesModel.Branch =>
     ({ id: 14, name: 'main', title: '', ...overrides }) as SourceFilesModel.Branch;
 
-  const stringsBasedProject = {
-    data: { type: ProjectsGroupsModel.Type.STRINGS_BASED },
-  } as Awaited<ReturnType<ProjectService['loadProject']>>;
-  const filesBasedProject = {
-    data: { type: ProjectsGroupsModel.Type.FILES_BASED },
-  } as Awaited<ReturnType<ProjectService['loadProject']>>;
+  const stringsBasedProject = { type: ProjectsGroupsModel.Type.STRINGS_BASED } as Awaited<
+    ReturnType<ProjectService['loadProject']>
+  >;
+  const filesBasedProject = { type: ProjectsGroupsModel.Type.FILES_BASED } as Awaited<
+    ReturnType<ProjectService['loadProject']>
+  >;
 
   const createBranchCommand = () => {
     return new BranchCommand(

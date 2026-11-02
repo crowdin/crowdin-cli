@@ -37,7 +37,7 @@ describe('UploadTranslationsCommand', () => {
 
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
-      loadProject: mock(async () => ({ data: { id: 123, targetLanguages: [language('es', 'es', 'spa')] } })),
+      loadProject: mock(async () => ({ id: 123, targetLanguages: [language('es', 'es', 'spa')] })),
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
@@ -67,9 +67,7 @@ describe('UploadTranslationsCommand', () => {
 
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
-      loadProject: mock(async () => ({
-        data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
-      })),
+      loadProject: mock(async () => ({ id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] })),
     };
     const fileService = {
       ...baseFileServiceMock(),
@@ -107,9 +105,7 @@ describe('UploadTranslationsCommand', () => {
 
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
-      loadProject: mock(async () => ({
-        data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
-      })),
+      loadProject: mock(async () => ({ id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] })),
     };
     const fileService = {
       ...baseFileServiceMock(),
@@ -152,9 +148,7 @@ describe('UploadTranslationsCommand', () => {
 
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
-      loadProject: mock(async () => ({
-        data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
-      })),
+      loadProject: mock(async () => ({ id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] })),
     };
     const fileService = {
       ...baseFileServiceMock(),
@@ -221,11 +215,9 @@ describe('UploadTranslationsCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
-        data: {
-          id: 123,
-          languageMapping: {},
-          targetLanguages: [language('es', 'es', 'spa'), language('fr', 'fr', 'fra')],
-        },
+        id: 123,
+        languageMapping: {},
+        targetLanguages: [language('es', 'es', 'spa'), language('fr', 'fr', 'fra')],
       })),
     };
     const fileService = {
@@ -279,9 +271,7 @@ describe('UploadTranslationsCommand', () => {
 
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
-      loadProject: mock(async () => ({
-        data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
-      })),
+      loadProject: mock(async () => ({ id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] })),
     };
     const fileService = {
       ...baseFileServiceMock(),
@@ -320,9 +310,7 @@ describe('UploadTranslationsCommand', () => {
 
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
-      loadProject: mock(async () => ({
-        data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
-      })),
+      loadProject: mock(async () => ({ id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] })),
     };
     const fileService = {
       ...baseFileServiceMock(),
@@ -365,9 +353,7 @@ describe('UploadTranslationsCommand', () => {
 
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
-      loadProject: mock(async () => ({
-        data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
-      })),
+      loadProject: mock(async () => ({ id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] })),
     };
     const branchService = {
       getOrCreateBranch: mock(async () => ({ branch: { id: 44, name: 'feature' }, created: true })),
@@ -414,11 +400,9 @@ describe('UploadTranslationsCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: storageIdCounter++ })) };
     const projectService = {
       loadProject: mock(async () => ({
-        data: {
-          id: 123,
-          languageMapping: {},
-          targetLanguages: [language('es', 'es', 'spa'), language('fr', 'fr', 'fra')],
-        },
+        id: 123,
+        languageMapping: {},
+        targetLanguages: [language('es', 'es', 'spa'), language('fr', 'fr', 'fra')],
       })),
     };
     const fileService = {
@@ -461,9 +445,7 @@ describe('UploadTranslationsCommand', () => {
 
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
-      loadProject: mock(async () => ({
-        data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
-      })),
+      loadProject: mock(async () => ({ id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] })),
     };
     const fileService = {
       ...baseFileServiceMock(),
@@ -499,11 +481,9 @@ describe('UploadTranslationsCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: storageIdCounter++ })) };
     const projectService = {
       loadProject: mock(async () => ({
-        data: {
-          id: 123,
-          languageMapping: {},
-          targetLanguages: [language('es', 'es', 'spa'), language('fr', 'fr', 'fra')],
-        },
+        id: 123,
+        languageMapping: {},
+        targetLanguages: [language('es', 'es', 'spa'), language('fr', 'fr', 'fra')],
       })),
     };
     const fileService = {
@@ -553,9 +533,7 @@ describe('UploadTranslationsCommand', () => {
 
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
-      loadProject: mock(async () => ({
-        data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
-      })),
+      loadProject: mock(async () => ({ id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] })),
     };
     const fileService = {
       ...baseFileServiceMock(),
@@ -589,9 +567,7 @@ describe('UploadTranslationsCommand', () => {
 
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
-      loadProject: mock(async () => ({
-        data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
-      })),
+      loadProject: mock(async () => ({ id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] })),
     };
     const fileService = { ...baseFileServiceMock(), loadProjectFiles: mock(async () => []) };
     const translationService = baseTranslationServiceMock();
@@ -621,9 +597,7 @@ describe('UploadTranslationsCommand', () => {
     // Deliberately no locale/es/app.json: files need not exist, so it is still listed.
 
     const projectService = {
-      loadProject: mock(async () => ({
-        data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
-      })),
+      loadProject: mock(async () => ({ id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] })),
     };
     const output = createOutputMock();
     const command = createUploadCommand(
@@ -646,9 +620,7 @@ describe('UploadTranslationsCommand', () => {
   test('does nothing when project has no source files', async () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
-      loadProject: mock(async () => ({
-        data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
-      })),
+      loadProject: mock(async () => ({ id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] })),
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
@@ -678,11 +650,9 @@ describe('UploadTranslationsCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
-        data: {
-          id: 123,
-          languageMapping: {},
-          targetLanguages: [language('es', 'es', 'spa'), language('fr', 'fr', 'fra')],
-        },
+        id: 123,
+        languageMapping: {},
+        targetLanguages: [language('es', 'es', 'spa'), language('fr', 'fr', 'fra')],
       })),
     };
     const fileService = {
@@ -727,9 +697,7 @@ describe('UploadTranslationsCommand', () => {
   test('throws when specified language does not exist in project', async () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
-      loadProject: mock(async () => ({
-        data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
-      })),
+      loadProject: mock(async () => ({ id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] })),
     };
     const output = createOutputMock();
     const command = createUploadCommand(tempDir, output, projectService, storageService);
@@ -746,12 +714,10 @@ describe('UploadTranslationsCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
-        data: {
-          id: 123,
-          type: ProjectsGroupsModel.Type.STRINGS_BASED,
-          languageMapping: {},
-          targetLanguages: [language('es', 'es', 'spa')],
-        },
+        id: 123,
+        type: ProjectsGroupsModel.Type.STRINGS_BASED,
+        languageMapping: {},
+        targetLanguages: [language('es', 'es', 'spa')],
       })),
     };
     const branchService = {
@@ -792,12 +758,10 @@ describe('UploadTranslationsCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
-        data: {
-          id: 123,
-          type: ProjectsGroupsModel.Type.STRINGS_BASED,
-          languageMapping: {},
-          targetLanguages: [language('es', 'es', 'spa')],
-        },
+        id: 123,
+        type: ProjectsGroupsModel.Type.STRINGS_BASED,
+        languageMapping: {},
+        targetLanguages: [language('es', 'es', 'spa')],
       })),
     };
     const output = createOutputMock();
@@ -824,9 +788,7 @@ describe('UploadTranslationsCommand', () => {
 
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
-      loadProject: mock(async () => ({
-        data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
-      })),
+      loadProject: mock(async () => ({ id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] })),
     };
     const fileService = {
       ...baseFileServiceMock(),
@@ -865,9 +827,7 @@ describe('UploadTranslationsCommand', () => {
 
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
-      loadProject: mock(async () => ({
-        data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
-      })),
+      loadProject: mock(async () => ({ id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] })),
     };
     const fileService = { ...baseFileServiceMock(), loadProjectFiles: mock(async () => []) };
     const translationService = baseTranslationServiceMock();
@@ -899,9 +859,7 @@ describe('UploadTranslationsCommand', () => {
 
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
-      loadProject: mock(async () => ({
-        data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
-      })),
+      loadProject: mock(async () => ({ id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] })),
     };
     const fileService = {
       ...baseFileServiceMock(),
@@ -944,11 +902,9 @@ describe('UploadTranslationsCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
-        data: {
-          id: 123,
-          languageMapping: {},
-          targetLanguages: [language('es', 'es', 'spa'), language('fr', 'fr', 'fra')],
-        },
+        id: 123,
+        languageMapping: {},
+        targetLanguages: [language('es', 'es', 'spa'), language('fr', 'fr', 'fra')],
       })),
     };
     const fileService = {
@@ -990,11 +946,9 @@ describe('UploadTranslationsCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
-        data: {
-          id: 123,
-          languageMapping: {},
-          targetLanguages: [language('es', 'es', 'spa'), language('fr', 'fr', 'fra')],
-        },
+        id: 123,
+        languageMapping: {},
+        targetLanguages: [language('es', 'es', 'spa'), language('fr', 'fr', 'fra')],
       })),
     };
     const fileService = {
@@ -1032,9 +986,7 @@ describe('UploadTranslationsCommand', () => {
   test('reports an error and continues when a source pattern matches no files during translation upload', async () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
-      loadProject: mock(async () => ({
-        data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
-      })),
+      loadProject: mock(async () => ({ id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] })),
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
@@ -1067,11 +1019,9 @@ describe('UploadTranslationsCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
-        data: {
-          id: 123,
-          languageMapping: { ua: { locale: 'ukrainian' } },
-          targetLanguages: [language('ua', 'ua', 'ukr')],
-        },
+        id: 123,
+        languageMapping: { ua: { locale: 'ukrainian' } },
+        targetLanguages: [language('ua', 'ua', 'ukr')],
       })),
     };
     const fileService = {
@@ -1119,9 +1069,7 @@ describe('UploadTranslationsCommand', () => {
       (output.list as unknown as { mock: { calls: unknown[][] } }).mock.calls.at(-1)?.[0];
 
     const spanishProject = {
-      loadProject: mock(async () => ({
-        data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
-      })),
+      loadProject: mock(async () => ({ id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] })),
     };
 
     const commandFor = (output: ReturnType<typeof createOutputMock>) =>

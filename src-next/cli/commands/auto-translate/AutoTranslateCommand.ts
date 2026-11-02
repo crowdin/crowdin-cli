@@ -1,4 +1,4 @@
-import type { ProjectsGroupsModel, ResponseObject, TranslationsModel } from '@crowdin/crowdin-api-client';
+import type { ProjectsGroupsModel, TranslationsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
@@ -218,7 +218,7 @@ export default class AutoTranslateCommand {
     const labelIds = await this.prepareLabelIds(options.label, labelService, output);
     const excludeLabelIds = await this.prepareLabelIds(options.excludeLabel, labelService, output);
 
-    if (isStringsBasedProject(project.data)) {
+    if (isStringsBasedProject(project)) {
       if (files.length > 0 || directoryPath) {
         throw new CliError(FILE_MANAGEMENT_UNAVAILABLE);
       }
@@ -452,7 +452,7 @@ export default class AutoTranslateCommand {
   }
 
   private async prepareLanguageIds(
-    project: ResponseObject<ProjectsGroupsModel.Project>,
+    project: ProjectsGroupsModel.Project,
     languageIds: string[] | undefined,
     excludeLanguageIds: string[] | undefined,
     translateMethod: Method,
@@ -460,7 +460,7 @@ export default class AutoTranslateCommand {
     translationService: TranslationService,
     output: Output,
   ): Promise<string[]> {
-    const projectLanguages = project.data.targetLanguages.map((targetLanguage) => targetLanguage.id);
+    const projectLanguages = project.targetLanguages.map((targetLanguage) => targetLanguage.id);
     const excludedLanguages = this.prepareExcludedLanguageIds(excludeLanguageIds, projectLanguages);
 
     if (!languageIds || this.isAllLanguages(languageIds)) {

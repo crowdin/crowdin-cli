@@ -93,12 +93,12 @@ export default class UploadSourcesCommand {
     assertFilesConfigured(config);
 
     const project = await projectService.loadProject();
-    const isStringsBased = isStringsBasedProject(project.data);
-    const serverLanguageMapping = hasManagerAccess(project) ? project.data.languageMapping : undefined;
+    const isStringsBased = isStringsBasedProject(project);
+    const serverLanguageMapping = hasManagerAccess(project) ? project.languageMapping : undefined;
     const sourceFileLoader = new SourceFileLoader(config);
     const patternFilePaths = config.files.map((patterns) => {
       const localFilePaths = sourceFileLoader.getFilePathsForPattern(patterns.source, patterns.ignore, {
-        languages: project.data.targetLanguages,
+        languages: project.targetLanguages,
         serverLanguageMapping,
         fileLanguageMapping: patterns.languages_mapping,
       });
@@ -142,7 +142,7 @@ export default class UploadSourcesCommand {
       }
     }
 
-    this.validateExcludedTargetLanguages(patternFilePaths, project.data.targetLanguages);
+    this.validateExcludedTargetLanguages(patternFilePaths, project.targetLanguages);
 
     // A dry run walks the same path as a real upload and reports the concrete
     // would-create/update/delete action per file, so it looks the branch up without creating it.

@@ -73,7 +73,7 @@ describe('ProjectService', () => {
         targetLanguageIds: [],
       });
 
-      expect(result.data.id).toBe(77);
+      expect(result.id).toBe(77);
     });
 
     test('wraps API error as CliError', async () => {
@@ -93,7 +93,7 @@ describe('ProjectService', () => {
 
       const result = await projectService.loadProject();
 
-      expect(result.data.id).toBe(PROJECT_ID);
+      expect(result.id).toBe(PROJECT_ID);
     });
 
     test('calls API with configured projectId', async () => {
@@ -121,7 +121,7 @@ describe('ProjectService', () => {
 
       const result = await projectService.loadProjects(true);
 
-      expect(result.data).toHaveLength(2);
+      expect(result).toHaveLength(2);
     });
 
     test('passes hasManagerAccess=1 when true', async () => {

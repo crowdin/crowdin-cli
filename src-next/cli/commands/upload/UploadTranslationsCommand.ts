@@ -86,10 +86,10 @@ export default class UploadTranslationsCommand {
       return;
     }
 
-    const targetLanguages = this.filterTargetLanguages(project.data.targetLanguages, options.language);
-    const serverLanguageMapping = project.data.languageMapping;
+    const targetLanguages = this.filterTargetLanguages(project.targetLanguages, options.language);
+    const serverLanguageMapping = project.languageMapping;
 
-    if (isStringsBasedProject(project.data)) {
+    if (isStringsBasedProject(project)) {
       await this.uploadTranslationsStringsBased(
         options,
         config,

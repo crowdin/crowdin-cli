@@ -85,7 +85,7 @@ export default class StatusCommand {
     const filePath = options.file;
     const directoryPath = options.directory;
     const failIfIncomplete = Boolean(options.failIfIncomplete);
-    const targetLanguageIds = project.data.targetLanguages.map((language) => language.id);
+    const targetLanguageIds = project.targetLanguages.map((language) => language.id);
 
     if (languageId && languageId !== 'all' && !targetLanguageIds.includes(languageId)) {
       throw new CliError(`Language '${languageId}' doesn't exist in the project. Try specifying another language code`);
@@ -129,7 +129,7 @@ export default class StatusCommand {
 
       return entry.languageId === languageId;
     });
-    const rows = this.toRows(filteredProgressData, project.data.targetLanguages);
+    const rows = this.toRows(filteredProgressData, project.targetLanguages);
     const progress = toProgressList(rows, show, options.verbose);
 
     // --verbose adds the word and phrase counts in every format: json/toon gain columns, text widens

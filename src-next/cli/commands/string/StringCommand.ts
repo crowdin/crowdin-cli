@@ -199,7 +199,7 @@ export default class StringCommand {
     const directoryService = await this.getDirectoryService(command);
     const fileService = await this.getFileService(command);
     const labelService = await this.getLabelService(command);
-    const isStringsBased = isStringsBasedProject((await projectService.loadProject()).data);
+    const isStringsBased = isStringsBasedProject(await projectService.loadProject());
 
     if (isStringsBased && (filePath || directory)) {
       throw new CliError("The '--file' and '--directory' options are not supported for string-based projects");
@@ -257,7 +257,7 @@ export default class StringCommand {
     const labelService = await this.getLabelService(command);
     const files = toArray(options.file);
     const labels = toArray(options.label);
-    const isStringsBased = isStringsBasedProject((await projectService.loadProject()).data);
+    const isStringsBased = isStringsBasedProject(await projectService.loadProject());
     const labelIds = await labelService.resolveLabelIds(labels);
     const isPlural = PLURAL_KEYS.some((key) => options[key] !== undefined);
     const requestText = isPlural ? this.buildPluralText(options, text) : text;
@@ -340,9 +340,7 @@ export default class StringCommand {
     const verbose = Boolean(options.verbose);
     // Only the verbose text/plain detail lines split on this; json/toon keep the raw ids either way.
     const isStringsBased =
-      verbose &&
-      !isStructuredFormat(options.output) &&
-      isStringsBasedProject((await projectService.loadProject()).data);
+      verbose && !isStructuredFormat(options.output) && isStringsBasedProject(await projectService.loadProject());
 
     output.success(`Source string #${id} was updated successfully`);
     output.item(updated, await this.buildStringView(command, { verbose, isStringsBased }));

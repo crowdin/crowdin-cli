@@ -53,19 +53,15 @@ const createCommandContext = (options: AutoTranslateTestOptions) => {
 const finishedStatus = { identifier: '121', status: 'finished', progress: 100 };
 
 const filesBasedProject = {
-  data: {
-    id: 123,
-    type: ProjectsGroupsModel.Type.FILES_BASED,
-    targetLanguages: [{ id: 'ua' }, { id: 'en' }, { id: 'fr' }],
-  },
+  id: 123,
+  type: ProjectsGroupsModel.Type.FILES_BASED,
+  targetLanguages: [{ id: 'ua' }, { id: 'en' }, { id: 'fr' }],
 };
 
 const stringsBasedProject = {
-  data: {
-    id: 123,
-    type: ProjectsGroupsModel.Type.STRINGS_BASED,
-    targetLanguages: [{ id: 'ua' }, { id: 'en' }],
-  },
+  id: 123,
+  type: ProjectsGroupsModel.Type.STRINGS_BASED,
+  targetLanguages: [{ id: 'ua' }, { id: 'en' }],
 };
 
 const projectFiles = [

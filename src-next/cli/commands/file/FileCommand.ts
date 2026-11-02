@@ -1,11 +1,6 @@
 import { existsSync, statSync } from 'node:fs';
 import path from 'node:path';
-import type {
-  ProjectsGroupsModel,
-  ResponseObject,
-  SourceFilesModel,
-  UploadStorageModel,
-} from '@crowdin/crowdin-api-client';
+import type { ProjectsGroupsModel, SourceFilesModel, UploadStorageModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { reportNoManagerAccess } from '@/cli/commands/common/managerAccess.ts';
 import { branch as branchOption, projectConfigGroup, tree as treeOption } from '@/cli/commands/common/options.ts';
@@ -228,7 +223,7 @@ export default class FileCommand {
       return;
     }
 
-    const isStringsBased = isStringsBasedProject(project.data);
+    const isStringsBased = isStringsBasedProject(project);
 
     if (isStringsBased && options.context) {
       throw new CliError("'--context' parameter is only available for file-based projects");
@@ -358,7 +353,7 @@ export default class FileCommand {
     options: UploadFileCommandOptions,
     filePath: string,
     destPath: string,
-    project: ResponseObject<ProjectsGroupsModel.Project | ProjectsGroupsModel.ProjectSettings>,
+    project: ProjectsGroupsModel.Project | ProjectsGroupsModel.ProjectSettings,
   ): Promise<void> => {
     const output = this.getOutput(command);
     const storageService = await this.getStorageService(command);
@@ -371,7 +366,7 @@ export default class FileCommand {
       return;
     }
 
-    if (!project.data.targetLanguages?.some((language) => language.id === languageId)) {
+    if (!project.targetLanguages?.some((language) => language.id === languageId)) {
       throw new CliError(`Language '${languageId}' doesn't exist in the project. Try specifying another language code`);
     }
 
@@ -398,7 +393,7 @@ export default class FileCommand {
           filePath,
           destPath,
           languageId,
-          isStringsBasedProject(project.data),
+          isStringsBasedProject(project),
           storage.id,
           onProgress,
         );
@@ -601,7 +596,7 @@ export default class FileCommand {
     const wantedPath = toProjectPath(filePath);
     const project = await projectService.loadProject();
 
-    if (isStringsBasedProject(project.data)) {
+    if (isStringsBasedProject(project)) {
       output.warning(FILE_MANAGEMENT_UNAVAILABLE);
       // An early exit still owes the machine formats a document; an absent stdout would read as an
       // empty result either way.
@@ -650,15 +645,15 @@ export default class FileCommand {
     options: UploadFileCommandOptions,
     wantedPath: string,
     config: Config,
-    project: ResponseObject<ProjectsGroupsModel.Project | ProjectsGroupsModel.ProjectSettings>,
+    project: ProjectsGroupsModel.Project | ProjectsGroupsModel.ProjectSettings,
   ): Promise<void> => {
     const output = this.getOutput(command);
     const translationService = await this.getTranslationService(command);
 
     const languages =
       options.language === 'all'
-        ? project.data.targetLanguages
-        : project.data.targetLanguages.filter((language) => language.id === options.language);
+        ? project.targetLanguages
+        : project.targetLanguages.filter((language) => language.id === options.language);
 
     if (languages.length === 0) {
       throw new CliError(
@@ -709,7 +704,7 @@ export default class FileCommand {
     const wantedPath = toProjectPath(filePath);
     const project = await projectService.loadProject();
 
-    if (isStringsBasedProject(project.data)) {
+    if (isStringsBasedProject(project)) {
       output.warning(FILE_MANAGEMENT_UNAVAILABLE);
       return;
     }

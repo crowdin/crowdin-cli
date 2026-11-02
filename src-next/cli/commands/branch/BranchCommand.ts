@@ -297,7 +297,7 @@ export default class BranchCommand {
     const projectService = await this.getProjectService(command);
     const project = await projectService.loadProject();
 
-    if (!isStringsBasedProject(project.data)) {
+    if (!isStringsBasedProject(project)) {
       throw new CliError('This command is only available for string-based projects');
     }
   }

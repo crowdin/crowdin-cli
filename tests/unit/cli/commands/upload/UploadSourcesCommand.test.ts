@@ -708,12 +708,10 @@ describe('UploadSourcesCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
-        data: {
-          id: 123,
-          type: ProjectsGroupsModel.Type.STRINGS_BASED,
-          languageMapping: {},
-          targetLanguages: [],
-        },
+        id: 123,
+        type: ProjectsGroupsModel.Type.STRINGS_BASED,
+        languageMapping: {},
+        targetLanguages: [],
       })),
     };
     const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
@@ -753,7 +751,7 @@ describe('UploadSourcesCommand', () => {
 
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
-      loadProject: mock(async () => ({ data: { id: 123, targetLanguages: [] } })),
+      loadProject: mock(async () => ({ id: 123, targetLanguages: [] })),
     };
     const fileService = baseFileServiceMock();
     const output = createOutputMock();
@@ -858,7 +856,7 @@ describe('UploadSourcesCommand', () => {
 
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
-      loadProject: mock(async () => ({ data: { id: 123, languageMapping: {}, targetLanguages: [] } })),
+      loadProject: mock(async () => ({ id: 123, languageMapping: {}, targetLanguages: [] })),
     };
     const branchService = {
       getOrCreateBranch: mock(async () => ({ branch: { id: 44, name: 'feature' }, created: true })),
@@ -1514,7 +1512,10 @@ describe('UploadSourcesCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
-        data: { id: 123, type: ProjectsGroupsModel.Type.STRINGS_BASED, languageMapping: {}, targetLanguages: [] },
+        id: 123,
+        type: ProjectsGroupsModel.Type.STRINGS_BASED,
+        languageMapping: {},
+        targetLanguages: [],
       })),
     };
     const branchService = {
@@ -1557,7 +1558,10 @@ describe('UploadSourcesCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
-        data: { id: 123, type: ProjectsGroupsModel.Type.STRINGS_BASED, languageMapping: {}, targetLanguages: [] },
+        id: 123,
+        type: ProjectsGroupsModel.Type.STRINGS_BASED,
+        languageMapping: {},
+        targetLanguages: [],
       })),
     };
     const output = createOutputMock();
@@ -1587,7 +1591,10 @@ describe('UploadSourcesCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
-        data: { id: 123, type: ProjectsGroupsModel.Type.STRINGS_BASED, languageMapping: {}, targetLanguages: [] },
+        id: 123,
+        type: ProjectsGroupsModel.Type.STRINGS_BASED,
+        languageMapping: {},
+        targetLanguages: [],
       })),
     };
     const branchService = {

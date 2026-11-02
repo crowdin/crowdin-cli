@@ -22,30 +22,39 @@ export class ProjectService {
     return Boolean(this.apiClient.organization);
   }
 
-  async addProject(data: CreateProjectPayload) {
+  async addProject(
+    data: CreateProjectPayload,
+  ): Promise<ProjectsGroupsModel.Project | ProjectsGroupsModel.ProjectSettings> {
     try {
       // The cast covers the omitted `identifier`, which the client types as required.
-      return await this.apiClient.projectsGroupsApi.addProject(data as ProjectsGroupsModel.CreateProjectRequest);
+      const request = data as ProjectsGroupsModel.CreateProjectRequest;
+      return (await this.apiClient.projectsGroupsApi.addProject(request)).data;
     } catch (error) {
       throw toCliError(error, 'Failed to add project');
     }
   }
 
-  async loadProject() {
-    return await withSpinner(
+  async loadProject(): Promise<ProjectsGroupsModel.Project | ProjectsGroupsModel.ProjectSettings> {
+    const response = await withSpinner(
       this.output,
       'project',
       { start: 'Fetching project info', stop: 'Project info fetched', fail: 'Failed to fetch project info' },
       () => this.apiClient.projectsGroupsApi.getProject(this.projectId),
     );
+
+    return response.data;
   }
 
-  async loadProjects(hasManagerAccess: boolean) {
-    return await withSpinner(
+  async loadProjects(
+    hasManagerAccess: boolean,
+  ): Promise<(ProjectsGroupsModel.Project | ProjectsGroupsModel.ProjectSettings)[]> {
+    const response = await withSpinner(
       this.output,
       'projects',
       { start: 'Fetching projects', stop: 'Projects fetched', fail: 'Failed to fetch projects' },
       () => this.apiClient.projectsGroupsApi.withFetchAll().listProjects({ hasManagerAccess: +hasManagerAccess }),
     );
+
+    return response.data.map((entry) => entry.data);
   }
 }
