@@ -1940,6 +1940,31 @@ describe('UploadSourcesCommand', () => {
       expect(summaryOf(output)).toEqual([{ path: 'src/app.json', action: 'skipped', reason: 'auto-update disabled' }]);
     });
 
+    test('records a file that is currently being updated as skipped', async () => {
+      await Bun.write(`${tempDir}/src/app.json`, '{}');
+
+      const output = createOutputMock();
+      const command = createUploadCommand(
+        tempDir,
+        output,
+        baseProjectServiceMock(),
+        { addStorage: mock(async () => ({ id: 10 })) },
+        baseBranchServiceMock(),
+        baseDirectoryServiceMock(),
+        {
+          ...baseFileServiceMock(),
+          loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.json' }]),
+          updateProjectFile: mock(async () => {
+            throw new FileInUpdateError();
+          }),
+        },
+      );
+
+      await command.uploadSourcesAction(commandContext({ output: 'json' }));
+
+      expect(summaryOf(output)).toEqual([{ path: 'src/app.json', action: 'skipped', reason: 'being updated' }]);
+    });
+
     // plain is line-oriented and cannot carry the action, so it lists only what changed and
     // prints nothing for a skipped file.
     test('lists only changed files in plain', async () => {

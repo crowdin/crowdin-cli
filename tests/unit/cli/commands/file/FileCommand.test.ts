@@ -6,6 +6,7 @@ import { Client, ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import FileCommand from '@/cli/commands/file/FileCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
+import FileInUpdateError from '@/cli/errors/FileInUpdateError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import { BranchService } from '@/cli/services/BranchService.ts';
 import { DirectoryService } from '@/cli/services/DirectoryService.ts';
@@ -600,6 +601,28 @@ describe('FileCommand', () => {
     // with its reason, as `upload sources` does for the same flag.
     expect(listSpy.mock.calls.at(-1)?.[0]).toEqual([
       { path: 'remote.json', action: 'skipped', reason: 'auto-update disabled' },
+    ]);
+  });
+
+  test('records a file that is currently being updated as skipped', async () => {
+    const fileCommand = createFileCommand();
+    const localFilePath = join(tempDir, 'remote.json');
+
+    await Bun.write(localFilePath, '{}');
+
+    spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([{ id: 42, path: '/remote.json' }] as never);
+    spyOn(storageService, 'addStorage').mockResolvedValue({ id: 99 } as never);
+    spyOn(fileService, 'updateProjectFile').mockRejectedValue(new FileInUpdateError());
+
+    const listSpy = spyOn(output, 'list');
+
+    commandContext = createCommandContext({ ...globalOptions, dest: 'remote.json' }, [localFilePath]);
+
+    await fileCommand.uploadAction(commandContext);
+
+    expect(listSpy.mock.calls.at(-1)?.[0]).toEqual([
+      { path: 'remote.json', action: 'skipped', reason: 'being updated' },
     ]);
   });
 

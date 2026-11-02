@@ -464,6 +464,7 @@ export default class UploadSourcesCommand {
     } catch (error) {
       if (error instanceof FileInUpdateError) {
         output.warning(`File '${projectPath}' is currently being updated`);
+        run.uploadedSources.push({ path: projectPath, action: 'skipped', reason: 'being updated' });
         return;
       }
 

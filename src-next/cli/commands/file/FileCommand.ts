@@ -337,6 +337,7 @@ export default class FileCommand {
     } catch (error) {
       if (error instanceof FileInUpdateError) {
         output.warning(`File '${fileFullPath}' is currently being updated`);
+        this.reportUploaded(output, options, { path: fileFullPath, action: 'skipped', reason: 'being updated' });
         return;
       }
 
