@@ -7,11 +7,10 @@ import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import ValidationError from '@/cli/errors/ValidationError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { GetConfig, GetOutput, GetStorageService, GetStyleGuideService } from '@/cli/services.ts';
+import type { GetOutput, GetProjectConfig, GetStorageService, GetStyleGuideService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { downloadToFile } from '@/cli/utils/downloadToFile.ts';
 import { parseNumericId, toArray, toNumberArray } from '@/cli/utils/parsing.ts';
-import { assertProjectConfigured } from '@/lib/config.ts';
 import { toSafeFileName } from '@/lib/utils/path.ts';
 import {
   id as idOption,
@@ -47,7 +46,7 @@ export default class StyleGuideCommand {
     private getOutput: GetOutput,
     private getStyleGuideService: GetStyleGuideService,
     private getStorageService: GetStorageService,
-    private getConfig: GetConfig,
+    private getProjectConfig: GetProjectConfig,
   ) {}
 
   getDefinition(): CommandDef {
@@ -110,26 +109,13 @@ export default class StyleGuideCommand {
     const options = command.optsWithGlobals() as ListOptions;
     const output = this.getOutput(command);
     const styleGuideService = await this.getStyleGuideService(command);
-    const guides = await styleGuideService.list(await this.assignedProjectId(command, options));
+    const projectId = options.assigned ? (await this.getProjectConfig(command)).projectId : undefined;
+    const guides = await styleGuideService.list(projectId);
 
     output.list(guides.map(flattenStyleGuide), createStyleGuideView({ verbose: options.verbose }), {
       empty: options.assigned ? 'No style guides assigned to the project' : 'No style guides found',
     });
   };
-
-  // Only --assigned needs a project: every other style-guide subcommand works account-wide, so the
-  // config is read here instead of the service factory.
-  private async assignedProjectId(command: Command, options: ListOptions): Promise<number | undefined> {
-    if (!options.assigned) {
-      return undefined;
-    }
-
-    const config = await this.getConfig(command);
-
-    assertProjectConfigured(config);
-
-    return config.projectId;
-  }
 
   downloadAction = async (command: Command) => {
     const [idArg] = command.args;

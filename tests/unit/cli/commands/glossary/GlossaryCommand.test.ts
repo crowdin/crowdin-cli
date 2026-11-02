@@ -10,6 +10,7 @@ import type { GlobalOptions } from '@/cli/options.ts';
 import type { GlossaryService } from '@/cli/services/GlossaryService.ts';
 import type { StorageService } from '@/cli/services/StorageService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
+import { assertProjectConfigured, type Config } from '@/lib/config.ts';
 
 describe('GlossaryCommand', () => {
   let tempDir: string;
@@ -53,7 +54,13 @@ describe('GlossaryCommand', () => {
       async () => glossaryService as unknown as GlossaryService,
       async () => storageService as unknown as StorageService,
       async () => ({ organization }) as unknown as Client,
-      async () => ({ projectId: configuredProjectId }) as never,
+      async () => {
+        const config = { projectId: configuredProjectId } as Config;
+
+        assertProjectConfigured(config);
+
+        return config;
+      },
     );
   };
 

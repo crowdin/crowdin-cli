@@ -152,10 +152,16 @@ const taskCommand = new TaskCommand(
   getFileService,
   getLabelService,
 );
-const tmCommand = new TmCommand(getOutput, getTmService, getStorageService, getApiClient, getConfig);
-const glossaryCommand = new GlossaryCommand(getOutput, getGlossaryService, getStorageService, getApiClient, getConfig);
-const styleGuideCommand = new StyleGuideCommand(getOutput, getStyleGuideService, getStorageService, getConfig);
-const aiPromptCommand = new AiPromptCommand(getOutput, getAiService, getConfig);
+const tmCommand = new TmCommand(getOutput, getTmService, getStorageService, getApiClient, getProjectConfig);
+const glossaryCommand = new GlossaryCommand(
+  getOutput,
+  getGlossaryService,
+  getStorageService,
+  getApiClient,
+  getProjectConfig,
+);
+const styleGuideCommand = new StyleGuideCommand(getOutput, getStyleGuideService, getStorageService, getProjectConfig);
+const aiPromptCommand = new AiPromptCommand(getOutput, getAiService, getProjectConfig);
 const contextCommand = new ContextCommand(
   getOutput,
   getProjectService,

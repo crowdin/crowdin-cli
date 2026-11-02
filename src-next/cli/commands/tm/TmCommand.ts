@@ -7,13 +7,12 @@ import { downloadedPathView } from '@/cli/commands/common/views.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { GetApiClient, GetConfig, GetOutput, GetStorageService, GetTmService } from '@/cli/services.ts';
+import type { GetApiClient, GetOutput, GetProjectConfig, GetStorageService, GetTmService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { colors } from '@/cli/utils/colors.ts';
 import { downloadToFile } from '@/cli/utils/downloadToFile.ts';
 import type { View } from '@/cli/utils/output.ts';
 import { parseNumericId, parseScheme, toArray } from '@/cli/utils/parsing.ts';
-import { assertProjectConfigured } from '@/lib/config.ts';
 import { toSafeFileName } from '@/lib/utils/path.ts';
 import {
   firstLineContainsHeader as firstLineContainsHeaderOption,
@@ -61,7 +60,7 @@ export default class TmCommand {
     private getTmService: GetTmService,
     private getStorageService: GetStorageService,
     private getApiClient: GetApiClient,
-    private getConfig: GetConfig,
+    private getProjectConfig: GetProjectConfig,
   ) {}
 
   getDefinition(): CommandDef {
@@ -112,26 +111,13 @@ export default class TmCommand {
     const options = command.optsWithGlobals() as ListOptions;
     const output = this.getOutput(command);
     const tmService = await this.getTmService(command);
-    const tms = await tmService.list(await this.assignedProjectId(command, options));
+    const projectId = options.assigned ? (await this.getProjectConfig(command)).projectId : undefined;
+    const tms = await tmService.list(projectId);
 
     output.list(tms, tmView, {
       empty: options.assigned ? 'No translation memories assigned to the project' : 'No translation memories found',
     });
   };
-
-  // Only --assigned needs a project: every other tm subcommand works account-wide, so the config is
-  // read here instead of the service factory.
-  private async assignedProjectId(command: Command, options: ListOptions): Promise<number | undefined> {
-    if (!options.assigned) {
-      return undefined;
-    }
-
-    const config = await this.getConfig(command);
-
-    assertProjectConfigured(config);
-
-    return config.projectId;
-  }
 
   downloadAction = async (command: Command) => {
     const [idArg] = command.args;

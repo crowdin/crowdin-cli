@@ -357,7 +357,7 @@ export default class DownloadCommand {
       config.exportLanguages,
     );
 
-    const serverLanguageMapping = hasManagerAccess(project) ? project.data.languageMapping : undefined;
+    const serverLanguageMapping = project.data.languageMapping;
     const branch = await branchService.resolveBranch(options.branch);
     const branchId = branch?.id;
 

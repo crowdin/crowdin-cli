@@ -87,7 +87,7 @@ export default class UploadTranslationsCommand {
     }
 
     const targetLanguages = this.filterTargetLanguages(project.data.targetLanguages, options.language);
-    const serverLanguageMapping = hasManagerAccess(project) ? project.data.languageMapping : undefined;
+    const serverLanguageMapping = project.data.languageMapping;
 
     if (isStringsBasedProject(project.data)) {
       await this.uploadTranslationsStringsBased(
