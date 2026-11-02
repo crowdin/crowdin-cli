@@ -65,4 +65,20 @@ describe('StringService', () => {
       expect(stringService.uploadStrings(request, 'src/app.json')).rejects.toThrow(CliError);
     });
   });
+
+  test('add returns the created string', async () => {
+    const request = { text: 'Hello', identifier: 'hello' } as never;
+    const addString = spyOn(apiClient.sourceStringsApi, 'addString').mockResolvedValue({ data: { id: 11 } } as never);
+
+    expect(await stringService.add(request)).toEqual({ id: 11 } as never);
+    expect(addString).toHaveBeenCalledWith(PROJECT_ID, request);
+  });
+
+  test('edit returns the updated string', async () => {
+    const patch = [{ op: 'replace', path: '/text', value: 'Hi' }] as never;
+    const editString = spyOn(apiClient.sourceStringsApi, 'editString').mockResolvedValue({ data: { id: 11 } } as never);
+
+    expect(await stringService.edit(11, patch)).toEqual({ id: 11 } as never);
+    expect(editString).toHaveBeenCalledWith(PROJECT_ID, 11, patch);
+  });
 });

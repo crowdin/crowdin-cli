@@ -85,4 +85,11 @@ describe('LabelService', () => {
       expect(labelService.listLabelsMap()).rejects.toThrow(CliError);
     });
   });
+
+  test('add returns the created label', async () => {
+    const addLabel = spyOn(apiClient.labelsApi, 'addLabel').mockResolvedValue({ data: { id: 3 } } as never);
+
+    expect(await labelService.add('urgent')).toEqual({ id: 3 } as never);
+    expect(addLabel).toHaveBeenCalledWith(PROJECT_ID, { title: 'urgent' });
+  });
 });

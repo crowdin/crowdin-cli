@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
+import * as fsPromises from 'node:fs/promises';
 import { mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import CliError from '@/cli/errors/CliError.ts';
 import { downloadToFile, withDownloadedArchive } from '@/cli/utils/downloadToFile.ts';
 import type { Output } from '@/cli/utils/output.ts';
@@ -151,5 +152,26 @@ describe('withDownloadedArchive', () => {
     ).rejects.toThrow('boom');
 
     expect(await Bun.file(archive).exists()).toBe(false);
+  });
+
+  test('warns when the temp directory can not be removed', async () => {
+    spyOn(globalThis, 'fetch').mockResolvedValue(new Response('zip bytes'));
+    const failingRemoval = spyOn(fsPromises, 'rm').mockRejectedValue(new Error('busy'));
+    const warning = mock();
+    let archive = '';
+
+    await withDownloadedArchive(
+      'https://example.test/a.zip',
+      'crowdin-test-',
+      { warning } as unknown as Output,
+      async (path) => {
+        archive = path;
+      },
+    );
+
+    expect(warning).toHaveBeenCalledWith(expect.stringContaining('Failed to clean up temp directory'));
+
+    failingRemoval.mockRestore();
+    await rm(dirname(archive), { recursive: true, force: true });
   });
 });

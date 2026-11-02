@@ -81,4 +81,23 @@ describe('DistributionService', () => {
       expect(distributionService.releaseDistribution('hash-1')).rejects.toThrow(CliError);
     });
   });
+
+  test('add returns the created distribution', async () => {
+    const createDistribution = spyOn(apiClient.distributionsApi, 'createDistribution').mockResolvedValue({
+      data: { hash: 'abc' },
+    } as never);
+
+    expect(await distributionService.add('Release', [1, 2])).toEqual({ hash: 'abc' } as never);
+    expect(createDistribution).toHaveBeenCalledWith(PROJECT_ID, { name: 'Release', bundleIds: [1, 2] });
+  });
+
+  test('edit returns the updated distribution', async () => {
+    const patch = [{ op: 'replace', path: '/name', value: 'Renamed' }] as never;
+    const editDistribution = spyOn(apiClient.distributionsApi, 'editDistribution').mockResolvedValue({
+      data: { hash: 'abc' },
+    } as never);
+
+    expect(await distributionService.edit('abc', patch)).toEqual({ hash: 'abc' } as never);
+    expect(editDistribution).toHaveBeenCalledWith(PROJECT_ID, 'abc', patch);
+  });
 });
