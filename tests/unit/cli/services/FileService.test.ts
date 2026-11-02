@@ -36,6 +36,29 @@ describe('FileService', () => {
     mock.restore();
   });
 
+  describe('loadBranchRelativeFiles', () => {
+    test('strips the branch name from the paths', async () => {
+      const listProjectFiles = spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [{ data: { id: 1, path: '/main/docs/readme.md', branchId: BRANCH.id } }],
+      } as never);
+
+      const result = await fileService.loadBranchRelativeFiles(BRANCH);
+
+      expect(listProjectFiles).toHaveBeenCalledWith(PROJECT_ID, { branchId: BRANCH.id, recursion: '1' });
+      expect(result[0]?.path).toBe('/docs/readme.md');
+    });
+
+    test('keeps the paths as they are without a branch', async () => {
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [{ data: { id: 1, path: '/docs/readme.md' } }],
+      } as never);
+
+      const result = await fileService.loadBranchRelativeFiles();
+
+      expect(result[0]?.path).toBe('/docs/readme.md');
+    });
+  });
+
   describe('loadProjectFiles', () => {
     test('returns file list from API', async () => {
       spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({

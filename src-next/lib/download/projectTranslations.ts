@@ -1,14 +1,8 @@
-import type { LanguagesModel, ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
+import type { LanguagesModel, ProjectsGroupsModel, SourceFilesModel } from '@crowdin/crowdin-api-client';
 import { containsLanguagePlaceholder, resolveLanguagePlaceholders } from '../export/languagePlaceholders.ts';
 import { languageId } from '../export/patterns.ts';
 import { replaceFileDependentPlaceholders } from '../upload/fileOptions.ts';
 import { stripLeadingSlashes, toPosixPath } from '../utils/path.ts';
-
-interface ProjectFileInfo {
-  path?: string;
-  name?: string;
-  exportOptions?: unknown;
-}
 
 /**
  * Maps every project source file to the list of its server export (translation) paths. Used to
@@ -18,21 +12,21 @@ interface ProjectFileInfo {
  * Keys and values are posix paths relative to the project root (no leading slash).
  */
 export function buildAllProjectTranslations(
-  projectFiles: ProjectFileInfo[],
+  projectFiles: SourceFilesModel.File[],
   languages: LanguagesModel.Language[],
   serverLanguageMapping: ProjectsGroupsModel.LanguageMapping | undefined,
 ): Map<string, string[]> {
   const result = new Map<string, string[]>();
 
   for (const file of projectFiles) {
-    const sourcePath = stripLeadingSlashes(toPosixPath(file.path ?? ''));
+    const sourcePath = stripLeadingSlashes(toPosixPath(file.path));
     const exportPattern = getExportPattern(file.exportOptions);
 
     let translations: string[];
 
     if (exportPattern === undefined) {
       // Multilingual file (no export pattern): the file itself plus a per-language copy.
-      const name = stripLeadingSlashes(toPosixPath(file.name ?? sourcePath));
+      const name = stripLeadingSlashes(toPosixPath(file.name));
       translations = [
         name,
         ...languages.map((language) =>
@@ -56,41 +50,6 @@ export function buildAllProjectTranslations(
   }
 
   return result;
-}
-
-export interface OmittedFiles {
-  /** omitted translation paths grouped by the project source path they belong to. */
-  withSources: Map<string, string[]>;
-  /** omitted translation paths with no matching project source. */
-  withoutSources: string[];
-}
-
-/**
- * Splits omitted archive entries into those that correspond to a known project source (grouped by
- * source) and those without a source.
- */
-export function sortOmittedFiles(omittedFiles: string[], allProjectTranslations: Map<string, string[]>): OmittedFiles {
-  const withSources = new Map<string, string[]>();
-  const withoutSources: string[] = [];
-
-  for (const omittedFile of omittedFiles) {
-    let found = false;
-
-    for (const [sourcePath, translations] of allProjectTranslations) {
-      if (translations.includes(omittedFile)) {
-        found = true;
-        const bucket = withSources.get(sourcePath) ?? [];
-        bucket.push(omittedFile);
-        withSources.set(sourcePath, bucket);
-      }
-    }
-
-    if (!found) {
-      withoutSources.push(omittedFile);
-    }
-  }
-
-  return { withSources, withoutSources };
 }
 
 export function getExportPattern(exportOptions: unknown): string | undefined {

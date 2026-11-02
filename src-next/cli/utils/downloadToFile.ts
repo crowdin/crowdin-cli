@@ -1,9 +1,11 @@
 import { createWriteStream } from 'node:fs';
-import { mkdir, rename, unlink } from 'node:fs/promises';
+import { mkdir, mkdtemp, rename, rm, unlink } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import CliError from '@/cli/errors/CliError.ts';
+import type { Output } from '@/cli/utils/output.ts';
 
 /**
  * Streams a download to a local file, creating the parent directory.
@@ -58,5 +60,29 @@ export async function downloadToFile(url: string, destination: string): Promise<
   } catch (error) {
     await unlink(partPath).catch(() => {});
     throw error;
+  }
+}
+
+/** Downloads an archive to a temp directory that lives only as long as `work`. */
+export async function withDownloadedArchive<T>(
+  url: string,
+  tempDirPrefix: string,
+  output: Output,
+  work: (archivePath: string) => Promise<T>,
+): Promise<T> {
+  const tempDir = await mkdtemp(path.join(tmpdir(), tempDirPrefix));
+
+  try {
+    const archivePath = path.join(tempDir, 'archive.zip');
+
+    await downloadToFile(url, archivePath);
+
+    return await work(archivePath);
+  } finally {
+    try {
+      await rm(tempDir, { recursive: true, force: true });
+    } catch {
+      output.warning(`Failed to clean up temp directory '${tempDir}'`);
+    }
   }
 }

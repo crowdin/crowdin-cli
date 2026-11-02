@@ -2007,4 +2007,116 @@ describe('UploadSourcesCommand', () => {
       expect(output.success).toHaveBeenCalledWith("File 'src/app.json'");
     });
   });
+
+  describe('delete-obsolete scope', () => {
+    const translation = '/l/%locale%/%original_file_name%';
+
+    // src/app.json is always a live local source, so '/src' itself never empties.
+    const deleteObsolete = async (options: {
+      projectFiles?: { id: number; path: string; exportOptions?: unknown }[];
+      projectDirectories?: { id: number; path: string }[];
+      source?: string;
+      noLocalSources?: boolean;
+    }) => {
+      await Bun.write(`${tempDir}/src/app.json`, '{}');
+
+      const fileService = {
+        ...baseFileServiceMock(),
+        loadProjectFiles: mock(async () => [{ id: 1, path: '/src/app.json' }, ...(options.projectFiles ?? [])]),
+        deleteProjectFile: mock(async (_id: number, _path: string) => undefined),
+      };
+      const directoryService = {
+        ...baseDirectoryServiceMock(),
+        loadProjectDirectories: mock(async () => options.projectDirectories ?? []),
+        deleteProjectDirectory: mock(async (_id: number, _path: string) => undefined),
+      };
+      const command = createUploadCommand(
+        tempDir,
+        createOutputMock(),
+        baseProjectServiceMock(),
+        {},
+        baseBranchServiceMock(),
+        directoryService,
+        fileService,
+        baseLabelServiceMock(),
+        baseTranslationServiceMock(),
+        { source: options.source ?? '/src/**/*.json', translation },
+      );
+
+      const upload = command.uploadSourcesAction(commandContext({ deleteObsolete: true, autoUpdate: false }));
+
+      // Deletion runs first, then a pattern with no local source fails the run.
+      if (options.noLocalSources) {
+        expect(upload).rejects.toThrow('Current execution finished with errors');
+      } else {
+        await upload;
+      }
+
+      return {
+        deletedFiles: fileService.deleteProjectFile.mock.calls.map(([, path]) => path),
+        deletedDirectories: directoryService.deleteProjectDirectory.mock.calls.map(([, path]) => path),
+      };
+    };
+
+    // Directory candidates come from the files just deleted, so a directory nobody's
+    // config references (created in the Crowdin UI, say) is never touched.
+    test('leaves an unrelated empty directory alone', async () => {
+      const result = await deleteObsolete({
+        projectFiles: [{ id: 2, path: '/src/stale.json' }],
+        projectDirectories: [
+          { id: 10, path: '/src' },
+          { id: 11, path: '/manual-empty-dir' },
+        ],
+      });
+
+      expect(result.deletedFiles).toEqual(['/src/stale.json']);
+      expect(result.deletedDirectories).toEqual([]);
+    });
+
+    test('deletes the directories an obsolete file leaves empty, deepest first', async () => {
+      const result = await deleteObsolete({
+        projectFiles: [{ id: 2, path: '/src/gone/deep/old.json' }],
+        projectDirectories: [
+          { id: 10, path: '/src' },
+          { id: 11, path: '/src/gone' },
+          { id: 12, path: '/src/gone/deep' },
+        ],
+      });
+
+      expect(result.deletedFiles).toEqual(['/src/gone/deep/old.json']);
+      expect(result.deletedDirectories).toEqual(['/src/gone/deep', '/src/gone']);
+    });
+
+    // The file's stored export pattern has to satisfy the same group's `translation`, otherwise
+    // the file belongs to another group.
+    test('keeps a path-matching file whose export pattern belongs to another group', async () => {
+      const result = await deleteObsolete({
+        projectFiles: [
+          { id: 2, path: '/src/other.json', exportOptions: { exportPattern: '/elsewhere/%original_file_name%' } },
+        ],
+      });
+
+      expect(result.deletedFiles).toEqual([]);
+    });
+
+    test('deletes a path-matching file whose export pattern satisfies the group', async () => {
+      const result = await deleteObsolete({
+        projectFiles: [{ id: 2, path: '/src/other.json', exportOptions: { exportPattern: '/l/%locale%/other.json' } }],
+      });
+
+      expect(result.deletedFiles).toEqual(['/src/other.json']);
+    });
+
+    // Matching runs on the config-pattern matcher, which expands file placeholders. The CLI-filter
+    // matcher does not, so a placeholder `source` would match nothing and never clean up.
+    test('treats a file as managed when the source pattern carries a file placeholder', async () => {
+      const result = await deleteObsolete({
+        projectFiles: [{ id: 2, path: '/src/stale.json' }],
+        source: '/src/%original_file_name%',
+        noLocalSources: true,
+      });
+
+      expect(result.deletedFiles).toEqual(['/src/app.json', '/src/stale.json']);
+    });
+  });
 });

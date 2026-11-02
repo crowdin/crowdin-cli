@@ -1,6 +1,6 @@
 import type { Client, PatchRequest, SourceFilesModel } from '@crowdin/crowdin-api-client';
 import { pollUntilFinished } from '@/lib/api/pollStatus.ts';
-import { stripBranchPrefix } from '@/lib/utils/path.ts';
+import { stripBranchPrefix, toPosixPath } from '@/lib/utils/path.ts';
 import FileExistsError from '../errors/FileExistsError.ts';
 import FileInUpdateError from '../errors/FileInUpdateError.ts';
 import { toCliError } from '../errors/toCliError.ts';
@@ -123,6 +123,22 @@ export class FileService {
     );
 
     return response.data.map((entry) => entry.data).filter((file) => (file.branchId ?? null) === (branchId ?? null));
+  }
+
+  /**
+   * Drops the branch name that files inside a branch carry in their project path
+   * ('/dev/src/en.json' -> '/src/en.json'). Every config-derived path is branch-relative, so without
+   * this nothing matches once `--branch` is given. Stripping once at the load boundary keeps every
+   * consumer below comparing plain project-relative paths.
+   */
+  async loadBranchRelativeFiles(branch?: ProjectBranch): Promise<SourceFilesModel.File[]> {
+    const files = await this.loadProjectFiles(branch?.id);
+
+    if (!branch) {
+      return files;
+    }
+
+    return files.map((file) => ({ ...file, path: stripBranchPrefix(toPosixPath(file.path), branch.name) }));
   }
 
   // A file inside a branch is addressable only once '--branch' names that branch: the branch is

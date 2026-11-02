@@ -14,6 +14,7 @@ function getCachePath(basePath: string): string {
 export async function computeChecksum(file: BunFile): Promise<string> {
   const hash = createHash('sha256');
   hash.update(await file.bytes());
+
   return hash.digest('hex');
 }
 

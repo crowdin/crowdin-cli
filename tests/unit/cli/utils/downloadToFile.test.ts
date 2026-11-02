@@ -3,7 +3,8 @@ import { mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import CliError from '@/cli/errors/CliError.ts';
-import { downloadToFile } from '@/cli/utils/downloadToFile.ts';
+import { downloadToFile, withDownloadedArchive } from '@/cli/utils/downloadToFile.ts';
+import type { Output } from '@/cli/utils/output.ts';
 
 describe('downloadToFile', () => {
   let tempDir: string;
@@ -113,5 +114,42 @@ describe('downloadToFile', () => {
 
     expect(await Bun.file(destination).text()).toBe('previous content');
     expect(await readdir(tempDir)).toEqual(['file.txt']);
+  });
+});
+
+describe('withDownloadedArchive', () => {
+  const output = { warning: mock() } as unknown as Output;
+
+  afterEach(() => {
+    mock.restore();
+  });
+
+  test('hands the downloaded archive to the callback and removes it afterwards', async () => {
+    spyOn(globalThis, 'fetch').mockResolvedValue(new Response('zip bytes'));
+    let archive = '';
+
+    const content = await withDownloadedArchive('https://example.test/a.zip', 'crowdin-test-', output, async (path) => {
+      archive = path;
+
+      return await Bun.file(path).text();
+    });
+
+    expect(content).toBe('zip bytes');
+    expect(await Bun.file(archive).exists()).toBe(false);
+  });
+
+  test('removes the archive when the callback fails', async () => {
+    spyOn(globalThis, 'fetch').mockResolvedValue(new Response('zip bytes'));
+    let archive = '';
+
+    expect(
+      withDownloadedArchive('https://example.test/a.zip', 'crowdin-test-', output, async (path) => {
+        archive = path;
+
+        throw new CliError('boom');
+      }),
+    ).rejects.toThrow('boom');
+
+    expect(await Bun.file(archive).exists()).toBe(false);
   });
 });

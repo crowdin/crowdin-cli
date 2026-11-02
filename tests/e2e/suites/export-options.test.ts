@@ -232,7 +232,7 @@ describe('export options', () => {
       '--skip-untranslated-files',
     ]);
 
-    // DownloadCommand.ts throws a plain CliError, which exits 1.
+    // DownloadTranslationsCommand.ts throws a plain CliError, which exits 1.
     expectFailure(
       result,
       1,

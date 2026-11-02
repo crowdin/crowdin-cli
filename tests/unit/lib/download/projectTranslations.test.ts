@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import { buildAllProjectTranslations, sortOmittedFiles } from '@/lib/download/projectTranslations.ts';
+import type { SourceFilesModel } from '@crowdin/crowdin-api-client';
+import { buildAllProjectTranslations } from '@/lib/download/projectTranslations.ts';
 
 const language = (id: string, locale: string) =>
   ({
@@ -12,14 +13,16 @@ const language = (id: string, locale: string) =>
     osxLocale: '',
   }) as never;
 
+const projectFile = (fields: object) => fields as SourceFilesModel.File;
+
 describe('buildAllProjectTranslations', () => {
   test('maps a project file to its per-language export paths', () => {
     const result = buildAllProjectTranslations(
       [
-        {
+        projectFile({
           path: '/resources/en/messages.json',
           exportOptions: { exportPattern: '/resources/%locale%/%original_file_name%' },
-        },
+        }),
       ],
       [language('fr', 'fr-FR'), language('de', 'de-DE')],
       undefined,
@@ -33,31 +36,21 @@ describe('buildAllProjectTranslations', () => {
 
   test('prefixes language id when export pattern has no language placeholder', () => {
     const result = buildAllProjectTranslations(
-      [{ path: '/docs/readme.md', exportOptions: { exportPattern: '/docs/%original_file_name%' } }],
+      [projectFile({ path: '/docs/readme.md', exportOptions: { exportPattern: '/docs/%original_file_name%' } })],
       [language('fr', 'fr-FR')],
       undefined,
     );
 
     expect(result.get('docs/readme.md')).toEqual(['fr/docs/readme.md']);
   });
-});
 
-describe('sortOmittedFiles', () => {
-  const allProjectTranslations = new Map<string, string[]>([
-    ['resources/en/other.json', ['resources/fr-FR/other.json']],
-  ]);
+  test('lists a multilingual file itself plus a copy per language, by name', () => {
+    const result = buildAllProjectTranslations(
+      [projectFile({ path: '/docs/strings.xliff', name: 'strings.xliff', exportOptions: null })],
+      [language('fr', 'fr-FR'), language('de', 'de-DE')],
+      undefined,
+    );
 
-  test('buckets omitted files under their source', () => {
-    const { withSources, withoutSources } = sortOmittedFiles(['resources/fr-FR/other.json'], allProjectTranslations);
-
-    expect(withSources.get('resources/en/other.json')).toEqual(['resources/fr-FR/other.json']);
-    expect(withoutSources).toEqual([]);
-  });
-
-  test('collects omitted files with no matching source', () => {
-    const { withSources, withoutSources } = sortOmittedFiles(['unrelated/file.json'], allProjectTranslations);
-
-    expect(withSources.size).toBe(0);
-    expect(withoutSources).toEqual(['unrelated/file.json']);
+    expect(result.get('docs/strings.xliff')).toEqual(['strings.xliff', 'fr/strings.xliff', 'de/strings.xliff']);
   });
 });

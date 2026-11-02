@@ -32,8 +32,10 @@ import type {
 } from '@/cli/services.ts';
 import { isMachineFormat, isStructuredFormat } from '@/cli/utils/formatter.ts';
 import type { Output } from '@/cli/utils/output.ts';
+import { matchesExportPattern, matchesSourcePattern } from '@/lib/config/projectFileMatch.ts';
 import SourceFileLoader from '@/lib/config/SourceFileLoader.ts';
 import { assertFilesConfigured, type Config } from '@/lib/config.ts';
+import { getExportPattern } from '@/lib/download/projectTranslations.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { isStringsBasedProject } from '@/lib/project/type.ts';
 import { type FileLookupResult, fileLookup } from '@/lib/upload/fileLookup.ts';
@@ -45,7 +47,6 @@ import {
   replaceFileDependentPlaceholders,
   resolveProjectPath,
 } from '@/lib/upload/fileOptions.ts';
-import { deleteObsoleteProjectEntries } from '@/lib/upload/obsoleteEntries.ts';
 import { computeChecksum, loadSourceCache, saveSourceCache } from '@/lib/upload/sourceCache.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
 import {
@@ -175,27 +176,32 @@ export default class UploadSourcesCommand {
     const branchName = branch?.name;
     const projectFiles = isStringsBased ? [] : await fileService.loadProjectFiles(branchId);
     const projectDirectoryList = isStringsBased ? [] : await directoryService.loadProjectDirectories(branchId);
-    const expectedProjectFilePaths = new Set(
-      patternFilePaths.flatMap(({ files }) => files.map(({ projectPath }) => toProjectPath(projectPath))),
-    );
+    const run: UploadRun = {
+      options,
+      basePath: config.basePath,
+      output,
+      storageService,
+      directoryService,
+      fileService,
+      stringService,
+      branch,
+      stringsBranchId: isStringsBased ? branchId : undefined,
+      // Server paths carry the branch name; the project paths resolved from the config never do.
+      projectFilePaths: new Map(projectFiles.map((file) => [stripBranchPrefix(file.path, branchName), file.id])),
+      projectFilesById: new Map(projectFiles.map((file) => [file.id, file])),
+      expectedProjectFilePaths: new Set(
+        patternFilePaths.flatMap(({ files }) => files.map(({ projectPath }) => toProjectPath(projectPath))),
+      ),
+      projectDirectories: new Map(projectDirectoryList.map((directory) => [directory.path, directory.id])),
+      sourceHashes: undefined,
+      directoryCreationPromises: new Map(),
+      srxStorageIds: new Map(),
+      seenFilePaths: new Set(),
+      uploadedSources: [],
+    };
 
     if (options.deleteObsolete && !isStringsBased) {
-      await deleteObsoleteProjectEntries(
-        projectFiles,
-        projectDirectoryList,
-        expectedProjectFilePaths,
-        config.files.map((patterns) => ({
-          source: patterns.source,
-          translation: patterns.translation,
-          ignore: patterns.ignore,
-        })),
-        config.preserveHierarchy,
-        fileService,
-        directoryService,
-        output,
-        Boolean(options.dryrun),
-        branchName,
-      );
+      await this.deleteObsoleteEntries(run, config, projectFiles, projectDirectoryList);
     }
 
     // A machine --output emits the bare sorted in-project paths and wins over --tree; otherwise fall
@@ -213,28 +219,10 @@ export default class UploadSourcesCommand {
       return;
     }
 
-    const sourceHashes = options.cache && !options.dryrun ? await loadSourceCache(config.basePath, output) : undefined;
-    const run: UploadRun = {
-      options,
-      basePath: config.basePath,
-      output,
-      storageService,
-      directoryService,
-      fileService,
-      stringService,
-      branch,
-      stringsBranchId: isStringsBased ? branchId : undefined,
-      // Server paths carry the branch name; the project paths resolved from the config never do.
-      projectFilePaths: new Map(projectFiles.map((file) => [stripBranchPrefix(file.path, branchName), file.id])),
-      projectFilesById: new Map(projectFiles.map((file) => [file.id, file])),
-      expectedProjectFilePaths,
-      projectDirectories: new Map(projectDirectoryList.map((directory) => [directory.path, directory.id])),
-      sourceHashes,
-      directoryCreationPromises: new Map(),
-      srxStorageIds: new Map(),
-      seenFilePaths: new Set(),
-      uploadedSources: [],
-    };
+    if (options.cache && !options.dryrun) {
+      run.sourceHashes = await loadSourceCache(config.basePath, output);
+    }
+
     let hasErrors = false;
 
     for (const { patterns, fileOptions, files } of patternFilePaths) {
@@ -268,8 +256,8 @@ export default class UploadSourcesCommand {
       }
     }
 
-    if (sourceHashes) {
-      await saveSourceCache(config.basePath, sourceHashes, output);
+    if (run.sourceHashes) {
+      await saveSourceCache(config.basePath, run.sourceHashes, output);
     }
 
     this.printSummary(run);
@@ -616,6 +604,158 @@ export default class UploadSourcesCommand {
     }
 
     return Array.isArray(optionValue) ? optionValue : [optionValue];
+  }
+
+  private async deleteObsoleteEntries(
+    run: UploadRun,
+    config: Config,
+    projectFiles: SourceFilesModel.File[],
+    projectDirectories: SourceFilesModel.Directory[],
+  ): Promise<void> {
+    const { output, fileService, directoryService, expectedProjectFilePaths } = run;
+    const dryRun = Boolean(run.options.dryrun);
+    // Server paths carry the branch name; expectedProjectFilePaths (and the source patterns matched
+    // below) never do, so drop it before comparing.
+    const stripBranch = (projectPath: string) => stripBranchPrefix(projectPath, run.branch?.name);
+    // Retain every project file the upload would match — including soft (extension-insensitive)
+    // matches — so a file that will be updated/renamed is never deleted as obsolete first.
+    const retainedFileIds = new Set<number>();
+
+    for (const expectedPath of expectedProjectFilePaths) {
+      const match = fileLookup(expectedPath, run.projectFilePaths, expectedProjectFilePaths);
+
+      if (match) {
+        retainedFileIds.add(match.id);
+      }
+    }
+
+    // Only delete files that fall under a configured `source` pattern (and aren't ignored): files
+    // outside every source pattern are not this config's to delete.
+    const obsoleteFiles = projectFiles.filter(
+      (projectFile) =>
+        !retainedFileIds.has(projectFile.id) &&
+        this.isManagedBySourcePatterns(
+          stripBranch(projectFile.path),
+          getExportPattern(projectFile.exportOptions),
+          config,
+        ),
+    );
+
+    for (const projectFile of obsoleteFiles) {
+      const projectFilePath = stripBranch(projectFile.path);
+      const displayPath = stripLeadingSlashes(projectFilePath);
+
+      if (dryRun) {
+        output.info(`'${displayPath}' file would be deleted`);
+      } else {
+        await fileService.deleteProjectFile(projectFile.id, projectFilePath);
+        output.success(`'${displayPath}' file was deleted`);
+      }
+    }
+
+    const remainingProjectFilePaths = new Set([
+      ...projectFiles
+        .filter((projectFile) => !obsoleteFiles.includes(projectFile))
+        .map((projectFile) => stripBranch(projectFile.path)),
+      ...expectedProjectFilePaths,
+    ]);
+    // Only directories that held a just-deleted file, plus their ancestors, are candidates. Scanning
+    // every project directory instead would delete empty directories that no config references — ones
+    // a manager created in the Crowdin UI, say.
+    const obsoleteDirectoryCandidates = new Set<string>();
+
+    for (const projectFile of obsoleteFiles) {
+      let parent = this.parentDirectory(stripBranch(projectFile.path));
+
+      while (parent !== '') {
+        obsoleteDirectoryCandidates.add(parent);
+        parent = this.parentDirectory(parent);
+      }
+    }
+
+    const obsoleteDirectories = projectDirectories
+      .filter((directory) => {
+        const directoryPath = stripBranch(directory.path);
+
+        return (
+          obsoleteDirectoryCandidates.has(directoryPath) &&
+          !this.hasFileUnderDirectory(remainingProjectFilePaths, directoryPath)
+        );
+      })
+      .sort((left, right) => right.path.length - left.path.length);
+
+    for (const directory of obsoleteDirectories) {
+      const directoryPath = stripBranch(directory.path);
+      const displayPath = `${stripLeadingSlashes(directoryPath)}/`;
+
+      if (dryRun) {
+        output.info(`'${displayPath}' directory would be deleted`);
+      } else {
+        await directoryService.deleteProjectDirectory(directory.id, directoryPath);
+        output.success(`'${displayPath}' directory was deleted`);
+      }
+    }
+
+    if (!dryRun) {
+      if (obsoleteFiles.length === 0) {
+        output.success('No obsolete files were found');
+      }
+
+      if (obsoleteDirectories.length === 0) {
+        output.success('No obsolete directories found');
+      }
+    }
+  }
+
+  /**
+   * Whether a project file is covered by any configured group (and not ignored). Checked per group,
+   * so `source` and `translation` stay paired: a file only counts as managed when the same group both
+   * matches its path and accepts its stored export pattern.
+   *
+   * Matching goes through `matchesSourcePattern`, not `cli/utils/pathMatcher`: that one is for
+   * user-supplied CLI file filters and expands no placeholders, so a `source` carrying
+   * `%original_file_name%` would match nothing.
+   */
+  private isManagedBySourcePatterns(
+    projectPath: string,
+    fileExportPattern: string | undefined,
+    { files, preserveHierarchy }: Config,
+  ): boolean {
+    return files.some(({ source, translation, ignore }) => {
+      if (!matchesSourcePattern(projectPath, source, preserveHierarchy)) {
+        return false;
+      }
+
+      // A file whose translations land outside this group's `translation` belongs to another group;
+      // deleting it here would destroy that group's translations.
+      if (!matchesExportPattern(fileExportPattern, translation, preserveHierarchy)) {
+        return false;
+      }
+
+      return !(ignore ?? []).some((ignorePattern) =>
+        matchesSourcePattern(projectPath, ignorePattern, preserveHierarchy),
+      );
+    });
+  }
+
+  /** Parent of a project path, or '' at the root. */
+  private parentDirectory(projectPath: string): string {
+    const lastSeparator = toProjectPath(projectPath).lastIndexOf('/');
+
+    return lastSeparator <= 0 ? '' : toProjectPath(projectPath).slice(0, lastSeparator);
+  }
+
+  private hasFileUnderDirectory(filePaths: Set<string>, directoryPath: string): boolean {
+    const normalizedDirectoryPath = toProjectPath(directoryPath);
+    const prefix = normalizedDirectoryPath.endsWith('/') ? normalizedDirectoryPath : `${normalizedDirectoryPath}/`;
+
+    for (const filePath of filePaths) {
+      if (toProjectPath(filePath).startsWith(prefix)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private async addProjectDirectories(run: UploadRun, projectDirectory: string) {
