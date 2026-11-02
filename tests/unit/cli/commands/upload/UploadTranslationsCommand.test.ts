@@ -35,7 +35,7 @@ describe('UploadTranslationsCommand', () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
     await Bun.write(`${tempDir}/locale/es/app.json`, '{}');
 
-    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({ data: { id: 123, targetLanguages: [language('es', 'es', 'spa')] } })),
     };
@@ -65,7 +65,7 @@ describe('UploadTranslationsCommand', () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
     await Bun.write(`${tempDir}/locale/es/app.json`, '{}');
 
-    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
         data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
@@ -73,7 +73,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.xml' } }] })),
+      loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.xml' }]),
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
@@ -105,7 +105,7 @@ describe('UploadTranslationsCommand', () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
     await Bun.write(`${tempDir}/es/app.json`, '{}');
 
-    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
         data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
@@ -113,7 +113,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
+      loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.json' }]),
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
@@ -150,7 +150,7 @@ describe('UploadTranslationsCommand', () => {
     await Bun.write(`${tempDir}/emails/welcome.json`, '{}');
     await Bun.write(`${tempDir}/emails/es/welcome.json`, '{}');
 
-    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
         data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
@@ -158,9 +158,10 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => ({
-        data: [{ data: { id: 55, path: '/src/app.json' } }, { data: { id: 77, path: '/emails/welcome.json' } }],
-      })),
+      loadProjectFiles: mock(async () => [
+        { id: 55, path: '/src/app.json' },
+        { id: 77, path: '/emails/welcome.json' },
+      ]),
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
@@ -217,7 +218,7 @@ describe('UploadTranslationsCommand', () => {
     await Bun.write(`${tempDir}/locale/es/app.json`, '{}');
     await Bun.write(`${tempDir}/locale/fr/app.json`, '{}');
 
-    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
         data: {
@@ -229,7 +230,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
+      loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.json' }]),
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
@@ -276,7 +277,7 @@ describe('UploadTranslationsCommand', () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
     await Bun.write(`${tempDir}/locale/es/app.json`, '{}');
 
-    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
         data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
@@ -284,7 +285,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
+      loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.json' }]),
     };
     const translationService = {
       ...baseTranslationServiceMock(),
@@ -317,7 +318,7 @@ describe('UploadTranslationsCommand', () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
     await Bun.write(`${tempDir}/locale/es/app.json`, '{}');
 
-    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
         data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
@@ -325,7 +326,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
+      loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.json' }]),
     };
     // A failed status makes the service throw (TranslationService.test covers the poll).
     const translationService = {
@@ -362,7 +363,7 @@ describe('UploadTranslationsCommand', () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
     await Bun.write(`${tempDir}/locale/es/app.json`, '{}');
 
-    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
         data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
@@ -373,7 +374,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
+      loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.json' }]),
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
@@ -410,7 +411,7 @@ describe('UploadTranslationsCommand', () => {
     await Bun.write(`${tempDir}/locale/fr/app.json`, '{}');
 
     let storageIdCounter = 10;
-    const storageService = { addStorage: mock(async () => ({ data: { id: storageIdCounter++ } })) };
+    const storageService = { addStorage: mock(async () => ({ id: storageIdCounter++ })) };
     const projectService = {
       loadProject: mock(async () => ({
         data: {
@@ -422,7 +423,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
+      loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.json' }]),
     };
     const translationService = {
       ...baseTranslationServiceMock(),
@@ -458,7 +459,7 @@ describe('UploadTranslationsCommand', () => {
   test('warns when local translation file does not exist', async () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
 
-    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
         data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
@@ -466,7 +467,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
+      loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.json' }]),
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
@@ -495,7 +496,7 @@ describe('UploadTranslationsCommand', () => {
     await Bun.write(`${tempDir}/locale/fr/app.json`, '{}');
 
     let storageIdCounter = 10;
-    const storageService = { addStorage: mock(async () => ({ data: { id: storageIdCounter++ } })) };
+    const storageService = { addStorage: mock(async () => ({ id: storageIdCounter++ })) };
     const projectService = {
       loadProject: mock(async () => ({
         data: {
@@ -507,7 +508,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
+      loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.json' }]),
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
@@ -550,7 +551,7 @@ describe('UploadTranslationsCommand', () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
     await Bun.write(`${tempDir}/locale/es/app.json`, '{}');
 
-    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
         data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
@@ -558,7 +559,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
+      loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.json' }]),
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
@@ -586,13 +587,13 @@ describe('UploadTranslationsCommand', () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
     await Bun.write(`${tempDir}/locale/es/app.json`, '{}');
 
-    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
         data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
       })),
     };
-    const fileService = { ...baseFileServiceMock(), loadProjectFiles: mock(async () => ({ data: [] })) };
+    const fileService = { ...baseFileServiceMock(), loadProjectFiles: mock(async () => []) };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
     const command = createUploadCommand(
@@ -629,10 +630,10 @@ describe('UploadTranslationsCommand', () => {
       tempDir,
       output,
       projectService,
-      { addStorage: mock(async () => ({ data: { id: 10 } })) },
+      { addStorage: mock(async () => ({ id: 10 })) },
       baseBranchServiceMock(),
       baseDirectoryServiceMock(),
-      { ...baseFileServiceMock(), loadProjectFiles: mock(async () => ({ data: [] })) },
+      { ...baseFileServiceMock(), loadProjectFiles: mock(async () => []) },
       baseLabelServiceMock(),
       baseTranslationServiceMock(),
     );
@@ -643,7 +644,7 @@ describe('UploadTranslationsCommand', () => {
   });
 
   test('does nothing when project has no source files', async () => {
-    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
         data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
@@ -674,7 +675,7 @@ describe('UploadTranslationsCommand', () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
     await Bun.write(`${tempDir}/locale/fr/app.json`, '{}');
 
-    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
         data: {
@@ -686,7 +687,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
+      loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.json' }]),
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
@@ -724,7 +725,7 @@ describe('UploadTranslationsCommand', () => {
   });
 
   test('throws when specified language does not exist in project', async () => {
-    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
         data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
@@ -742,7 +743,7 @@ describe('UploadTranslationsCommand', () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
     await Bun.write(`${tempDir}/locale/es/app.json`, '{}');
 
-    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
         data: {
@@ -788,7 +789,7 @@ describe('UploadTranslationsCommand', () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
     await Bun.write(`${tempDir}/locale/es/app.json`, '{}');
 
-    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
         data: {
@@ -821,7 +822,7 @@ describe('UploadTranslationsCommand', () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
     await Bun.write(`${tempDir}/locale/es/app.json`, '{}');
 
-    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
         data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
@@ -829,7 +830,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => ({ data: [{ data: { id: 88, path: '/foo/app.json' } }] })),
+      loadProjectFiles: mock(async () => [{ id: 88, path: '/foo/app.json' }]),
     };
     const translationService = baseTranslationServiceMock();
     const command = createUploadCommand(
@@ -862,13 +863,13 @@ describe('UploadTranslationsCommand', () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
     await Bun.write(`${tempDir}/locale/es/app.json`, '{}');
 
-    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
         data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
       })),
     };
-    const fileService = { ...baseFileServiceMock(), loadProjectFiles: mock(async () => ({ data: [] })) };
+    const fileService = { ...baseFileServiceMock(), loadProjectFiles: mock(async () => []) };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
     const command = createUploadCommand(
@@ -896,7 +897,7 @@ describe('UploadTranslationsCommand', () => {
     await Bun.write(`${tempDir}/locale/es/app.json`, '{}');
     await Bun.write(`${tempDir}/locale/es/skip.json`, '{}');
 
-    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
         data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
@@ -904,9 +905,10 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => ({
-        data: [{ data: { id: 77, path: '/src/app.json' } }, { data: { id: 78, path: '/src/skip.json' } }],
-      })),
+      loadProjectFiles: mock(async () => [
+        { id: 77, path: '/src/app.json' },
+        { id: 78, path: '/src/skip.json' },
+      ]),
     };
     const translationService = baseTranslationServiceMock();
     const command = createUploadCommand(
@@ -939,7 +941,7 @@ describe('UploadTranslationsCommand', () => {
     await Bun.write(`${tempDir}/src/data.csv`, 'a,b');
     await Bun.write(`${tempDir}/translations.csv`, 'a,b');
 
-    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
         data: {
@@ -951,7 +953,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => ({ data: [{ data: { id: 90, path: '/src/data.csv' } }] })),
+      loadProjectFiles: mock(async () => [{ id: 90, path: '/src/data.csv' }]),
     };
     const translationService = baseTranslationServiceMock();
     const command = createUploadCommand(
@@ -985,7 +987,7 @@ describe('UploadTranslationsCommand', () => {
     await Bun.write(`${tempDir}/src/Localizable.xcstrings`, '{}');
     await Bun.write(`${tempDir}/Localizable.xcstrings`, '{}');
 
-    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
         data: {
@@ -997,9 +999,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => ({
-        data: [{ data: { id: 90, path: '/src/Localizable.xcstrings' } }],
-      })),
+      loadProjectFiles: mock(async () => [{ id: 90, path: '/src/Localizable.xcstrings' }]),
     };
     const translationService = baseTranslationServiceMock();
     const command = createUploadCommand(
@@ -1030,7 +1030,7 @@ describe('UploadTranslationsCommand', () => {
   });
 
   test('reports an error and continues when a source pattern matches no files during translation upload', async () => {
-    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
         data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
@@ -1064,7 +1064,7 @@ describe('UploadTranslationsCommand', () => {
     await Bun.write(`${tempDir}/src/messages-ukrainian.po`, '{}');
     await Bun.write(`${tempDir}/locale/ua/messages.po`, '{}');
 
-    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const projectService = {
       loadProject: mock(async () => ({
         data: {
@@ -1076,7 +1076,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/messages.po' } }] })),
+      loadProjectFiles: mock(async () => [{ id: 77, path: '/src/messages.po' }]),
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
@@ -1129,12 +1129,12 @@ describe('UploadTranslationsCommand', () => {
         tempDir,
         output,
         spanishProject,
-        { addStorage: mock(async () => ({ data: { id: 10 } })) },
+        { addStorage: mock(async () => ({ id: 10 })) },
         baseBranchServiceMock(),
         baseDirectoryServiceMock(),
         {
           ...baseFileServiceMock(),
-          loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
+          loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.json' }]),
         },
         baseLabelServiceMock(),
         baseTranslationServiceMock(),
@@ -1186,14 +1186,15 @@ describe('UploadTranslationsCommand', () => {
         tempDir,
         output,
         spanishProject,
-        { addStorage: mock(async () => ({ data: { id: 10 } })) },
+        { addStorage: mock(async () => ({ id: 10 })) },
         baseBranchServiceMock(),
         baseDirectoryServiceMock(),
         {
           ...baseFileServiceMock(),
-          loadProjectFiles: mock(async () => ({
-            data: [{ data: { id: 77, path: '/src/a.json' } }, { data: { id: 78, path: '/src/b.json' } }],
-          })),
+          loadProjectFiles: mock(async () => [
+            { id: 77, path: '/src/a.json' },
+            { id: 78, path: '/src/b.json' },
+          ]),
         },
         baseLabelServiceMock(),
         {

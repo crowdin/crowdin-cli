@@ -1,4 +1,4 @@
-import type { LanguagesModel, ResponseObject, TranslationStatusModel } from '@crowdin/crowdin-api-client';
+import type { LanguagesModel, TranslationStatusModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
@@ -25,7 +25,7 @@ interface StatusCommandOptions extends GlobalOptions {
   failIfIncomplete?: boolean;
 }
 
-type LanguageProgress = ResponseObject<TranslationStatusModel.LanguageProgress>;
+type LanguageProgress = TranslationStatusModel.LanguageProgress;
 
 export default class StatusCommand {
   constructor(
@@ -103,27 +103,23 @@ export default class StatusCommand {
       const normalizedFilePath = this.normalizePath(filePath);
       // Server paths carry the branch name, '--file' never does, so the branch only arrives
       // through '--branch' (same addressing as FileService.resolveFileIds).
-      const projectFile = projectFiles.data.find(
+      const projectFile = projectFiles.find(
         (fileEntry) =>
-          stripBranchPrefix(this.normalizePath(fileEntry.data.path), projectBranch?.name) === normalizedFilePath,
+          stripBranchPrefix(this.normalizePath(fileEntry.path), projectBranch?.name) === normalizedFilePath,
       );
 
       if (!projectFile) {
         throw new CliError(`Project doesn't contain the '${filePath}' file`);
       }
 
-      const fileProgress = await progressService.loadFileProgress(projectFile.data.id);
-      progressData = fileProgress.data;
+      progressData = await progressService.loadFileProgress(projectFile.id);
     } else if (directoryPath) {
       const directoryId = await directoryService.resolveDirectoryId(directoryPath, projectBranch);
-      const directoryProgress = await progressService.loadDirectoryProgress(directoryId as number);
-      progressData = directoryProgress.data;
+      progressData = await progressService.loadDirectoryProgress(directoryId as number);
     } else if (projectBranch) {
-      const branchProgress = await progressService.loadBranchProgress(projectBranch.id);
-      progressData = branchProgress.data;
+      progressData = await progressService.loadBranchProgress(projectBranch.id);
     } else {
-      const projectProgress = await progressService.loadProjectProgress();
-      progressData = projectProgress.data;
+      progressData = await progressService.loadProjectProgress();
     }
 
     const filteredProgressData = progressData.filter((entry) => {
@@ -131,7 +127,7 @@ export default class StatusCommand {
         return true;
       }
 
-      return entry.data.languageId === languageId;
+      return entry.languageId === languageId;
     });
     const rows = this.toRows(filteredProgressData, project.data.targetLanguages);
     const progress = toProgressList(rows, show, options.verbose);
@@ -159,12 +155,12 @@ export default class StatusCommand {
     const names = new Map(targetLanguages.map((language) => [language.id, language.name]));
 
     return data.map((entry) => ({
-      languageId: entry.data.languageId,
-      name: names.get(entry.data.languageId) ?? entry.data.languageId,
+      languageId: entry.languageId,
+      name: names.get(entry.languageId) ?? entry.languageId,
       translation: this.getTranslationProgress(entry),
       approval: this.getApprovalProgress(entry),
-      words: entry.data.words,
-      phrases: entry.data.phrases,
+      words: entry.words,
+      phrases: entry.phrases,
     }));
   }
 
@@ -177,7 +173,7 @@ export default class StatusCommand {
       return 100;
     }
 
-    return progress.data.translationProgress;
+    return progress.translationProgress;
   }
 
   private getApprovalProgress(progress: LanguageProgress): number {
@@ -185,11 +181,11 @@ export default class StatusCommand {
       return 100;
     }
 
-    return progress.data.approvalProgress;
+    return progress.approvalProgress;
   }
 
   private hasNothingToTranslate(progress: LanguageProgress): boolean {
-    return progress.data.words?.total === 0;
+    return progress.words?.total === 0;
   }
 
   private throwIfIncomplete(show: ProgressView, progressData: LanguageProgress[]): void {

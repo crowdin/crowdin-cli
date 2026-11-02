@@ -210,7 +210,7 @@ export default class TmCommand {
     const storage = await storageService.addStorage(Bun.file(fileArg));
 
     await tmService.import(tm.id, {
-      storageId: storage.data.id,
+      storageId: storage.id,
       ...(scheme !== undefined ? { scheme } : {}),
       ...(options.firstLineContainsHeader !== undefined
         ? { firstLineContainsHeader: options.firstLineContainsHeader }

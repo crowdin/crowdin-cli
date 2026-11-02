@@ -114,9 +114,7 @@ describe('ScreenshotCommand', () => {
     storageService = {
       addStorage: mock(
         async (_file: BunFile) =>
-          ({
-            data: { id: 44, fileName: 'mock-upload.png' },
-          }) as Awaited<ReturnType<StorageService['addStorage']>>,
+          ({ id: 44, fileName: 'mock-upload.png' }) as Awaited<ReturnType<StorageService['addStorage']>>,
       ),
     };
 

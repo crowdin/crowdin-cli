@@ -17,10 +17,8 @@ describe('buildAllProjectTranslations', () => {
     const result = buildAllProjectTranslations(
       [
         {
-          data: {
-            path: '/resources/en/messages.json',
-            exportOptions: { exportPattern: '/resources/%locale%/%original_file_name%' },
-          },
+          path: '/resources/en/messages.json',
+          exportOptions: { exportPattern: '/resources/%locale%/%original_file_name%' },
         },
       ],
       [language('fr', 'fr-FR'), language('de', 'de-DE')],
@@ -35,7 +33,7 @@ describe('buildAllProjectTranslations', () => {
 
   test('prefixes language id when export pattern has no language placeholder', () => {
     const result = buildAllProjectTranslations(
-      [{ data: { path: '/docs/readme.md', exportOptions: { exportPattern: '/docs/%original_file_name%' } } }],
+      [{ path: '/docs/readme.md', exportOptions: { exportPattern: '/docs/%original_file_name%' } }],
       [language('fr', 'fr-FR')],
       undefined,
     );

@@ -169,23 +169,19 @@ export default class UploadSourcesCommand {
 
     const branchId = branch?.id;
     const branchName = branch?.name;
-    const projectFiles = isStringsBased ? { data: [] } : await fileService.loadProjectFiles(branchId);
+    const projectFiles = isStringsBased ? [] : await fileService.loadProjectFiles(branchId);
     // Server paths carry the branch name; the project paths resolved from the config never do.
-    const projectFilePaths = new Map(
-      projectFiles.data.map((file) => [stripBranchPrefix(file.data.path, branchName), file.data.id]),
-    );
-    const projectFilesById = new Map(projectFiles.data.map((file) => [file.data.id, file.data]));
+    const projectFilePaths = new Map(projectFiles.map((file) => [stripBranchPrefix(file.path, branchName), file.id]));
+    const projectFilesById = new Map(projectFiles.map((file) => [file.id, file]));
     const projectDirectoryList = isStringsBased ? [] : await directoryService.loadProjectDirectories(branchId);
-    const projectDirectories = new Map(
-      projectDirectoryList.map((directory) => [directory.data.path, directory.data.id]),
-    );
+    const projectDirectories = new Map(projectDirectoryList.map((directory) => [directory.path, directory.id]));
     const expectedProjectFilePaths = new Set(
       patternFilePaths.flatMap(({ files }) => files.map(({ projectPath }) => toProjectPath(projectPath))),
     );
 
     if (options.deleteObsolete && !isStringsBased) {
       await deleteObsoleteProjectEntries(
-        projectFiles.data,
+        projectFiles,
         projectDirectoryList,
         expectedProjectFilePaths,
         config.files.map((patterns) => ({
@@ -257,7 +253,7 @@ export default class UploadSourcesCommand {
             patterns.custom_segmentation,
             storageService
               .addStorage(Bun.file(path.join(config.basePath, patterns.custom_segmentation)))
-              .then((storage) => storage.data.id),
+              .then((storage) => storage.id),
           );
         }
 
@@ -304,7 +300,7 @@ export default class UploadSourcesCommand {
           await stringService.uploadStrings(
             {
               branchId: (branch as SourceFilesModel.Branch).id,
-              storageId: storage.data.id,
+              storageId: storage.id,
               type: patterns.type as SourceStringsModel.UploadStringsType | undefined,
               labelIds,
               importOptions: buildStringsImportOptions(localFilePath, patterns),
@@ -364,7 +360,7 @@ export default class UploadSourcesCommand {
           });
 
           try {
-            await fileService.updateProjectFile(existingFile.id, storage.data.id, localFilePath, {
+            await fileService.updateProjectFile(existingFile.id, storage.id, localFilePath, {
               exportOptions: buildExportOptions(localFilePath, patterns, patterns.translation),
               importOptions: buildImportOptions(localFilePath, patterns, srxStorageId),
               updateOption: patterns.update_option as SourceFilesModel.UpdateOption | undefined,
@@ -417,7 +413,7 @@ export default class UploadSourcesCommand {
 
         try {
           await fileService.createProjectFile({
-            storageId: storage.data.id,
+            storageId: storage.id,
             name: pathDetails.base,
             directoryId,
             branchId,
@@ -544,10 +540,10 @@ export default class UploadSourcesCommand {
       const promise = directoryService
         .createProjectDirectory(directoryName, parentId, parentId ? undefined : branch?.id)
         .then((dir) => {
-          projectDirectories.set(dir.data.path, dir.data.id);
+          projectDirectories.set(dir.path, dir.id);
           // Server paths carry the branch name; the listing shows project paths.
           output.success(`Directory '${stripLeadingSlashes(stripBranchPrefix(directoryPath, branch?.name))}'`);
-          return dir.data.id;
+          return dir.id;
         });
 
       directoryCreationPromises.set(directoryPath, promise);

@@ -24,8 +24,8 @@ async function deleteObsolete(options: {
   };
 
   await deleteObsoleteProjectEntries(
-    options.projectFiles.map((data) => ({ data })) as never,
-    (options.projectDirectories ?? []).map((data) => ({ data })) as never,
+    options.projectFiles as never,
+    (options.projectDirectories ?? []) as never,
     new Set(options.expected ?? []),
     options.groups ?? [group],
     true,

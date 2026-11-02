@@ -176,7 +176,7 @@ export default class DownloadCommand {
     const projectFiles = await fileService.loadProjectFiles(branch?.id);
     const downloads = this.collectSourceDownloads(
       config,
-      this.stripBranchFromPaths(projectFiles.data, branch?.name),
+      this.stripBranchFromPaths(projectFiles, branch?.name),
       hasManagerAccess(project),
       output,
     );
@@ -244,7 +244,7 @@ export default class DownloadCommand {
   ): Promise<void> {
     const downloadedFiles: DownloadedFile[] = [];
     const build = await fileService.buildReviewedSources(branch?.id);
-    const downloadUrl = await fileService.getReviewedSourcesDownloadUrl(build.data.id);
+    const downloadUrl = await fileService.getReviewedSourcesDownloadUrl(build.id);
     const tempDir = await mkdtemp(path.join(tmpdir(), 'crowdin-reviewed-sources-'));
 
     try {
@@ -365,9 +365,9 @@ export default class DownloadCommand {
       // Lists the local destination paths (per source × language), not the server source paths:
       // they are exactly the values of the mapping the real download uses. The server file map is
       // loaded even without --all, to drop the target languages a file excludes server-side.
-      const projectFiles = this.stripBranchFromPaths((await fileService.loadProjectFiles(branchId)).data, branch?.name);
+      const projectFiles = this.stripBranchFromPaths(await fileService.loadProjectFiles(branchId), branch?.name);
       const serverSourcePaths = options.all
-        ? projectFiles.map((file) => stripLeadingSlashes(file.data.path || ''))
+        ? projectFiles.map((file) => stripLeadingSlashes(file.path || ''))
         : undefined;
       const excludedTargetLanguagesByPath = this.buildExcludedTargetLanguagesByPath(projectFiles);
 
@@ -400,7 +400,7 @@ export default class DownloadCommand {
 
     output.info('Downloading translations');
 
-    let projectFiles: Awaited<ReturnType<typeof fileService.loadProjectFiles>>['data'] | undefined;
+    let projectFiles: SourceFilesModel.File[] | undefined;
     let serverSourcePaths: string[] | undefined;
 
     if (options.all) {
@@ -411,8 +411,8 @@ export default class DownloadCommand {
         );
       }
 
-      projectFiles = this.stripBranchFromPaths((await fileService.loadProjectFiles(branchId)).data, branch?.name);
-      serverSourcePaths = projectFiles.map((file) => stripLeadingSlashes(file.data.path || ''));
+      projectFiles = this.stripBranchFromPaths(await fileService.loadProjectFiles(branchId), branch?.name);
+      serverSourcePaths = projectFiles.map((file) => stripLeadingSlashes(file.path || ''));
     }
 
     const tempDirs: string[] = [];
@@ -501,7 +501,7 @@ export default class DownloadCommand {
         perBuildOmitted.some((omitted) => omitted.length > 0)
       ) {
         const files =
-          projectFiles ?? this.stripBranchFromPaths((await fileService.loadProjectFiles(branchId)).data, branch?.name);
+          projectFiles ?? this.stripBranchFromPaths(await fileService.loadProjectFiles(branchId), branch?.name);
         const allProjectTranslations = buildAllProjectTranslations(files, projectLanguages, serverLanguageMapping);
 
         this.reportOmittedFiles(perBuildOmitted, allProjectTranslations, output, options.verbose ?? false);
@@ -746,14 +746,14 @@ export default class DownloadCommand {
    * this nothing matches once `--branch` is given. Stripping once at the load boundary keeps every
    * consumer below comparing plain project-relative paths.
    */
-  private stripBranchFromPaths<T extends { data: { path?: string } }>(files: T[], branchName?: string): T[] {
+  private stripBranchFromPaths<T extends { path?: string }>(files: T[], branchName?: string): T[] {
     if (!branchName) {
       return files;
     }
 
     return files.map((file) => ({
       ...file,
-      data: { ...file.data, path: stripBranchPrefix(toPosixPath(file.data.path ?? ''), branchName) },
+      path: stripBranchPrefix(toPosixPath(file.path ?? ''), branchName),
     }));
   }
 
@@ -765,7 +765,7 @@ export default class DownloadCommand {
    */
   private collectSourceDownloads(
     config: Config,
-    projectFiles: { data: { id: number; path?: string; exportOptions?: unknown } }[],
+    projectFiles: { id: number; path?: string; exportOptions?: unknown }[],
     managerAccess: boolean,
     output: Output,
   ): SourceDownload[] {
@@ -776,7 +776,7 @@ export default class DownloadCommand {
       const ignore = patterns.ignore ?? [];
 
       const matched = projectFiles.filter((file) => {
-        const relativePath = stripLeadingSlashes(file.data.path || '');
+        const relativePath = stripLeadingSlashes(file.path || '');
 
         if (!matchesSourcePattern(relativePath, searchPattern, config.preserveHierarchy)) {
           return false;
@@ -787,7 +787,8 @@ export default class DownloadCommand {
         }
 
         if (managerAccess) {
-          const exportPattern = (file.data.exportOptions as { exportPattern?: string } | undefined)?.exportPattern;
+          const exportPattern = (file.exportOptions as { exportPattern?: string } | undefined)?.exportPattern;
+
           if (
             !matchesManagerSourceFile(patterns, relativePath, exportPattern, searchPattern, config.preserveHierarchy)
           ) {
@@ -805,13 +806,13 @@ export default class DownloadCommand {
         continue;
       }
 
-      const sorted = [...matched].sort((a, b) => (a.data.path || '').localeCompare(b.data.path || ''));
+      const sorted = [...matched].sort((a, b) => (a.path || '').localeCompare(b.path || ''));
 
       for (const file of sorted) {
-        const relativePath = stripLeadingSlashes(file.data.path || '');
+        const relativePath = stripLeadingSlashes(file.path || '');
         const destination = this.resolveSourceDestination(patterns, relativePath);
 
-        downloads.push({ fileId: file.data.id, relativePath, destination });
+        downloads.push({ fileId: file.id, relativePath, destination });
       }
     }
 
@@ -840,17 +841,17 @@ export default class DownloadCommand {
   // Maps each server source path (basePath-relative posix, no leading slash) to its excluded target
   // languages, so the dry-run listing can skip those languages per file.
   private buildExcludedTargetLanguagesByPath(
-    projectFiles: { data: { path?: string; excludedTargetLanguages?: string[] | null } }[],
+    projectFiles: { path?: string; excludedTargetLanguages?: string[] | null }[],
   ): Map<string, string[]> {
     const byPath = new Map<string, string[]>();
 
     for (const file of projectFiles) {
-      const excluded = file.data.excludedTargetLanguages;
+      const excluded = file.excludedTargetLanguages;
       if (!excluded || excluded.length === 0) {
         continue;
       }
 
-      byPath.set(stripLeadingSlashes(toPosixPath(file.data.path || '')), excluded);
+      byPath.set(stripLeadingSlashes(toPosixPath(file.path || '')), excluded);
     }
 
     return byPath;

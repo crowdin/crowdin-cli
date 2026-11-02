@@ -160,9 +160,9 @@ export default class FileCommand {
     // '--branch' a project whose files all live in branches lists nothing at all.
     const projectFiles = await fileService.loadProjectFiles(branch?.id);
     // Paths inside a branch come back prefixed with the branch name; the listing shows project paths.
-    const files = projectFiles.data.map((file) => ({
-      ...file.data,
-      path: stripBranchPrefix(file.data.path, branch?.name),
+    const files = projectFiles.map((file) => ({
+      ...file,
+      path: stripBranchPrefix(file.path, branch?.name),
     }));
 
     // Tree is an interactive-only rendering; a machine --output (json/toon/plain) is a parseable
@@ -256,13 +256,11 @@ export default class FileCommand {
     const wantedPath = toProjectPath(destPath);
     const projectFiles = await fileService.loadProjectFiles(branchId);
     // Server paths carry the branch name; the path given on the command line never does.
-    const projectFilePaths = new Map(
-      projectFiles.data.map((file) => [stripBranchPrefix(file.data.path, branch?.name), file.data.id]),
-    );
+    const projectFilePaths = new Map(projectFiles.map((file) => [stripBranchPrefix(file.path, branch?.name), file.id]));
     const existingFile = fileLookup(wantedPath, projectFilePaths);
     const excludedTargetLanguages = options.excludedLanguage?.length ? options.excludedLanguage : undefined;
     const pathDetails = path.parse(destPath);
-    const projectFile = existingFile && projectFiles.data.find((file) => file.data.id === existingFile.id)?.data;
+    const projectFile = existingFile && projectFiles.find((file) => file.id === existingFile.id);
 
     if (existingFile && projectFile) {
       // On a soft match the project file has a different name/extension; rename it to the source.
@@ -278,7 +276,7 @@ export default class FileCommand {
 
     try {
       const created = await fileService.createProjectFile({
-        storageId: storage.data.id,
+        storageId: storage.id,
         name: pathDetails.base,
         directoryId,
         branchId,
@@ -289,7 +287,7 @@ export default class FileCommand {
         attachLabelIds: labelIds,
       });
 
-      output.success(`#${created.data.id} ${fileFullPath}`);
+      output.success(`#${created.id} ${fileFullPath}`);
       this.reportUploaded(output, options, { path: fileFullPath, action: 'created' });
     } catch (error) {
       if (error instanceof FileExistsError) {
@@ -336,7 +334,7 @@ export default class FileCommand {
     const storage = await this.uploadToStorage(storageService, filePath);
 
     try {
-      await fileService.updateProjectFile(projectFile.id, storage.data.id, filePath, {
+      await fileService.updateProjectFile(projectFile.id, storage.id, filePath, {
         attachLabelIds: labelIds,
         name: newName,
         ...changedSettings,
@@ -392,7 +390,7 @@ export default class FileCommand {
 
       // These return only once the server-side import has finished.
       if (options.xliff) {
-        await translationService.importXliffTranslation(storage.data.id, [languageId], filePath, onProgress);
+        await translationService.importXliffTranslation(storage.id, [languageId], filePath, onProgress);
       } else {
         await this.importFileTranslation(
           command,
@@ -401,7 +399,7 @@ export default class FileCommand {
           destPath,
           languageId,
           isStringsBasedProject(project.data),
-          storage.data.id,
+          storage.id,
           onProgress,
         );
       }
@@ -490,7 +488,7 @@ export default class FileCommand {
     await stringService.uploadStrings(
       {
         branchId,
-        storageId: storage.data.id,
+        storageId: storage.id,
         labelIds,
         cleanupMode: options.cleanupMode,
         updateStrings: options.updateStrings,
@@ -534,7 +532,7 @@ export default class FileCommand {
   private uploadToStorage = async (
     storageService: StorageService,
     filePath: string,
-  ): Promise<ResponseObject<UploadStorageModel.Storage>> => {
+  ): Promise<UploadStorageModel.Storage> => {
     try {
       return await storageService.addStorage(Bun.file(filePath));
     } catch (error) {
@@ -556,10 +554,7 @@ export default class FileCommand {
 
     const branchId = branch?.id;
     const existing = new Map(
-      (await directoryService.loadProjectDirectories(branchId)).map((entry) => [
-        toPosixPath(entry.data.path),
-        entry.data.id,
-      ]),
+      (await directoryService.loadProjectDirectories(branchId)).map((entry) => [toPosixPath(entry.path), entry.id]),
     );
 
     let parentId: number | undefined;
@@ -580,7 +575,7 @@ export default class FileCommand {
           parentId,
           parentId ? undefined : branchId,
         );
-        parentId = created.data.id;
+        parentId = created.id;
         output.success(`Directory '${stripLeadingSlashes(cumulative)}'`);
       } catch (error) {
         throw toCliError(error, `Failed to create directory ${segment}`);
@@ -746,6 +741,6 @@ export default class FileCommand {
     const branch = await branchService.resolveBranch(branchName);
     const projectFiles = await fileService.loadProjectFiles(branch?.id);
 
-    return projectFiles.data.find((file) => stripBranchPrefix(file.data.path, branch?.name) === wantedPath)?.data;
+    return projectFiles.find((file) => stripBranchPrefix(file.path, branch?.name) === wantedPath);
   };
 }

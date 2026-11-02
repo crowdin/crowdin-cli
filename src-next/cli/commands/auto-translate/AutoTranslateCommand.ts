@@ -258,10 +258,7 @@ export default class AutoTranslateCommand {
     // loadProjectFiles is already scoped to the branch (root tree without one); server paths carry
     // the branch name, the paths passed via --file never do.
     const paths = new Map(
-      projectFiles.data.map((entry) => [
-        stripBranchPrefix(normalizePath(entry.data.path), branch?.name),
-        entry.data.id,
-      ]),
+      projectFiles.map((entry) => [stripBranchPrefix(normalizePath(entry.path), branch?.name), entry.id]),
     );
 
     let fileIds: number[];

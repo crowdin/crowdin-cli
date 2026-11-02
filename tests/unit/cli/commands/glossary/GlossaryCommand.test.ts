@@ -79,7 +79,7 @@ describe('GlossaryCommand', () => {
       import: mock(async () => {}),
     };
     storageService = {
-      addStorage: mock(async () => ({ data: { id: 52 } }) as never),
+      addStorage: mock(async () => ({ id: 52 }) as never),
     };
 
     spyOn(console, 'log').mockImplementation(() => {});

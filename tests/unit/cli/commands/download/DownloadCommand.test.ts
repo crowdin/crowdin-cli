@@ -1688,9 +1688,7 @@ describe('DownloadCommand', () => {
       spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
         data: [{ data: { id: 1, path: '/resources/en/messages.json' } }],
       } as never);
-      const buildReviewedSpy = spyOn(fileService, 'buildReviewedSources').mockResolvedValue({
-        data: { id: buildId },
-      } as never);
+      const buildReviewedSpy = spyOn(fileService, 'buildReviewedSources').mockResolvedValue({ id: buildId } as never);
       const downloadUrlSpy = spyOn(fileService, 'getReviewedSourcesDownloadUrl').mockResolvedValue(
         'https://example.test/reviewed.zip',
       );
@@ -1995,7 +1993,7 @@ describe('DownloadCommand', () => {
       spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
         data: [{ data: { id: 1, path: '/resources/en/messages.json' } }],
       } as never);
-      spyOn(fileService, 'buildReviewedSources').mockResolvedValue({ data: { id: 77 } } as never);
+      spyOn(fileService, 'buildReviewedSources').mockResolvedValue({ id: 77 } as never);
       spyOn(fileService, 'getReviewedSourcesDownloadUrl').mockResolvedValue('https://example.test/reviewed.zip');
       respondWithZip([
         { entryName: 'en-REV/resources/en/messages.json', content: 'reviewed content' },
@@ -2167,7 +2165,7 @@ describe('DownloadCommand', () => {
       spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
         data: [{ data: { id: 1, path: '/resources/en/messages.json' } }],
       } as never);
-      spyOn(fileService, 'buildReviewedSources').mockResolvedValue({ data: { id: 5 } } as never);
+      spyOn(fileService, 'buildReviewedSources').mockResolvedValue({ id: 5 } as never);
       spyOn(fileService, 'getReviewedSourcesDownloadUrl').mockResolvedValue('https://example.test/reviewed.zip');
 
       // An archive that contains nothing matching the project file.

@@ -37,7 +37,7 @@ export function baseBranchServiceMock() {
 
 export function baseFileServiceMock() {
   return {
-    loadProjectFiles: mock(async () => ({ data: [] })),
+    loadProjectFiles: mock(async () => []),
     updateProjectFile: mock(async () => undefined),
     deleteProjectFile: mock(async () => undefined),
     createProjectFile: mock(async () => undefined),
@@ -47,7 +47,7 @@ export function baseFileServiceMock() {
 export function baseDirectoryServiceMock() {
   return {
     loadProjectDirectories: mock(async () => []),
-    createProjectDirectory: mock(async () => ({ data: { id: 1, path: '/src' } })),
+    createProjectDirectory: mock(async () => ({ id: 1, path: '/src' })),
     deleteProjectDirectory: mock(async () => undefined),
   };
 }

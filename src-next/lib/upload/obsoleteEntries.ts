@@ -1,4 +1,4 @@
-import type { ResponseObject, SourceFilesModel } from '@crowdin/crowdin-api-client';
+import type { SourceFilesModel } from '@crowdin/crowdin-api-client';
 import type { DirectoryService } from '@/cli/services/DirectoryService.ts';
 import type { FileService } from '@/cli/services/FileService.ts';
 import type { Output } from '@/cli/utils/output.ts';
@@ -8,8 +8,8 @@ import { fileLookup } from '@/lib/upload/fileLookup.ts';
 import { stripBranchPrefix, stripLeadingSlashes, toProjectPath } from '@/lib/utils/path.ts';
 
 export async function deleteObsoleteProjectEntries(
-  projectFiles: ResponseObject<SourceFilesModel.File>[],
-  projectDirectories: ResponseObject<SourceFilesModel.Directory>[],
+  projectFiles: SourceFilesModel.File[],
+  projectDirectories: SourceFilesModel.Directory[],
   expectedProjectFilePaths: Set<string>,
   sourcePatterns: { source: string; translation: string; ignore?: string[] }[],
   preserveHierarchy: boolean,
@@ -25,7 +25,7 @@ export async function deleteObsoleteProjectEntries(
   // Retain every project file the upload would match — including soft (extension-insensitive)
   // matches — so a file that will be updated/renamed is never deleted as obsolete first.
   const projectFilesByPath = new Map(
-    projectFiles.map((projectFile) => [stripBranch(projectFile.data.path), projectFile.data.id]),
+    projectFiles.map((projectFile) => [stripBranch(projectFile.path), projectFile.id]),
   );
   const retainedFileIds = new Set<number>();
 
@@ -41,23 +41,23 @@ export async function deleteObsoleteProjectEntries(
   // outside every source pattern are not this config's to delete.
   const obsoleteFiles = projectFiles.filter(
     (projectFile) =>
-      !retainedFileIds.has(projectFile.data.id) &&
+      !retainedFileIds.has(projectFile.id) &&
       isManagedBySourcePatterns(
-        stripBranch(projectFile.data.path),
-        getExportPattern(projectFile.data.exportOptions),
+        stripBranch(projectFile.path),
+        getExportPattern(projectFile.exportOptions),
         sourcePatterns,
         preserveHierarchy,
       ),
   );
 
   for (const projectFile of obsoleteFiles) {
-    const projectFilePath = stripBranch(projectFile.data.path);
+    const projectFilePath = stripBranch(projectFile.path);
     const displayPath = stripLeadingSlashes(projectFilePath);
 
     if (dryRun) {
       output.info(`'${displayPath}' file would be deleted`);
     } else {
-      await fileService.deleteProjectFile(projectFile.data.id, projectFilePath);
+      await fileService.deleteProjectFile(projectFile.id, projectFilePath);
       output.success(`'${displayPath}' file was deleted`);
     }
   }
@@ -65,7 +65,7 @@ export async function deleteObsoleteProjectEntries(
   const remainingProjectFilePaths = new Set([
     ...projectFiles
       .filter((projectFile) => !obsoleteFiles.includes(projectFile))
-      .map((projectFile) => stripBranch(projectFile.data.path)),
+      .map((projectFile) => stripBranch(projectFile.path)),
     ...expectedProjectFilePaths,
   ]);
   // Only directories that held a just-deleted file, plus their ancestors, are candidates. Scanning
@@ -74,7 +74,7 @@ export async function deleteObsoleteProjectEntries(
   const obsoleteDirectoryCandidates = new Set<string>();
 
   for (const projectFile of obsoleteFiles) {
-    let parent = parentDirectory(stripBranch(projectFile.data.path));
+    let parent = parentDirectory(stripBranch(projectFile.path));
 
     while (parent !== '') {
       obsoleteDirectoryCandidates.add(parent);
@@ -84,23 +84,23 @@ export async function deleteObsoleteProjectEntries(
 
   const obsoleteDirectories = projectDirectories
     .filter((directory) => {
-      const directoryPath = stripBranch(directory.data.path);
+      const directoryPath = stripBranch(directory.path);
 
       return (
         obsoleteDirectoryCandidates.has(directoryPath) &&
         !hasFileUnderDirectory(remainingProjectFilePaths, directoryPath)
       );
     })
-    .sort((left, right) => right.data.path.length - left.data.path.length);
+    .sort((left, right) => right.path.length - left.path.length);
 
   for (const directory of obsoleteDirectories) {
-    const directoryPath = stripBranch(directory.data.path);
+    const directoryPath = stripBranch(directory.path);
     const displayPath = `${stripLeadingSlashes(directoryPath)}/`;
 
     if (dryRun) {
       output.info(`'${displayPath}' directory would be deleted`);
     } else {
-      await directoryService.deleteProjectDirectory(directory.data.id, directoryPath);
+      await directoryService.deleteProjectDirectory(directory.id, directoryPath);
       output.success(`'${displayPath}' directory was deleted`);
     }
   }

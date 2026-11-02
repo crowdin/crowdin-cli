@@ -191,10 +191,10 @@ export default class StyleGuideCommand {
 
     const guide =
       id !== undefined
-        ? await styleGuideService.replaceFile(id, storage.data.id)
+        ? await styleGuideService.replaceFile(id, storage.id)
         : await styleGuideService.add({
             name: options.name ?? path.parse(fileArg).name,
-            storageId: storage.data.id,
+            storageId: storage.id,
             ...(projectIds.length > 0 ? { projectIds } : {}),
             ...(languageIds.length > 0 ? { languageIds } : {}),
             ...(options.shared !== undefined ? { isShared: options.shared } : {}),

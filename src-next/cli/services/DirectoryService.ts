@@ -11,22 +11,29 @@ export class DirectoryService {
   ) {}
 
   // Scoped to one branch, and to the root tree when none is given — see FileService.loadProjectFiles.
-  async loadProjectDirectories(branchId?: number) {
+  async loadProjectDirectories(branchId?: number): Promise<SourceFilesModel.Directory[]> {
     try {
-      return (
-        await this.apiClient.sourceFilesApi.withFetchAll().listProjectDirectories(this.projectId, {
-          branchId,
-          recursion: '1',
-        })
-      ).data.filter((directory) => (directory.data.branchId ?? null) === (branchId ?? null));
+      const response = await this.apiClient.sourceFilesApi.withFetchAll().listProjectDirectories(this.projectId, {
+        branchId,
+        recursion: '1',
+      });
+
+      return response.data
+        .map((entry) => entry.data)
+        .filter((directory) => (directory.branchId ?? null) === (branchId ?? null));
     } catch (error) {
       throw toCliError(error, `Failed to list directories for project ${this.projectId}`);
     }
   }
 
-  async createProjectDirectory(name: string, directoryId?: number, branchId?: number) {
+  async createProjectDirectory(
+    name: string,
+    directoryId?: number,
+    branchId?: number,
+  ): Promise<SourceFilesModel.Directory> {
     try {
-      return await this.apiClient.sourceFilesApi.createDirectory(this.projectId, { name, directoryId, branchId });
+      return (await this.apiClient.sourceFilesApi.createDirectory(this.projectId, { name, directoryId, branchId }))
+        .data;
     } catch (error) {
       throw toCliError(error, `Failed to create directory ${name}`);
     }
@@ -53,13 +60,13 @@ export class DirectoryService {
     const expectedPath = normalizePath(directoryPath);
     const directories = await this.loadProjectDirectories(branch?.id);
     const directory = directories.find(
-      (entry) => stripBranchPrefix(normalizePath(entry.data.path), branch?.name) === expectedPath,
+      (entry) => stripBranchPrefix(normalizePath(entry.path), branch?.name) === expectedPath,
     );
 
     if (!directory) {
       throw new CliError(`Project doesn't contain the '${directoryPath}' directory`);
     }
 
-    return directory.data.id;
+    return directory.id;
   }
 }

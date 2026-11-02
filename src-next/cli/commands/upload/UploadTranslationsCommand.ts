@@ -109,9 +109,7 @@ export default class UploadTranslationsCommand {
     const branchId = branch?.id;
     const projectFiles = await fileService.loadProjectFiles(branchId);
     // Server paths carry the branch name; the project paths resolved from the config never do.
-    const projectFilePaths = new Map(
-      projectFiles.data.map((file) => [stripBranchPrefix(file.data.path, branch?.name), file.data.id]),
-    );
+    const projectFilePaths = new Map(projectFiles.map((file) => [stripBranchPrefix(file.path, branch?.name), file.id]));
     const sourceFileLoader = new SourceFileLoader(config);
 
     const { entries, hasErrors: entriesHaveErrors } = this.buildTranslationEntries(
@@ -153,7 +151,7 @@ export default class UploadTranslationsCommand {
         output.info(this.importingMessage(entry.translationPath));
 
         await translationService.importProjectTranslation(
-          storage.data.id,
+          storage.id,
           entry.fileId as number,
           entry.languageIds,
           entry.translationPath,
@@ -356,7 +354,7 @@ export default class UploadTranslationsCommand {
       output.info(this.importingMessage(entry.translationPath));
 
       await translationService.importProjectTranslationStringsBased(
-        storage.data.id,
+        storage.id,
         branch.id,
         entry.languageIds,
         entry.translationPath,

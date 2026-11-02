@@ -5,11 +5,9 @@ import { replaceFileDependentPlaceholders } from '../upload/fileOptions.ts';
 import { stripLeadingSlashes, toPosixPath } from '../utils/path.ts';
 
 interface ProjectFileInfo {
-  data: {
-    path?: string;
-    name?: string;
-    exportOptions?: unknown;
-  };
+  path?: string;
+  name?: string;
+  exportOptions?: unknown;
 }
 
 /**
@@ -27,14 +25,14 @@ export function buildAllProjectTranslations(
   const result = new Map<string, string[]>();
 
   for (const file of projectFiles) {
-    const sourcePath = stripLeadingSlashes(toPosixPath(file.data.path ?? ''));
-    const exportPattern = getExportPattern(file.data.exportOptions);
+    const sourcePath = stripLeadingSlashes(toPosixPath(file.path ?? ''));
+    const exportPattern = getExportPattern(file.exportOptions);
 
     let translations: string[];
 
     if (exportPattern === undefined) {
       // Multilingual file (no export pattern): the file itself plus a per-language copy.
-      const name = stripLeadingSlashes(toPosixPath(file.data.name ?? sourcePath));
+      const name = stripLeadingSlashes(toPosixPath(file.name ?? sourcePath));
       translations = [
         name,
         ...languages.map((language) =>
