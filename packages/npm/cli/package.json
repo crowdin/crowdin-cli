@@ -44,6 +44,7 @@
     "@crowdin/cli-linux-arm64": "5.5.0",
     "@crowdin/cli-linux-x64-musl": "5.5.0",
     "@crowdin/cli-linux-arm64-musl": "5.5.0",
-    "@crowdin/cli-win32-x64": "5.5.0"
+    "@crowdin/cli-win32-x64": "5.5.0",
+    "@crowdin/cli-win32-arm64": "5.5.0"
   }
 }

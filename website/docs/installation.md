@@ -150,7 +150,7 @@ The binary runs as-is, with nothing to install. To run it as `crowdin` from any 
 
 ### Setup on Windows
 
-- Download [`crowdin.exe`](https://github.com/crowdin/crowdin-cli/releases/latest/download/crowdin.exe)
+- Download [`crowdin.exe`](https://github.com/crowdin/crowdin-cli/releases/latest/download/crowdin.exe) (x64) or [`crowdin-win32-arm64.exe`](https://github.com/crowdin/crowdin-cli/releases/latest/download/crowdin-win32-arm64.exe) (arm64), and rename it to `crowdin.exe`
 - Move it to the folder where you want Crowdin CLI to be stored
 - Add that folder to your `PATH` environment variable
 - Open a new Command Prompt and run `crowdin --version` to check that it works

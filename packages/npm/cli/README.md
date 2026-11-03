@@ -16,7 +16,7 @@ The CLI ships as a native, self-contained binary for each platform - nothing els
 npm i -g @crowdin/cli
 ```
 
-npm automatically installs the binary matching your platform (macOS arm64/x64, Linux x64/arm64 glibc & musl, Windows x64). Other options - Homebrew, Chocolatey, Docker, standalone binaries - are covered in the [installation guide](https://crowdin.github.io/crowdin-cli/installation).
+npm automatically installs the binary matching your platform (macOS arm64/x64, Linux x64/arm64 glibc & musl, Windows x64/arm64). Other options - Homebrew, Chocolatey, Docker, standalone binaries - are covered in the [installation guide](https://crowdin.github.io/crowdin-cli/installation).
 
 ## Getting started
 

@@ -77,6 +77,7 @@ jobs:
           - linux-x64-musl
           - linux-arm64-musl
           - win32-x64
+          - win32-arm64
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -155,6 +156,7 @@ jobs:
             cp packages/npm/$platform/bin/crowdin release-assets/crowdin-$platform
           done
           cp packages/npm/win32-x64/bin/crowdin.exe release-assets/crowdin.exe
+          cp packages/npm/win32-arm64/bin/crowdin.exe release-assets/crowdin-win32-arm64.exe
           cd release-assets
           shasum -a 256 crowdin* > crowdin-cli_checksums.sha256
           echo ${{ steps.version.outputs.version }} > version.txt
