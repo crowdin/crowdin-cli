@@ -65,12 +65,12 @@ export default class ProjectCommand {
     const projectService = await this.getProjectService(command);
     const project = await projectService.loadProject();
 
-    if (openUrl(project.data.webUrl)) {
-      output.success(`Opened ${project.data.webUrl} in browser`);
+    if (openUrl(project.webUrl)) {
+      output.success(`Opened ${project.webUrl} in browser`);
       return;
     }
 
-    output.warning(`Couldn't open a browser. Visit ${project.data.webUrl} to open the project`);
+    output.warning(`Couldn't open a browser. Visit ${project.webUrl} to open the project`);
   };
 
   listAction = async (command: Command) => {
@@ -79,11 +79,7 @@ export default class ProjectCommand {
     const projectService = await this.getProjectService(command);
     const projects = await projectService.loadProjects(true);
 
-    output.list(
-      projects.data.map((project) => project.data),
-      options.verbose ? projectVerboseView : projectView,
-      { empty: 'No projects found' },
-    );
+    output.list(projects, options.verbose ? projectVerboseView : projectView, { empty: 'No projects found' });
   };
 
   addAction = async (command: Command) => {
@@ -117,6 +113,6 @@ export default class ProjectCommand {
 
     const project = await projectService.addProject(data);
 
-    output.item(project.data, projectAddView);
+    output.item(project, projectAddView);
   };
 }

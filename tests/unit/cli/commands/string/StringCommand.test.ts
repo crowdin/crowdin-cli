@@ -50,10 +50,10 @@ describe('StringCommand', () => {
     } as unknown as Command;
   };
 
-  const fileBasedProject = { data: { type: ProjectsGroupsModel.Type.FILES_BASED } } as Awaited<
+  const fileBasedProject = { type: ProjectsGroupsModel.Type.FILES_BASED } as Awaited<
     ReturnType<ProjectService['loadProject']>
   >;
-  const stringsBasedProject = { data: { type: ProjectsGroupsModel.Type.STRINGS_BASED } } as Awaited<
+  const stringsBasedProject = { type: ProjectsGroupsModel.Type.STRINGS_BASED } as Awaited<
     ReturnType<ProjectService['loadProject']>
   >;
 

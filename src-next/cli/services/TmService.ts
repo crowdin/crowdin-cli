@@ -29,8 +29,7 @@ export class TmService {
 
   async get(id: number): Promise<TranslationMemoryModel.TranslationMemory> {
     try {
-      const response = await this.apiClient.translationMemoryApi.getTm(id);
-      return response.data;
+      return (await this.apiClient.translationMemoryApi.getTm(id)).data;
     } catch (error) {
       throw toCliError(error, `Failed to get translation memory #${id}`);
     }
@@ -40,8 +39,7 @@ export class TmService {
     request: TranslationMemoryModel.AddTranslationMemoryRequest,
   ): Promise<TranslationMemoryModel.TranslationMemory> {
     try {
-      const response = await this.apiClient.translationMemoryApi.addTm(request);
-      return response.data;
+      return (await this.apiClient.translationMemoryApi.addTm(request)).data;
     } catch (error) {
       throw toCliError(error, `Failed to add translation memory '${request.name}'`);
     }

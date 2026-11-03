@@ -46,8 +46,7 @@ export class AppService {
 
   async installByManifestUrl(url: string): Promise<ApplicationsModel.Application> {
     try {
-      const response = await this.client.applicationsApi.installApplication({ url });
-      return response.data;
+      return (await this.client.applicationsApi.installApplication({ url })).data;
     } catch (error) {
       throw toCliError(error, `Failed to install application from '${url}'`);
     }
@@ -144,8 +143,7 @@ export class AppService {
 
   private async getInstallation(identifier: string): Promise<ApplicationsModel.Application> {
     try {
-      const response = await this.client.applicationsApi.getApplicationInstallation(identifier);
-      return response.data;
+      return (await this.client.applicationsApi.getApplicationInstallation(identifier)).data;
     } catch (error) {
       if (error instanceof CrowdinError && error.code === 404) {
         throw new NotFoundError(

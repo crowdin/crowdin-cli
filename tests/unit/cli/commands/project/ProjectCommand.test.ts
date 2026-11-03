@@ -81,7 +81,8 @@ describe('ProjectCommand', () => {
 
     spyOn(os, 'platform').mockReturnValue('darwin');
     spyOn(projectService, 'loadProject').mockResolvedValue({
-      data: { id: 123, webUrl: 'https://crowdin.com/project/demo' },
+      id: 123,
+      webUrl: 'https://crowdin.com/project/demo',
     } as never);
 
     await projectCommand.browseAction(commandContext);
@@ -103,7 +104,8 @@ describe('ProjectCommand', () => {
       throw new Error('Executable not found in $PATH: "xdg-open"');
     });
     spyOn(projectService, 'loadProject').mockResolvedValue({
-      data: { id: 123, webUrl: 'https://crowdin.com/project/demo' },
+      id: 123,
+      webUrl: 'https://crowdin.com/project/demo',
     } as never);
     const error = spyOn(process.stderr, 'write').mockImplementation(() => true);
 

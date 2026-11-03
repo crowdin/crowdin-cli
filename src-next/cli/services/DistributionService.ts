@@ -20,9 +20,7 @@ export class DistributionService {
 
   async list(): Promise<DistributionView[]> {
     try {
-      // Without withFetchAll this stops at the API's default page size.
       const response = await this.client.distributionsApi.withFetchAll().listDistributions(this.projectId);
-
       return response.data.map((entry) => entry.data);
     } catch (error) {
       throw toCliError(error, 'Failed to list distributions');
@@ -31,9 +29,7 @@ export class DistributionService {
 
   async add(name: string, bundleIds: number[]): Promise<DistributionView> {
     try {
-      const response = await this.client.distributionsApi.createDistribution(this.projectId, { name, bundleIds });
-
-      return response.data;
+      return (await this.client.distributionsApi.createDistribution(this.projectId, { name, bundleIds })).data;
     } catch (error) {
       throw toCliError(error, 'Failed to add distribution');
     }
@@ -41,9 +37,7 @@ export class DistributionService {
 
   async edit(hash: string, patch: PatchRequest[]): Promise<DistributionView> {
     try {
-      const response = await this.client.distributionsApi.editDistribution(this.projectId, hash, patch);
-
-      return response.data;
+      return (await this.client.distributionsApi.editDistribution(this.projectId, hash, patch)).data;
     } catch (error) {
       throw toCliError(error, `Failed to edit distribution ${hash}`);
     }

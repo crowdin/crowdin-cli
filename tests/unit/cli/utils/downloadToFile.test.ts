@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
+import * as fsPromises from 'node:fs/promises';
 import { mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import CliError from '@/cli/errors/CliError.ts';
-import { downloadToFile } from '@/cli/utils/downloadToFile.ts';
+import { downloadToFile, withDownloadedArchive } from '@/cli/utils/downloadToFile.ts';
+import type { Output } from '@/cli/utils/output.ts';
 
 describe('downloadToFile', () => {
   let tempDir: string;
@@ -113,5 +115,63 @@ describe('downloadToFile', () => {
 
     expect(await Bun.file(destination).text()).toBe('previous content');
     expect(await readdir(tempDir)).toEqual(['file.txt']);
+  });
+});
+
+describe('withDownloadedArchive', () => {
+  const output = { warning: mock() } as unknown as Output;
+
+  afterEach(() => {
+    mock.restore();
+  });
+
+  test('hands the downloaded archive to the callback and removes it afterwards', async () => {
+    spyOn(globalThis, 'fetch').mockResolvedValue(new Response('zip bytes'));
+    let archive = '';
+
+    const content = await withDownloadedArchive('https://example.test/a.zip', 'crowdin-test-', output, async (path) => {
+      archive = path;
+
+      return await Bun.file(path).text();
+    });
+
+    expect(content).toBe('zip bytes');
+    expect(await Bun.file(archive).exists()).toBe(false);
+  });
+
+  test('removes the archive when the callback fails', async () => {
+    spyOn(globalThis, 'fetch').mockResolvedValue(new Response('zip bytes'));
+    let archive = '';
+
+    expect(
+      withDownloadedArchive('https://example.test/a.zip', 'crowdin-test-', output, async (path) => {
+        archive = path;
+
+        throw new CliError('boom');
+      }),
+    ).rejects.toThrow('boom');
+
+    expect(await Bun.file(archive).exists()).toBe(false);
+  });
+
+  test('warns when the temp directory can not be removed', async () => {
+    spyOn(globalThis, 'fetch').mockResolvedValue(new Response('zip bytes'));
+    const failingRemoval = spyOn(fsPromises, 'rm').mockRejectedValue(new Error('busy'));
+    const warning = mock();
+    let archive = '';
+
+    await withDownloadedArchive(
+      'https://example.test/a.zip',
+      'crowdin-test-',
+      { warning } as unknown as Output,
+      async (path) => {
+        archive = path;
+      },
+    );
+
+    expect(warning).toHaveBeenCalledWith(expect.stringContaining('Failed to clean up temp directory'));
+
+    failingRemoval.mockRestore();
+    await rm(dirname(archive), { recursive: true, force: true });
   });
 });

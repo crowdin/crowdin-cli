@@ -231,13 +231,11 @@ describe('ConfigCommand translations', () => {
   let tempDir: string;
 
   const managerProject = {
-    data: {
-      translateDuplicates: 'hide',
-      targetLanguages: [{ id: 'uk', twoLettersCode: 'uk' }],
-      languageMapping: {},
-      inContext: true,
-      inContextPseudoLanguage: { id: 'en-UD', twoLettersCode: 'ie' },
-    },
+    translateDuplicates: 'hide',
+    targetLanguages: [{ id: 'uk', twoLettersCode: 'uk' }],
+    languageMapping: {},
+    inContext: true,
+    inContextPseudoLanguage: { id: 'en-UD', twoLettersCode: 'ie' },
   };
 
   beforeEach(async () => {

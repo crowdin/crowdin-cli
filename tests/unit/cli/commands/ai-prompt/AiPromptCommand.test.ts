@@ -5,6 +5,7 @@ import AiPromptCommand from '@/cli/commands/ai-prompt/AiPromptCommand.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { AiService } from '@/cli/services/AiService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
+import { assertProjectConfigured, type Config } from '@/lib/config.ts';
 
 describe('AiPromptCommand', () => {
   let output: Output;
@@ -41,7 +42,13 @@ describe('AiPromptCommand', () => {
     new AiPromptCommand(
       () => output,
       async () => aiService as unknown as AiService,
-      async () => ({ projectId: configuredProjectId }) as never,
+      async () => {
+        const config = { projectId: configuredProjectId } as Config;
+
+        assertProjectConfigured(config);
+
+        return config;
+      },
     );
 
   beforeEach(() => {

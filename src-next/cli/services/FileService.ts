@@ -1,6 +1,6 @@
 import type { Client, PatchRequest, SourceFilesModel } from '@crowdin/crowdin-api-client';
 import { pollUntilFinished } from '@/lib/api/pollStatus.ts';
-import { stripBranchPrefix } from '@/lib/utils/path.ts';
+import { stripBranchPrefix, toPosixPath } from '@/lib/utils/path.ts';
 import FileExistsError from '../errors/FileExistsError.ts';
 import FileInUpdateError from '../errors/FileInUpdateError.ts';
 import { toCliError } from '../errors/toCliError.ts';
@@ -32,9 +32,9 @@ export class FileService {
     private projectId: number,
   ) {}
 
-  async createProjectFile(data: SourceFilesModel.CreateFileRequest) {
+  async createProjectFile(data: SourceFilesModel.CreateFileRequest): Promise<SourceFilesModel.File> {
     try {
-      return await this.apiClient.sourceFilesApi.createFile(this.projectId, data);
+      return (await this.apiClient.sourceFilesApi.createFile(this.projectId, data)).data;
     } catch (error) {
       if (FileExistsError.matches(error)) {
         throw new FileExistsError();
@@ -44,7 +44,12 @@ export class FileService {
     }
   }
 
-  async updateProjectFile(fileId: number, storageId: number, localFilePath: string, update: ProjectFileUpdate = {}) {
+  async updateProjectFile(
+    fileId: number,
+    storageId: number,
+    localFilePath: string,
+    update: ProjectFileUpdate = {},
+  ): Promise<void> {
     const { exportOptions, importOptions, updateOption, attachLabelIds, excludedTargetLanguages, name, context } =
       update;
 
@@ -80,7 +85,7 @@ export class FileService {
     }
   }
 
-  async deleteProjectFile(fileId: number, projectFilePath: string) {
+  async deleteProjectFile(fileId: number, projectFilePath: string): Promise<void> {
     try {
       await this.apiClient.sourceFilesApi.deleteFile(this.projectId, fileId);
     } catch (error) {
@@ -114,7 +119,7 @@ export class FileService {
   // returns every branch's files too, whose paths carry the branch name, so they would answer to
   // their prefixed path everywhere below (and 'upload sources --delete-obsolete' would delete them
   // as obsolete).
-  async loadProjectFiles(branchId?: number) {
+  async loadProjectFiles(branchId?: number): Promise<SourceFilesModel.File[]> {
     const response = await withSpinner(
       this.output,
       'projectFiles',
@@ -122,10 +127,23 @@ export class FileService {
       () => this.apiClient.sourceFilesApi.withFetchAll().listProjectFiles(this.projectId, { branchId, recursion: '1' }),
     );
 
-    return {
-      ...response,
-      data: response.data.filter((file) => (file.data.branchId ?? null) === (branchId ?? null)),
-    };
+    return response.data.map((entry) => entry.data).filter((file) => (file.branchId ?? null) === (branchId ?? null));
+  }
+
+  /**
+   * Drops the branch name that files inside a branch carry in their project path
+   * ('/dev/src/en.json' -> '/src/en.json'). Every config-derived path is branch-relative, so without
+   * this nothing matches once `--branch` is given. Stripping once at the load boundary keeps every
+   * consumer below comparing plain project-relative paths.
+   */
+  async loadBranchRelativeFiles(branch?: ProjectBranch): Promise<SourceFilesModel.File[]> {
+    const files = await this.loadProjectFiles(branch?.id);
+
+    if (!branch) {
+      return files;
+    }
+
+    return files.map((file) => ({ ...file, path: stripBranchPrefix(toPosixPath(file.path), branch.name) }));
   }
 
   // A file inside a branch is addressable only once '--branch' names that branch: the branch is
@@ -196,7 +214,7 @@ export class FileService {
     }
   }
 
-  async buildReviewedSources(branchId?: number) {
+  async buildReviewedSources(branchId?: number): Promise<SourceFilesModel.ReviewedSourceFilesBuild> {
     return await withSpinner(
       this.output,
       'reviewedBuild',
@@ -216,7 +234,7 @@ export class FileService {
           'Reviewed sources build failed',
         );
 
-        return build;
+        return build.data;
       },
     );
   }

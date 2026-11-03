@@ -1,4 +1,4 @@
-import type { ProjectsGroupsModel, ResponseObject, TranslationsModel } from '@crowdin/crowdin-api-client';
+import type { ProjectsGroupsModel, TranslationsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
@@ -218,7 +218,7 @@ export default class AutoTranslateCommand {
     const labelIds = await this.prepareLabelIds(options.label, labelService, output);
     const excludeLabelIds = await this.prepareLabelIds(options.excludeLabel, labelService, output);
 
-    if (isStringsBasedProject(project.data)) {
+    if (isStringsBasedProject(project)) {
       if (files.length > 0 || directoryPath) {
         throw new CliError(FILE_MANAGEMENT_UNAVAILABLE);
       }
@@ -258,10 +258,7 @@ export default class AutoTranslateCommand {
     // loadProjectFiles is already scoped to the branch (root tree without one); server paths carry
     // the branch name, the paths passed via --file never do.
     const paths = new Map(
-      projectFiles.data.map((entry) => [
-        stripBranchPrefix(normalizePath(entry.data.path), branch?.name),
-        entry.data.id,
-      ]),
+      projectFiles.map((entry) => [stripBranchPrefix(normalizePath(entry.path), branch?.name), entry.id]),
     );
 
     let fileIds: number[];
@@ -455,7 +452,7 @@ export default class AutoTranslateCommand {
   }
 
   private async prepareLanguageIds(
-    project: ResponseObject<ProjectsGroupsModel.Project>,
+    project: ProjectsGroupsModel.Project,
     languageIds: string[] | undefined,
     excludeLanguageIds: string[] | undefined,
     translateMethod: Method,
@@ -463,7 +460,7 @@ export default class AutoTranslateCommand {
     translationService: TranslationService,
     output: Output,
   ): Promise<string[]> {
-    const projectLanguages = project.data.targetLanguages.map((targetLanguage) => targetLanguage.id);
+    const projectLanguages = project.targetLanguages.map((targetLanguage) => targetLanguage.id);
     const excludedLanguages = this.prepareExcludedLanguageIds(excludeLanguageIds, projectLanguages);
 
     if (!languageIds || this.isAllLanguages(languageIds)) {

@@ -19,8 +19,7 @@ export class LabelService {
 
   async add(title: string): Promise<LabelsModel.Label> {
     try {
-      const response = await this.apiClient.labelsApi.addLabel(this.projectId, { title });
-      return response.data;
+      return (await this.apiClient.labelsApi.addLabel(this.projectId, { title })).data;
     } catch (error) {
       throw toCliError(error, `Failed to add label '${title}'`);
     }

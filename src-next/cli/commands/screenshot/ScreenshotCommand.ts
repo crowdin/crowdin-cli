@@ -261,7 +261,7 @@ export default class ScreenshotCommand {
     const storage = await storageService.addStorage(Bun.file(imagePath));
 
     if (!existingScreenshot) {
-      return this.addScreenshot(imageName, storage.data.id, target, command);
+      return this.addScreenshot(imageName, storage.id, target, command);
     }
 
     if (duplicates.length > 0) {
@@ -270,7 +270,7 @@ export default class ScreenshotCommand {
       );
     }
 
-    return this.updateScreenshot(existingScreenshot.id, imageName, storage.data.id, target, command);
+    return this.updateScreenshot(existingScreenshot.id, imageName, storage.id, target, command);
   }
 
   private async addScreenshot(

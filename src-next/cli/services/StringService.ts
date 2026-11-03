@@ -23,8 +23,7 @@ export class StringService {
     request: SourceStringsModel.CreateStringRequest | SourceStringsModel.CreateStringStringsBasedRequest,
   ): Promise<SourceStringsModel.String> {
     try {
-      const response = await this.client.sourceStringsApi.addString(this.projectId, request);
-      return response.data;
+      return (await this.client.sourceStringsApi.addString(this.projectId, request)).data;
     } catch (error) {
       throw toCliError(error, 'Source string was not added');
     }
@@ -36,7 +35,7 @@ export class StringService {
     request: SourceStringsModel.UploadStringsRequest,
     filePath: string,
     onProgress?: UploadStringsProgress,
-  ) {
+  ): Promise<void> {
     let response: Awaited<ReturnType<Client['sourceStringsApi']['uploadStrings']>>;
 
     try {
@@ -45,7 +44,7 @@ export class StringService {
       throw toCliError(error, 'Failed to upload strings');
     }
 
-    return await pollUntilFinished(
+    await pollUntilFinished(
       response,
       ({ identifier }) => this.getUploadStringsStatus(identifier),
       `Failed to upload strings for file '${filePath}'`,
@@ -71,8 +70,7 @@ export class StringService {
 
   async edit(stringId: number, patch: PatchRequest[]): Promise<SourceStringsModel.String> {
     try {
-      const response = await this.client.sourceStringsApi.editString(this.projectId, stringId, patch);
-      return response.data;
+      return (await this.client.sourceStringsApi.editString(this.projectId, stringId, patch)).data;
     } catch (error) {
       throw toCliError(error, `Failed to edit source string #${stringId}`);
     }

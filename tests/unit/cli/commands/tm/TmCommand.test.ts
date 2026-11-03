@@ -10,6 +10,7 @@ import type { GlobalOptions } from '@/cli/options.ts';
 import type { StorageService } from '@/cli/services/StorageService.ts';
 import type { TmService } from '@/cli/services/TmService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
+import { assertProjectConfigured, type Config } from '@/lib/config.ts';
 
 describe('TmCommand', () => {
   let tempDir: string;
@@ -54,7 +55,13 @@ describe('TmCommand', () => {
       async () => tmService as unknown as TmService,
       async () => storageService as unknown as StorageService,
       async () => ({ organization }) as unknown as Client,
-      async () => ({ projectId: configuredProjectId }) as never,
+      async () => {
+        const config = { projectId: configuredProjectId } as Config;
+
+        assertProjectConfigured(config);
+
+        return config;
+      },
     );
   };
 
@@ -72,7 +79,7 @@ describe('TmCommand', () => {
       import: mock(async () => {}),
     };
     storageService = {
-      addStorage: mock(async () => ({ data: { id: 52 } }) as never),
+      addStorage: mock(async () => ({ id: 52 }) as never),
     };
 
     spyOn(console, 'log').mockImplementation(() => {});

@@ -1,4 +1,4 @@
-import type { Client } from '@crowdin/crowdin-api-client';
+import type { Client, TranslationStatusModel } from '@crowdin/crowdin-api-client';
 import { toCliError } from '../errors/toCliError.ts';
 import type { Output } from '../utils/output.ts';
 import { withSpinner } from '../utils/withSpinner.ts';
@@ -10,8 +10,8 @@ export class ProgressService {
     private projectId: number,
   ) {}
 
-  async loadProjectProgress() {
-    return await withSpinner(
+  async loadProjectProgress(): Promise<TranslationStatusModel.LanguageProgress[]> {
+    const response = await withSpinner(
       this.output,
       'projectProgress',
       {
@@ -21,27 +21,38 @@ export class ProgressService {
       },
       () => this.apiClient.translationStatusApi.withFetchAll().getProjectProgress(this.projectId),
     );
+
+    return response.data.map((entry) => entry.data);
   }
 
-  async loadBranchProgress(branchId: number) {
+  async loadBranchProgress(branchId: number): Promise<TranslationStatusModel.LanguageProgress[]> {
     try {
-      return await this.apiClient.translationStatusApi.withFetchAll().getBranchProgress(this.projectId, branchId);
+      const response = await this.apiClient.translationStatusApi
+        .withFetchAll()
+        .getBranchProgress(this.projectId, branchId);
+
+      return response.data.map((entry) => entry.data);
     } catch (error) {
       throw toCliError(error, `Failed to fetch branch progress for branch ${branchId}`);
     }
   }
 
-  async loadFileProgress(fileId: number) {
+  async loadFileProgress(fileId: number): Promise<TranslationStatusModel.LanguageProgress[]> {
     try {
-      return await this.apiClient.translationStatusApi.withFetchAll().getFileProgress(this.projectId, fileId);
+      const response = await this.apiClient.translationStatusApi.withFetchAll().getFileProgress(this.projectId, fileId);
+      return response.data.map((entry) => entry.data);
     } catch (error) {
       throw toCliError(error, `Failed to fetch file progress for file ${fileId}`);
     }
   }
 
-  async loadDirectoryProgress(directoryId: number) {
+  async loadDirectoryProgress(directoryId: number): Promise<TranslationStatusModel.LanguageProgress[]> {
     try {
-      return await this.apiClient.translationStatusApi.withFetchAll().getDirectoryProgress(this.projectId, directoryId);
+      const response = await this.apiClient.translationStatusApi
+        .withFetchAll()
+        .getDirectoryProgress(this.projectId, directoryId);
+
+      return response.data.map((entry) => entry.data);
     } catch (error) {
       throw toCliError(error, `Failed to fetch directory progress for directory ${directoryId}`);
     }

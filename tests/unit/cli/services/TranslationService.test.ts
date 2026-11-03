@@ -158,7 +158,7 @@ describe('TranslationService', () => {
 
       const result = await translationService.buildProjectTranslations();
 
-      expect(result).toBe(build as never);
+      expect(result).toBe(build.data as never);
     });
 
     test('throws CliError when build status is "failed"', async () => {

@@ -29,10 +29,11 @@ describe('StorageService', () => {
       data: { id: 44, fileName: 'test-screenshot.png' },
     } as never);
 
-    await storageService.addStorage(Bun.file(localFilePath));
+    const storage = await storageService.addStorage(Bun.file(localFilePath));
 
     const uploadedBody = addStorageSpy.mock.calls[0]?.[1];
 
+    expect(storage.id).toBe(44);
     expect(addStorageSpy).toHaveBeenCalledWith('test-screenshot.png', expect.any(Uint8Array), 'image/png');
     expect(typeof uploadedBody).not.toBe('string');
   });

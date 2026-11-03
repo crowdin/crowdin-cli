@@ -35,10 +35,8 @@ const createCommandContext = (options: StatusTestOptions) => {
 };
 
 const mockProject = {
-  data: {
-    id: 123,
-    targetLanguages: [{ id: 'fr' }, { id: 'de' }],
-  },
+  id: 123,
+  targetLanguages: [{ id: 'fr' }, { id: 'de' }],
 };
 
 const createProgress = (
@@ -48,13 +46,11 @@ const createProgress = (
   wordsTotal: number = 100,
 ) => {
   return {
-    data: {
-      languageId,
-      translationProgress,
-      approvalProgress,
-      words: {
-        total: wordsTotal,
-      },
+    languageId,
+    translationProgress,
+    approvalProgress,
+    words: {
+      total: wordsTotal,
     },
   };
 };
@@ -102,9 +98,10 @@ describe('StatusCommand', () => {
     const statusCommand = createStatusCommand();
 
     spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
-    spyOn(progressService, 'loadProjectProgress').mockResolvedValue({
-      data: [createProgress('fr', 87, 75), createProgress('de', 92, 88)],
-    } as never);
+    spyOn(progressService, 'loadProjectProgress').mockResolvedValue([
+      createProgress('fr', 87, 75),
+      createProgress('de', 92, 88),
+    ] as never);
 
     await statusCommand.defaultAction(commandContext);
 
@@ -126,11 +123,10 @@ describe('StatusCommand', () => {
     const statusCommand = createStatusCommand();
 
     spyOn(projectService, 'loadProject').mockResolvedValue({
-      data: { ...mockProject.data, targetLanguages: [{ id: 'fr', name: 'French' }] },
+      ...mockProject,
+      targetLanguages: [{ id: 'fr', name: 'French' }],
     } as never);
-    spyOn(progressService, 'loadProjectProgress').mockResolvedValue({
-      data: [createProgress('fr', 87, 75)],
-    } as never);
+    spyOn(progressService, 'loadProjectProgress').mockResolvedValue([createProgress('fr', 87, 75)] as never);
 
     await statusCommand.defaultAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
@@ -150,9 +146,7 @@ describe('StatusCommand', () => {
     });
 
     spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
-    spyOn(progressService, 'loadProjectProgress').mockResolvedValue({
-      data: [createProgress('fr', 99, 100)],
-    } as never);
+    spyOn(progressService, 'loadProjectProgress').mockResolvedValue([createProgress('fr', 99, 100)] as never);
 
     expect(statusCommand.translationStatusAction(commandContext)).rejects.toThrow(
       new CliError('The current project is incomplete'),
@@ -164,9 +158,7 @@ describe('StatusCommand', () => {
     const statusCommand = createStatusCommand();
 
     spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
-    spyOn(progressService, 'loadProjectProgress').mockResolvedValue({
-      data: [createProgress('fr', 99, 100)],
-    } as never);
+    spyOn(progressService, 'loadProjectProgress').mockResolvedValue([createProgress('fr', 99, 100)] as never);
 
     expect(
       statusCommand.translationStatusAction(createCommandContext({ ...globalOptions, failIfIncomplete: true })),
@@ -181,21 +173,18 @@ describe('StatusCommand', () => {
     const statusCommand = createStatusCommand();
 
     spyOn(projectService, 'loadProject').mockResolvedValue({
-      data: { ...mockProject.data, targetLanguages: [{ id: 'fr', name: 'French' }] },
+      ...mockProject,
+      targetLanguages: [{ id: 'fr', name: 'French' }],
     } as never);
-    spyOn(progressService, 'loadProjectProgress').mockResolvedValue({
-      data: [
-        {
-          data: {
-            languageId: 'fr',
-            translationProgress: 87,
-            approvalProgress: 75,
-            words: { total: 138, translated: 120, approved: 103 },
-            phrases: { total: 34, translated: 30, approved: 26 },
-          },
-        },
-      ],
-    } as never);
+    spyOn(progressService, 'loadProjectProgress').mockResolvedValue([
+      {
+        languageId: 'fr',
+        translationProgress: 87,
+        approvalProgress: 75,
+        words: { total: 138, translated: 120, approved: 103 },
+        phrases: { total: 34, translated: 30, approved: 26 },
+      },
+    ] as never);
 
     await statusCommand.defaultAction(createCommandContext({ ...globalOptions, output: 'text', verbose: true }));
 
@@ -219,11 +208,10 @@ describe('StatusCommand', () => {
     const statusCommand = createStatusCommand();
 
     spyOn(projectService, 'loadProject').mockResolvedValue({
-      data: { ...mockProject.data, targetLanguages: [{ id: 'fr', name: 'French' }] },
+      ...mockProject,
+      targetLanguages: [{ id: 'fr', name: 'French' }],
     } as never);
-    spyOn(progressService, 'loadProjectProgress').mockResolvedValue({
-      data: [createProgress('fr', 87, 75)],
-    } as never);
+    spyOn(progressService, 'loadProjectProgress').mockResolvedValue([createProgress('fr', 87, 75)] as never);
 
     await statusCommand.defaultAction(createCommandContext({ ...globalOptions, output: 'plain', verbose: true }));
 
@@ -243,9 +231,7 @@ describe('StatusCommand', () => {
     const statusCommand = createStatusCommand();
 
     spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
-    spyOn(progressService, 'loadProjectProgress').mockResolvedValue({
-      data: [createProgress('fr', 99, 100)],
-    } as never);
+    spyOn(progressService, 'loadProjectProgress').mockResolvedValue([createProgress('fr', 99, 100)] as never);
 
     expect(
       statusCommand.translationStatusAction(
@@ -259,9 +245,7 @@ describe('StatusCommand', () => {
     const statusCommand = createStatusCommand();
 
     spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
-    spyOn(progressService, 'loadProjectProgress').mockResolvedValue({
-      data: [createProgress('fr', 87, 75)],
-    } as never);
+    spyOn(progressService, 'loadProjectProgress').mockResolvedValue([createProgress('fr', 87, 75)] as never);
 
     await statusCommand.defaultAction(createCommandContext({ ...globalOptions, verbose: true }));
 
@@ -294,9 +278,7 @@ describe('StatusCommand', () => {
     });
 
     spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
-    spyOn(progressService, 'loadProjectProgress').mockResolvedValue({
-      data: [createProgress('fr', 0, 0, 0)],
-    } as never);
+    spyOn(progressService, 'loadProjectProgress').mockResolvedValue([createProgress('fr', 0, 0, 0)] as never);
 
     await statusCommand.proofreadingStatusAction(commandContext);
   });
@@ -310,9 +292,9 @@ describe('StatusCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
     const getBranch = spyOn(branchService, 'getBranch').mockResolvedValue({ id: 15, name: 'release' } as never);
-    const loadBranchProgress = spyOn(progressService, 'loadBranchProgress').mockResolvedValue({
-      data: [createProgress('fr', 100, 100)],
-    } as never);
+    const loadBranchProgress = spyOn(progressService, 'loadBranchProgress').mockResolvedValue([
+      createProgress('fr', 100, 100),
+    ] as never);
 
     await statusCommand.defaultAction(commandContext);
 
@@ -328,12 +310,10 @@ describe('StatusCommand', () => {
     });
 
     spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue({
-      data: [{ data: { id: 33, path: '/docs/readme.md' } }],
-    } as never);
-    const loadFileProgress = spyOn(progressService, 'loadFileProgress').mockResolvedValue({
-      data: [createProgress('fr', 100, 100)],
-    } as never);
+    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([{ id: 33, path: '/docs/readme.md' }] as never);
+    const loadFileProgress = spyOn(progressService, 'loadFileProgress').mockResolvedValue([
+      createProgress('fr', 100, 100),
+    ] as never);
 
     await statusCommand.defaultAction(commandContext);
 
@@ -347,12 +327,12 @@ describe('StatusCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
     spyOn(branchService, 'getBranch').mockResolvedValue({ id: 7, name: 'feature' } as never);
-    const loadProjectFiles = spyOn(fileService, 'loadProjectFiles').mockResolvedValue({
-      data: [{ data: { id: 44, path: '/feature/docs/readme.md' } }],
-    } as never);
-    const loadFileProgress = spyOn(progressService, 'loadFileProgress').mockResolvedValue({
-      data: [createProgress('fr', 100, 100)],
-    } as never);
+    const loadProjectFiles = spyOn(fileService, 'loadProjectFiles').mockResolvedValue([
+      { id: 44, path: '/feature/docs/readme.md' },
+    ] as never);
+    const loadFileProgress = spyOn(progressService, 'loadFileProgress').mockResolvedValue([
+      createProgress('fr', 100, 100),
+    ] as never);
 
     await statusCommand.defaultAction(commandContext);
 

@@ -7,9 +7,8 @@ import { reportNoManagerAccess } from '@/cli/commands/common/managerAccess.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import WrongLanguageError from '@/cli/errors/WrongLanguageError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { BranchService } from '@/cli/services/BranchService.ts';
 import type { StorageService } from '@/cli/services/StorageService.ts';
-import type { TranslationService } from '@/cli/services/TranslationService.ts';
+import type { ImportProgress } from '@/cli/services/TranslationService.ts';
 import type {
   GetBranchService,
   GetConfig,
@@ -56,6 +55,20 @@ interface TranslationUploadEntry {
   fileId?: number;
 }
 
+interface UploadRun {
+  options: UploadTranslationsOptions;
+  basePath: string;
+  output: Output;
+  storageService: StorageService;
+}
+
+// Resolves to why the entry was skipped, or to nothing once it is imported.
+type ImportEntry = (
+  storageId: number,
+  entry: TranslationUploadEntry,
+  onProgress: ImportProgress,
+) => Promise<string | undefined>;
+
 export default class UploadTranslationsCommand {
   constructor(
     private getConfig: GetConfig,
@@ -86,46 +99,85 @@ export default class UploadTranslationsCommand {
       return;
     }
 
-    const targetLanguages = this.filterTargetLanguages(project.data.targetLanguages, options.language);
-    const serverLanguageMapping = hasManagerAccess(project) ? project.data.languageMapping : undefined;
+    const targetLanguages = this.filterTargetLanguages(project.targetLanguages, options.language);
+    const serverLanguageMapping = project.languageMapping;
+    const run: UploadRun = { options, basePath: config.basePath, output, storageService };
+    const importOptions = {
+      autoApproveImported: options.autoApproveImported,
+      importEqSuggestions: options.importEqSuggestions,
+      translateHidden: options.translateHidden,
+    };
 
-    if (isStringsBasedProject(project.data)) {
-      await this.uploadTranslationsStringsBased(
-        options,
-        config,
-        output,
-        branchService,
-        storageService,
-        translationService,
-        targetLanguages,
-        serverLanguageMapping,
-      );
+    if (isStringsBasedProject(project)) {
+      const branch = await branchService.getBranch(options.branch);
+
+      if (!branch) {
+        throw new CliError('A branch is required to upload translations for a strings-based project');
+      }
+
+      const { entries } = this.buildTranslationEntries(config, targetLanguages, serverLanguageMapping, run);
+
+      await this.uploadEntries(run, entries, false, async (storageId, entry, onProgress) => {
+        await translationService.importProjectTranslationStringsBased(
+          storageId,
+          branch.id,
+          entry.languageIds,
+          entry.translationPath,
+          onProgress,
+          importOptions,
+        );
+      });
+
       return;
     }
 
     const branch = options.dryrun
       ? await branchService.getBranch(options.branch)
       : (await branchService.getOrCreateBranch(options.branch)).branch;
-    const branchId = branch?.id;
-    const projectFiles = await fileService.loadProjectFiles(branchId);
+    const projectFiles = await fileService.loadProjectFiles(branch?.id);
     // Server paths carry the branch name; the project paths resolved from the config never do.
-    const projectFilePaths = new Map(
-      projectFiles.data.map((file) => [stripBranchPrefix(file.data.path, branch?.name), file.data.id]),
-    );
-    const sourceFileLoader = new SourceFileLoader(config);
-
-    const { entries, hasErrors: entriesHaveErrors } = this.buildTranslationEntries(
+    const projectFilePaths = new Map(projectFiles.map((file) => [stripBranchPrefix(file.path, branch?.name), file.id]));
+    const { entries, hasErrors } = this.buildTranslationEntries(
       config,
-      sourceFileLoader,
       targetLanguages,
       serverLanguageMapping,
-      output,
-      options.output === 'plain',
+      run,
       // A dry run resolves translation paths from local sources only; it never looks the source up
       // in the project.
       options.dryrun ? undefined : (projectPath) => fileLookup(toProjectPath(projectPath), projectFilePaths)?.id,
     );
 
+    await this.uploadEntries(run, entries, hasErrors, async (storageId, entry, onProgress) => {
+      try {
+        await translationService.importProjectTranslation(
+          storageId,
+          entry.fileId as number,
+          entry.languageIds,
+          entry.translationPath,
+          onProgress,
+          importOptions,
+        );
+      } catch (error) {
+        if (error instanceof WrongLanguageError) {
+          output.warning(
+            `Translation file '${entry.translationPath}' hasn't been uploaded since the following target language(s) ` +
+              `are not enabled for the source file in your Crowdin project: ${entry.languageNames.join('/')}`,
+          );
+
+          return 'target language not enabled';
+        }
+
+        throw error;
+      }
+    });
+  };
+
+  private async uploadEntries(
+    { options, basePath, output, storageService }: UploadRun,
+    entries: TranslationUploadEntry[],
+    entriesHaveErrors: boolean,
+    importEntry: ImportEntry,
+  ): Promise<void> {
     if (options.dryrun && printDryRunPaths(this.dryRunPaths(entries), options, output)) {
       return;
     }
@@ -134,7 +186,7 @@ export default class UploadTranslationsCommand {
     const uploadedFiles: UploadedFile[] = [];
 
     const tasks = entries.map((entry) => async () => {
-      const localFilePath = path.join(config.basePath, entry.translationPath);
+      const localFilePath = path.join(basePath, entry.translationPath);
 
       if (!(await Bun.file(localFilePath).exists())) {
         output.warning(`File '${entry.translationPath}' does not exist in the specified location`);
@@ -149,32 +201,17 @@ export default class UploadTranslationsCommand {
 
       const storage = await storageService.addStorage(Bun.file(localFilePath));
 
-      try {
-        output.info(this.importingMessage(entry.translationPath));
+      output.info(`Importing translations for file '${entry.translationPath}'`);
 
-        await translationService.importProjectTranslation(
-          storage.data.id,
-          entry.fileId as number,
-          entry.languageIds,
-          entry.translationPath,
-          (status) => output.debug(this.progressMessage(entry.translationPath, status)),
-          {
-            autoApproveImported: options.autoApproveImported,
-            importEqSuggestions: options.importEqSuggestions,
-            translateHidden: options.translateHidden,
-          },
-        );
-      } catch (error) {
-        if (error instanceof WrongLanguageError) {
-          output.warning(
-            `Translation file '${entry.translationPath}' hasn't been uploaded since the following target language(s) ` +
-              `are not enabled for the source file in your Crowdin project: ${entry.languageNames.join('/')}`,
-          );
-          uploadedFiles.push({ path: entry.translationPath, action: 'skipped', reason: 'target language not enabled' });
-          return;
-        }
+      const skipReason = await importEntry(storage.id, entry, (status) =>
+        output.debug(
+          `Importing translations for file '${entry.translationPath}' (${status.progress}%) (${status.identifier})`,
+        ),
+      );
 
-        throw error;
+      if (skipReason) {
+        uploadedFiles.push({ path: entry.translationPath, action: 'skipped', reason: skipReason });
+        return;
       }
 
       output.success(`File '${entry.translationPath}'`);
@@ -201,7 +238,7 @@ export default class UploadTranslationsCommand {
     if (!options.dryrun && (failed || entriesHaveErrors)) {
       throw new CliError(EXECUTION_FINISHED_WITH_ERRORS);
     }
-  };
+  }
 
   /**
    * Builds the list of translation uploads from local source files: sources are resolved to project
@@ -211,13 +248,13 @@ export default class UploadTranslationsCommand {
    */
   private buildTranslationEntries(
     config: Config,
-    sourceFileLoader: SourceFileLoader,
     targetLanguages: LanguagesModel.Language[],
     serverLanguageMapping: ProjectsGroupsModel.LanguageMapping | undefined,
-    output: Output,
-    plainView: boolean,
+    { options, output }: UploadRun,
     resolveFileId?: (projectPath: string) => number | undefined,
   ): { entries: TranslationUploadEntry[]; hasErrors: boolean } {
+    const sourceFileLoader = new SourceFileLoader(config);
+    const plainView = options.output === 'plain';
     const entries: TranslationUploadEntry[] = [];
     let hasErrors = false;
 
@@ -305,90 +342,6 @@ export default class UploadTranslationsCommand {
     return toSortedRelativePaths([...new Set(entries.map((entry) => entry.translationPath))]);
   }
 
-  private async uploadTranslationsStringsBased(
-    options: UploadTranslationsOptions,
-    config: Config,
-    output: Output,
-    branchService: BranchService,
-    storageService: StorageService,
-    translationService: TranslationService,
-    targetLanguages: LanguagesModel.Language[],
-    serverLanguageMapping?: ProjectsGroupsModel.LanguageMapping,
-  ) {
-    const branch = await branchService.getBranch(options.branch);
-
-    if (!branch) {
-      throw new CliError('A branch is required to upload translations for a strings-based project');
-    }
-
-    const sourceFileLoader = new SourceFileLoader(config);
-    const { entries } = this.buildTranslationEntries(
-      config,
-      sourceFileLoader,
-      targetLanguages,
-      serverLanguageMapping,
-      output,
-      options.output === 'plain',
-    );
-
-    if (options.dryrun && printDryRunPaths(this.dryRunPaths(entries), options, output)) {
-      return;
-    }
-
-    const uploadedFiles: UploadedFile[] = [];
-
-    const tasks = entries.map((entry) => async () => {
-      const localFilePath = path.join(config.basePath, entry.translationPath);
-
-      if (!(await Bun.file(localFilePath).exists())) {
-        output.warning(`File '${entry.translationPath}' does not exist in the specified location`);
-        uploadedFiles.push({ path: entry.translationPath, action: 'skipped', reason: 'not found locally' });
-        return;
-      }
-
-      if (options.dryrun) {
-        output.info(`File '${entry.translationPath}' would be queued for translations import`);
-        return;
-      }
-
-      const storage = await storageService.addStorage(Bun.file(localFilePath));
-
-      output.info(this.importingMessage(entry.translationPath));
-
-      await translationService.importProjectTranslationStringsBased(
-        storage.data.id,
-        branch.id,
-        entry.languageIds,
-        entry.translationPath,
-        (status) => output.debug(this.progressMessage(entry.translationPath, status)),
-        {
-          autoApproveImported: options.autoApproveImported,
-          importEqSuggestions: options.importEqSuggestions,
-          translateHidden: options.translateHidden,
-        },
-      );
-
-      output.success(`File '${entry.translationPath}'`);
-      uploadedFiles.push({ path: entry.translationPath, action: 'uploaded' });
-    });
-
-    const results = await runConcurrently(tasks);
-
-    // The same machine-format summary as the file-based upload.
-    if (isMachineFormat(options.output)) {
-      const sorted = uploadedFiles.sort((one, other) => one.path.localeCompare(other.path));
-
-      output.list(
-        isStructuredFormat(options.output) ? sorted : sorted.filter(({ action }) => action !== 'skipped'),
-        uploadedFileView,
-      );
-    }
-
-    if (reportFailures(results, output)) {
-      throw new CliError(EXECUTION_FINISHED_WITH_ERRORS);
-    }
-  }
-
   private filterTargetLanguages(
     targetLanguages: LanguagesModel.Language[],
     language?: string,
@@ -404,13 +357,5 @@ export default class UploadTranslationsCommand {
     }
 
     return filtered;
-  }
-
-  private importingMessage(translationPath: string): string {
-    return `Importing translations for file '${translationPath}'`;
-  }
-
-  private progressMessage(translationPath: string, status: { progress: number; identifier: string }): string {
-    return `Importing translations for file '${translationPath}' (${status.progress}%) (${status.identifier})`;
   }
 }

@@ -8,12 +8,17 @@ import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GlossaryService } from '@/cli/services/GlossaryService.ts';
-import type { GetApiClient, GetConfig, GetGlossaryService, GetOutput, GetStorageService } from '@/cli/services.ts';
+import type {
+  GetApiClient,
+  GetGlossaryService,
+  GetOutput,
+  GetProjectConfig,
+  GetStorageService,
+} from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { downloadToFile } from '@/cli/utils/downloadToFile.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import { parseNumericId, parseScheme, toArray } from '@/cli/utils/parsing.ts';
-import { assertProjectConfigured } from '@/lib/config.ts';
 import { toSafeFileName } from '@/lib/utils/path.ts';
 import {
   firstLineContainsHeader as firstLineContainsHeaderOption,
@@ -52,7 +57,7 @@ export default class GlossaryCommand {
     private getGlossaryService: GetGlossaryService,
     private getStorageService: GetStorageService,
     private getApiClient: GetApiClient,
-    private getConfig: GetConfig,
+    private getProjectConfig: GetProjectConfig,
   ) {}
 
   getDefinition(): CommandDef {
@@ -103,7 +108,8 @@ export default class GlossaryCommand {
     const options = command.optsWithGlobals() as ListOptions;
     const output = this.getOutput(command);
     const glossaryService = await this.getGlossaryService(command);
-    const glossaries = await glossaryService.list(await this.assignedProjectId(command, options));
+    const projectId = options.assigned ? (await this.getProjectConfig(command)).projectId : undefined;
+    const glossaries = await glossaryService.list(projectId);
 
     // Terms cost a request per glossary and only the verbose text render shows them — plain prints
     // the name alone and json/toon carry the glossaries themselves.
@@ -116,20 +122,6 @@ export default class GlossaryCommand {
       empty: options.assigned ? 'No glossaries assigned to the project' : 'No glossaries found',
     });
   };
-
-  // Only --assigned needs a project: every other glossary subcommand works account-wide, so the
-  // config is read here instead of the service factory.
-  private async assignedProjectId(command: Command, options: ListOptions): Promise<number | undefined> {
-    if (!options.assigned) {
-      return undefined;
-    }
-
-    const config = await this.getConfig(command);
-
-    assertProjectConfigured(config);
-
-    return config.projectId;
-  }
 
   downloadAction = async (command: Command) => {
     const [idArg] = command.args;
@@ -218,7 +210,7 @@ export default class GlossaryCommand {
     const storage = await storageService.addStorage(Bun.file(fileArg));
 
     await glossaryService.import(glossary.id, {
-      storageId: storage.data.id,
+      storageId: storage.id,
       ...(scheme !== undefined ? { scheme } : {}),
       ...(options.firstLineContainsHeader !== undefined
         ? { firstLineContainsHeader: options.firstLineContainsHeader }

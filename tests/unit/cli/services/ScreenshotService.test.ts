@@ -56,4 +56,42 @@ describe('ScreenshotService', () => {
       expect(await screenshotService.findAllByName('login.png')).toEqual([]);
     });
   });
+
+  test('get returns the screenshot', async () => {
+    const getScreenshot = spyOn(apiClient.screenshotsApi, 'getScreenshot').mockResolvedValue({
+      data: { id: 5 },
+    } as never);
+
+    expect(await screenshotService.get(5)).toEqual({ id: 5 } as never);
+    expect(getScreenshot).toHaveBeenCalledWith(PROJECT_ID, 5);
+  });
+
+  test('upload returns the created screenshot', async () => {
+    const request = { storageId: 9, name: 'home.png' } as never;
+    const addScreenshot = spyOn(apiClient.screenshotsApi, 'addScreenshot').mockResolvedValue({
+      data: { id: 5 },
+    } as never);
+
+    expect(await screenshotService.upload(request)).toEqual({ id: 5 } as never);
+    expect(addScreenshot).toHaveBeenCalledWith(PROJECT_ID, request);
+  });
+
+  test('update returns the updated screenshot', async () => {
+    const request = { storageId: 9, name: 'home.png' } as never;
+    const updateScreenshot = spyOn(apiClient.screenshotsApi, 'updateScreenshot').mockResolvedValue({
+      data: { id: 5 },
+    } as never);
+
+    expect(await screenshotService.update(5, request)).toEqual({ id: 5 } as never);
+    expect(updateScreenshot).toHaveBeenCalledWith(PROJECT_ID, 5, request);
+  });
+
+  test('replaceLabels patches the label ids', async () => {
+    const editScreenshot = spyOn(apiClient.screenshotsApi, 'editScreenshot').mockResolvedValue({
+      data: { id: 5 },
+    } as never);
+
+    expect(await screenshotService.replaceLabels(5, [1, 2])).toEqual({ id: 5 } as never);
+    expect(editScreenshot).toHaveBeenCalledWith(PROJECT_ID, 5, [{ op: 'replace', path: '/labelIds', value: [1, 2] }]);
+  });
 });

@@ -38,8 +38,8 @@ describe('ProgressService', () => {
 
       const result = await progressService.loadProjectProgress();
 
-      expect(result.data).toHaveLength(1);
-      expect(result.data[0]?.data.languageId).toBe('fr');
+      expect(result).toHaveLength(1);
+      expect(result[0]?.languageId).toBe('fr');
     });
 
     test('throws CliError when API fails', async () => {
@@ -51,9 +51,7 @@ describe('ProgressService', () => {
 
   describe('loadBranchProgress', () => {
     test('calls API with projectId and branchId', async () => {
-      const spy = spyOn(apiClient.translationStatusApi, 'getBranchProgress').mockResolvedValue({
-        data: [],
-      } as never);
+      const spy = spyOn(apiClient.translationStatusApi, 'getBranchProgress').mockResolvedValue({ data: [] } as never);
 
       await progressService.loadBranchProgress(7);
 
@@ -69,9 +67,7 @@ describe('ProgressService', () => {
 
   describe('loadFileProgress', () => {
     test('calls API with projectId and fileId', async () => {
-      const spy = spyOn(apiClient.translationStatusApi, 'getFileProgress').mockResolvedValue({
-        data: [],
-      } as never);
+      const spy = spyOn(apiClient.translationStatusApi, 'getFileProgress').mockResolvedValue({ data: [] } as never);
 
       await progressService.loadFileProgress(42);
 

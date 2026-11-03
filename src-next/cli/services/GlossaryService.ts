@@ -29,8 +29,7 @@ export class GlossaryService {
 
   async get(id: number): Promise<GlossariesModel.Glossary> {
     try {
-      const response = await this.apiClient.glossariesApi.getGlossary(id);
-      return response.data;
+      return (await this.apiClient.glossariesApi.getGlossary(id)).data;
     } catch (error) {
       throw toCliError(error, `Failed to get glossary #${id}`);
     }
@@ -38,8 +37,7 @@ export class GlossaryService {
 
   async add(request: GlossariesModel.CreateGlossaryRequest): Promise<GlossariesModel.Glossary> {
     try {
-      const response = await this.apiClient.glossariesApi.addGlossary(request);
-      return response.data;
+      return (await this.apiClient.glossariesApi.addGlossary(request)).data;
     } catch (error) {
       throw toCliError(error, `Failed to add glossary '${request.name}'`);
     }

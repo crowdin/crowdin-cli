@@ -11,6 +11,7 @@ import type { GlobalOptions } from '@/cli/options.ts';
 import type { StorageService } from '@/cli/services/StorageService.ts';
 import type { StyleGuideService } from '@/cli/services/StyleGuideService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
+import { assertProjectConfigured, type Config } from '@/lib/config.ts';
 
 const signedLink = (disposition?: string) =>
   `https://crowdin-style-guides.cf-downloads.crowdin.com/1/uuid-file?${
@@ -61,7 +62,13 @@ describe('StyleGuideCommand', () => {
       () => output,
       async () => styleGuideService as unknown as StyleGuideService,
       async () => storageService as unknown as StorageService,
-      async () => ({ projectId: configuredProjectId }) as never,
+      async () => {
+        const config = { projectId: configuredProjectId } as Config;
+
+        assertProjectConfigured(config);
+
+        return config;
+      },
     );
 
   beforeEach(async () => {
@@ -76,7 +83,7 @@ describe('StyleGuideCommand', () => {
       delete: mock(async () => {}),
     };
     storageService = {
-      addStorage: mock(async () => ({ data: { id: 52 } }) as never),
+      addStorage: mock(async () => ({ id: 52 }) as never),
     };
 
     spyOn(console, 'log').mockImplementation(() => {});

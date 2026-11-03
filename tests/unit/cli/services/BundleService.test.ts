@@ -81,4 +81,19 @@ describe('BundleService', () => {
       expect(result.map((bundle) => bundle.id)).toEqual([1]);
     });
   });
+
+  test('add returns the created bundle', async () => {
+    const payload = { name: 'Bundle' } as never;
+    const addBundle = spyOn(apiClient.bundlesApi, 'addBundle').mockResolvedValue({ data: { id: 7 } } as never);
+
+    expect(await bundleService.add(payload)).toEqual({ id: 7 } as never);
+    expect(addBundle).toHaveBeenCalledWith(PROJECT_ID, payload);
+  });
+
+  test('get returns the bundle', async () => {
+    const getBundle = spyOn(apiClient.bundlesApi, 'getBundle').mockResolvedValue({ data: { id: 7 } } as never);
+
+    expect(await bundleService.get(7)).toEqual({ id: 7 } as never);
+    expect(getBundle).toHaveBeenCalledWith(PROJECT_ID, 7);
+  });
 });
