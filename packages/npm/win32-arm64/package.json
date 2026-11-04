@@ -1,0 +1,24 @@
+{
+  "name": "@crowdin/cli-win32-arm64",
+  "version": "5.5.0",
+  "description": "The Windows arm64 binary for Crowdin CLI.",
+  "homepage": "https://crowdin.github.io/crowdin-cli",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crowdin/crowdin-cli.git"
+  },
+  "license": "MIT",
+  "preferUnplugged": true,
+  "os": [
+    "win32"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "files": [
+    "bin"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

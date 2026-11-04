@@ -8,6 +8,7 @@ const npmPackages = [
   "linux-x64-musl",
   "linux-arm64-musl",
   "win32-x64",
+  "win32-arm64",
 ].map((platform) => `packages/npm/${platform}/package.json`);
 
 const versionedPackageJsons = ["package.json", "packages/npm/cli/package.json", ...npmPackages];
@@ -55,8 +56,8 @@ export default {
               {
                 "file": "packages/npm/cli/package.json",
                 "hasChanged": true,
-                "numMatches": 7,
-                "numReplacements": 7
+                "numMatches": 8,
+                "numReplacements": 8
               }
             ],
             "countMatches": true

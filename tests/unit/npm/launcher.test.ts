@@ -28,6 +28,10 @@ describe('platformPackageName', () => {
     expect(platformPackageName('win32', 'x64', false)).toBe('@crowdin/cli-win32-x64');
   });
 
+  it('maps win32 arm64', () => {
+    expect(platformPackageName('win32', 'arm64', false)).toBe('@crowdin/cli-win32-arm64');
+  });
+
   it('applies the musl suffix only on linux', () => {
     expect(platformPackageName('darwin', 'arm64', true)).toBe('@crowdin/cli-darwin-arm64');
     expect(platformPackageName('win32', 'x64', true)).toBe('@crowdin/cli-win32-x64');
@@ -42,6 +46,7 @@ describe('platformPackageName', () => {
       ['linux', 'x64', true],
       ['linux', 'arm64', true],
       ['win32', 'x64', false],
+      ['win32', 'arm64', false],
     ];
     const generated = new Set(combos.map(([platform, arch, musl]) => platformPackageName(platform, arch, musl)));
     expect(generated).toEqual(new Set(Object.keys(launcherPkg.optionalDependencies)));
