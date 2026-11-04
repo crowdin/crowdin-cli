@@ -178,6 +178,41 @@ describe('TranslationService', () => {
 
       expect(translationService.buildProjectTranslations()).rejects.toThrow(CliError);
     });
+
+    const buildInProgress = () =>
+      new CrowdinError('Another build is currently in progress. Please wait until it is finished', 409, {});
+
+    test('retries while another build is in progress', async () => {
+      const build = { data: { id: 77, status: 'finished' } };
+      const start = spyOn(apiClient.translationsApi, 'buildProject')
+        .mockRejectedValueOnce(buildInProgress())
+        .mockRejectedValueOnce(buildInProgress())
+        .mockResolvedValueOnce(build as never);
+      const sleep = spyOn(Bun, 'sleep').mockResolvedValue(undefined);
+
+      expect(await translationService.buildProjectTranslations()).toBe(build.data as never);
+      expect(start).toHaveBeenCalledTimes(3);
+      expect(sleep).toHaveBeenCalledTimes(2);
+    });
+
+    test('gives up once the retry limit is reached', async () => {
+      const start = spyOn(apiClient.translationsApi, 'buildProject').mockRejectedValue(buildInProgress());
+      spyOn(Bun, 'sleep').mockResolvedValue(undefined);
+
+      expect(translationService.buildProjectTranslations()).rejects.toThrow(
+        new CliError('Another build is still in progress after waiting 10 minutes. Try again later'),
+      );
+      expect(start).toHaveBeenCalledTimes(61);
+    });
+
+    test('does not retry other conflicts', async () => {
+      const start = spyOn(apiClient.translationsApi, 'buildProject').mockRejectedValue(
+        new CrowdinError('Something else', 409, {}),
+      );
+
+      expect(translationService.buildProjectTranslations()).rejects.toThrow(CliError);
+      expect(start).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('buildProjectFileTranslation', () => {

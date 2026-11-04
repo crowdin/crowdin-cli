@@ -1,5 +1,6 @@
-import type { Client, Status, TranslationsModel } from '@crowdin/crowdin-api-client';
+import { type Client, CrowdinError, type Status, type TranslationsModel } from '@crowdin/crowdin-api-client';
 import { pollUntilFinished } from '@/lib/api/pollStatus.ts';
+import CliError from '../errors/CliError.ts';
 import { toCliError } from '../errors/toCliError.ts';
 import WrongLanguageError from '../errors/WrongLanguageError.ts';
 import type { Output } from '../utils/output.ts';
@@ -18,6 +19,10 @@ export interface ImportTranslationOptions {
   importEqSuggestions?: boolean;
   translateHidden?: boolean;
 }
+
+// A project runs one build at a time, so a concurrent run's build answers 409 until it finishes.
+const BUILD_RETRY_LIMIT = 60;
+const BUILD_RETRY_DELAY_MS = 10_000;
 
 const PRE_TRANSLATE_FAILURE = 'Failed to auto-translate the project. Please contact our support team for help';
 
@@ -243,7 +248,7 @@ export class TranslationService {
       'build',
       { start: 'Building translations...', stop: 'Translations built', fail: 'Failed to build project translations' },
       async () => {
-        const build = await this.apiClient.translationsApi.buildProject(this.projectId, request);
+        const build = await this.startBuild(request);
 
         // Keyed by the build id rather than a status identifier, so the poll closure ignores its
         // argument. The message is a function because a failed build carries the server's reason.
@@ -258,6 +263,37 @@ export class TranslationService {
 
         return build.data;
       },
+    );
+  }
+
+  private async startBuild(request?: TranslationsModel.BuildRequest | TranslationsModel.PseudoBuildRequest) {
+    for (let retry = 0; ; retry++) {
+      try {
+        return await this.apiClient.translationsApi.buildProject(this.projectId, request);
+      } catch (error) {
+        if (!this.isBuildInProgressError(error)) {
+          throw error;
+        }
+
+        if (retry === BUILD_RETRY_LIMIT) {
+          const minutes = (BUILD_RETRY_LIMIT * BUILD_RETRY_DELAY_MS) / 60_000;
+          throw new CliError(`Another build is still in progress after waiting ${minutes} minutes. Try again later`);
+        }
+
+        if (retry === 0) {
+          this.output.spinner('build', 'message', 'Another build is in progress. Waiting for it to finish...');
+        }
+
+        await Bun.sleep(BUILD_RETRY_DELAY_MS);
+      }
+    }
+  }
+
+  private isBuildInProgressError(error: unknown): boolean {
+    return (
+      error instanceof CrowdinError &&
+      Number(error.code) === 409 &&
+      error.message.includes('Another build is currently in progress')
     );
   }
 }
