@@ -14,7 +14,7 @@ import { type ApiMethod, findMethodsByPath, joinVerbs } from '@/lib/apps/manifes
 import { describeOperation, type MethodDescription, specUrlFromDocsUrl } from '@/lib/apps/openapi.ts';
 import { isRecord } from '@/lib/utils/record.ts';
 import { parseFields } from './fields.ts';
-import { field, force, input, method, typedField, wait } from './options.ts';
+import { api, install, methods, uninstall } from './options.ts';
 import { buildApiRequest, parseHttpMethod } from './request.ts';
 import {
   appVerboseView,
@@ -28,6 +28,10 @@ import {
 
 interface UninstallOptions extends GlobalOptions {
   force?: boolean;
+}
+
+interface InstallOptions extends GlobalOptions {
+  manifestUrl?: string;
 }
 
 interface MethodsOptions extends GlobalOptions {
@@ -78,25 +82,28 @@ export default class AppCommand {
         {
           name: 'install',
           description: 'Install the application',
-          arguments: [{ name: 'identifier', description: 'Application identifier. You can find it on Crowdin Store' }],
-          options: [baseConfigGroup],
+          arguments: [
+            {
+              name: 'identifier',
+              description: 'Application identifier. You can find it on Crowdin Store',
+              optional: true,
+            },
+          ],
+          options: [install.manifestUrl, baseConfigGroup],
           action: this.installAction,
         },
         {
           name: 'uninstall',
           description: 'Uninstall the application',
           arguments: [identifierArgument],
-          options: [force, baseConfigGroup],
+          options: [uninstall.force, baseConfigGroup],
           action: this.uninstallAction,
         },
         {
           name: 'methods',
           description: "List the application's API methods, or describe one",
           arguments: [identifierArgument, { name: 'path', description: 'API method path to describe', optional: true }],
-          options: [
-            { ...method, description: 'Pick one of several HTTP methods declared for the same path' },
-            baseConfigGroup,
-          ],
+          options: [methods.method, baseConfigGroup],
           action: this.methodsAction,
         },
         {
@@ -106,7 +113,7 @@ export default class AppCommand {
             identifierArgument,
             { name: 'path', description: 'API method path, optionally with a query string' },
           ],
-          options: [method, field, typedField, input, wait, dryRun, baseConfigGroup],
+          options: [api.method, api.field, api.typedField, api.input, api.wait, dryRun, baseConfigGroup],
           action: this.apiAction,
         },
       ],
@@ -129,18 +136,22 @@ export default class AppCommand {
 
   installAction = async (command: Command) => {
     const [identifier] = command.args;
+    const options = command.optsWithGlobals() as InstallOptions;
 
-    this.validateAppIdentifier(identifier);
+    if ((identifier === undefined) === (options.manifestUrl === undefined)) {
+      throw new ValidationError('Pass either an application identifier or --manifest-url');
+    }
+
+    if (options.manifestUrl === undefined) {
+      this.validateAppIdentifier(identifier);
+    } else {
+      this.validateManifestUrl(options.manifestUrl);
+    }
 
     const output = this.getOutput(command);
     const appService = await this.getAppService(command);
-    const manifestUrl = await appService.findManifestUrl(identifier);
-
-    if (!manifestUrl) {
-      throw new CliError(`Application with identifier '${identifier}' doesn't exist in Crowdin Store`);
-    }
-
-    const app = await appService.installByManifestUrl(manifestUrl);
+    const url = options.manifestUrl ?? (await this.findStoreManifestUrl(appService, identifier as string));
+    const app = await appService.installByManifestUrl(url);
 
     output.success('Application has been installed');
     // The sentence above is text-only, and it names nothing; the installed app is what a machine
@@ -450,6 +461,22 @@ export default class AppCommand {
       return JSON.parse(readFileSync(source === '-' ? 0 : source, 'utf8'));
     } catch (error) {
       throw new ValidationError(`Invalid --input '${source}': ${CliError.getErrorMessage(error)}`);
+    }
+  }
+
+  private async findStoreManifestUrl(appService: AppService, identifier: string): Promise<string> {
+    const url = await appService.findManifestUrl(identifier);
+
+    if (!url) {
+      throw new CliError(`Application with identifier '${identifier}' doesn't exist in Crowdin Store`);
+    }
+
+    return url;
+  }
+
+  private validateManifestUrl(url: string) {
+    if (URL.parse(url)?.protocol !== 'https:') {
+      throw new ValidationError(`Invalid --manifest-url '${url}'. Use an https URL`);
     }
   }
 
