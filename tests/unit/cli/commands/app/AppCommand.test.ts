@@ -229,12 +229,53 @@ describe('AppCommand', () => {
     );
   });
 
-  test('installAction validates identifier', async () => {
+  test('installAction requires an identifier or --manifest-url', async () => {
     const cmd = createAppCommand();
 
     expect(cmd.installAction(createCommandContext(globalOptions))).rejects.toThrow(
-      new CliError('Application identifier can not be empty'),
+      new ValidationError('Pass either an application identifier or --manifest-url'),
     );
+  });
+
+  test('installAction rejects both an identifier and --manifest-url', async () => {
+    const cmd = createAppCommand();
+    const options = { ...globalOptions, manifestUrl: 'https://my-app.example.com/manifest.json' };
+
+    expect(cmd.installAction(createCommandContext(options, ['github']))).rejects.toThrow(
+      new ValidationError('Pass either an application identifier or --manifest-url'),
+    );
+  });
+
+  test.each(['http://my-app.example.com/manifest.json', 'my-app.example.com/manifest.json'])(
+    'installAction rejects --manifest-url %s',
+    async (manifestUrl) => {
+      const cmd = createAppCommand();
+
+      expect(cmd.installAction(createCommandContext({ ...globalOptions, manifestUrl }))).rejects.toThrow(
+        new ValidationError(`Invalid --manifest-url '${manifestUrl}'. Use an https URL`),
+      );
+      expect(appService.installByManifestUrl).not.toHaveBeenCalled();
+    },
+  );
+
+  test('installAction installs from --manifest-url without a Store lookup', async () => {
+    const item = spyOn(output, 'item');
+    const cmd = createAppCommand();
+    const manifestUrl = 'https://my-app.example.com/manifest.json';
+
+    await cmd.installAction(createCommandContext({ ...globalOptions, manifestUrl }));
+
+    expect(appService.findManifestUrl).not.toHaveBeenCalled();
+    expect(appService.installByManifestUrl).toHaveBeenCalledWith(manifestUrl);
+    expect(item).toHaveBeenCalledWith(createApp({ identifier: 'github', name: 'GitHub' }), expect.anything(), {
+      mark: false,
+    });
+  });
+
+  test('installAction validates identifier', async () => {
+    const cmd = createAppCommand();
+
+    expect(cmd.installAction(createCommandContext(globalOptions, ['a/b']))).rejects.toThrow(ValidationError);
   });
 
   test('installAction throws not found when manifest is missing', async () => {

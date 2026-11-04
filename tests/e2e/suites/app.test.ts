@@ -22,6 +22,8 @@ const UNKNOWN_IDENTIFIER = 'crowdin-cli-e2e-no-such-app-xyz';
 
 const INSTALLABLE_IDENTIFIER = 'batch-add-strings';
 const INSTALLABLE_NAME = 'Bulk Add Strings';
+// What the Store resolves INSTALLABLE_IDENTIFIER to; `--manifest-url` installs it with no Store lookup.
+const INSTALLABLE_MANIFEST_URL = 'https://batch-add-strings.app.crowdin.net/manifest.json';
 
 // An installed app built on the apps framework (e.g. zendesk-guide); its cases are skipped without one.
 const FRAMEWORK_APP = process.env.CROWDIN_E2E_FRAMEWORK_APP;
@@ -108,9 +110,26 @@ describe('app', () => {
     }
   });
 
-  test('requires an identifier to install', async () => {
+  test('requires an identifier or --manifest-url to install', async () => {
     const result = await ctx.runner.run(['app', 'install']);
-    expectFailure(result, 2, "missing required argument 'identifier'");
+    expectFailure(result, 2, 'Pass either an application identifier or --manifest-url');
+  });
+
+  test('rejects both an identifier and --manifest-url', async () => {
+    const result = await ctx.runner.run([
+      'app',
+      'install',
+      INSTALLABLE_IDENTIFIER,
+      '--manifest-url',
+      INSTALLABLE_MANIFEST_URL,
+    ]);
+    expectFailure(result, 2, 'Pass either an application identifier or --manifest-url');
+  });
+
+  test('rejects a non-https --manifest-url', async () => {
+    const url = INSTALLABLE_MANIFEST_URL.replace('https:', 'http:');
+    const result = await ctx.runner.run(['app', 'install', '--manifest-url', url]);
+    expectFailure(result, 2, `Invalid --manifest-url '${url}'. Use an https URL`);
   });
 
   test('reports an identifier that is not in the Crowdin Store', async () => {
@@ -201,6 +220,30 @@ describe('app', () => {
   });
 
   test('no longer lists the uninstalled application', async () => {
+    expect(await listInstalled()).not.toContainEqual({
+      identifier: INSTALLABLE_IDENTIFIER,
+      name: INSTALLABLE_NAME,
+    });
+  });
+
+  test('installs an application from its manifest URL', async () => {
+    const result = await ctx.runner.run(['app', 'install', '--manifest-url', INSTALLABLE_MANIFEST_URL]);
+
+    installedByThisRun ||= result.exitCode === 0;
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(result.stdout).toContain('Application has been installed');
+    expect(result.stdout).toContain(`${INSTALLABLE_IDENTIFIER} ${INSTALLABLE_NAME}`);
+    expect(await listInstalled()).toContainEqual({
+      identifier: INSTALLABLE_IDENTIFIER,
+      name: INSTALLABLE_NAME,
+    });
+  });
+
+  test('uninstalls the application installed from its manifest URL', async () => {
+    const result = await ctx.runner.run(['app', 'uninstall', INSTALLABLE_IDENTIFIER]);
+
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(await listInstalled()).not.toContainEqual({
       identifier: INSTALLABLE_IDENTIFIER,
       name: INSTALLABLE_NAME,
