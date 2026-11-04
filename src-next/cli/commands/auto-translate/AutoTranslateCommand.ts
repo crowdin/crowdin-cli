@@ -477,14 +477,24 @@ export default class AutoTranslateCommand {
               stop: 'Validation was successful',
               fail: 'Validation error',
             },
-            () => translationService.getMtSupportedLanguageIds(engineIdValue),
+            () => translationService.getMtSupportedLanguageIds(engineIdValue, project.sourceLanguageId),
           ),
         );
         languages = projectLanguages.filter((languageId) => supportedLanguageIds.has(languageId));
+
+        if (languages.length === 0) {
+          throw new CliError(
+            `The specified MT engine doesn't support any of the project target languages from '${project.sourceLanguageId}'`,
+          );
+        }
       }
 
       if (excludedLanguages.length > 0) {
         languages = languages.filter((languageId) => !excludedLanguages.includes(languageId));
+
+        if (languages.length === 0) {
+          throw new CliError("No target languages left to auto-translate after '--exclude-language'");
+        }
       }
 
       return languages;

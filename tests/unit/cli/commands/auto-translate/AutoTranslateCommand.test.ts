@@ -55,6 +55,7 @@ const finishedStatus = { identifier: '121', status: 'finished', progress: 100 };
 const filesBasedProject = {
   id: 123,
   type: ProjectsGroupsModel.Type.FILES_BASED,
+  sourceLanguageId: 'de',
   targetLanguages: [{ id: 'ua' }, { id: 'en' }, { id: 'fr' }],
 };
 
@@ -257,14 +258,29 @@ describe('AutoTranslateCommand', () => {
     spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
     spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
     spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
-    spyOn(translationService, 'getMtSupportedLanguageIds').mockResolvedValue(['ua', 'fr']);
+    const supported = spyOn(translationService, 'getMtSupportedLanguageIds').mockResolvedValue(['ua', 'fr']);
     const preTranslate = spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
 
     await command.defaultAction(commandContext);
 
     const request = preTranslate.mock.calls[0]?.[0] as unknown as Record<string, unknown>;
+    expect(supported).toHaveBeenCalledWith(1, 'de');
     expect(request.languageIds).toEqual(['ua', 'fr']);
     expect(request.engineId).toBe(1);
+  });
+
+  test('fails when the MT engine supports none of the project languages', async () => {
+    const command = createCommand();
+    commandContext = createCommandContext({ ...globalOptions, method: 'mt', engineId: 1, branch: 'main' });
+
+    spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
+    spyOn(translationService, 'getMtSupportedLanguageIds').mockResolvedValue(['ja']);
+    const preTranslate = spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
+
+    expect(command.defaultAction(commandContext)).rejects.toThrow(
+      "The specified MT engine doesn't support any of the project target languages from 'de'",
+    );
+    expect(preTranslate).not.toHaveBeenCalled();
   });
 
   test('fails instead of sending all languages when the MT engine lookup fails', async () => {
@@ -300,6 +316,26 @@ describe('AutoTranslateCommand', () => {
 
     const request = preTranslate.mock.calls[0]?.[0] as unknown as Record<string, unknown>;
     expect(request.languageIds).toEqual(['ua', 'fr']);
+  });
+
+  test('fails when the exclusions leave no languages', async () => {
+    const command = createCommand();
+    commandContext = createCommandContext({
+      ...globalOptions,
+      method: 'mt',
+      engineId: 1,
+      excludeLanguage: ['ua'],
+      branch: 'main',
+    });
+
+    spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
+    spyOn(translationService, 'getMtSupportedLanguageIds').mockResolvedValue(['ua']);
+    const preTranslate = spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
+
+    expect(command.defaultAction(commandContext)).rejects.toThrow(
+      "No target languages left to auto-translate after '--exclude-language'",
+    );
+    expect(preTranslate).not.toHaveBeenCalled();
   });
 
   test('warns and ignores auto-approve-option when method is mt', async () => {

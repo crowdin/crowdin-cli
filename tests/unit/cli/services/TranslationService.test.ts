@@ -293,16 +293,25 @@ describe('TranslationService', () => {
         data: { supportedLanguageIds: ['ua', 'fr'] },
       } as never);
 
-      const languageIds = await translationService.getMtSupportedLanguageIds(7);
+      const languageIds = await translationService.getMtSupportedLanguageIds(7, 'en');
 
       expect(spy).toHaveBeenCalledWith(7);
       expect(languageIds).toEqual(['ua', 'fr']);
     });
 
+    test('returns the targets of the source language pair when the engine has pairs', async () => {
+      spyOn(apiClient.machineTranslationApi, 'getMt').mockResolvedValue({
+        data: { supportedLanguageIds: ['en', 'de', 'no'], supportedLanguagePairs: { en: ['de', 'no'], fr: ['en'] } },
+      } as never);
+
+      expect(await translationService.getMtSupportedLanguageIds(7, 'fr')).toEqual(['en']);
+      expect(await translationService.getMtSupportedLanguageIds(7, 'ja')).toEqual([]);
+    });
+
     test('wraps API error as CliError', async () => {
       spyOn(apiClient.machineTranslationApi, 'getMt').mockRejectedValue(new Error('not found'));
 
-      expect(translationService.getMtSupportedLanguageIds(7)).rejects.toThrow(CliError);
+      expect(translationService.getMtSupportedLanguageIds(7, 'en')).rejects.toThrow(CliError);
     });
   });
 
