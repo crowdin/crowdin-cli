@@ -153,10 +153,21 @@ export class TranslationService {
     }
   }
 
-  async getMtSupportedLanguageIds(engineId: number): Promise<string[]> {
+  /**
+   * Target languages the engine accepts from the given source. An engine with language pairs
+   * only translates each source into its own list, and pre-translation is validated against it.
+   */
+  async getMtSupportedLanguageIds(engineId: number, sourceLanguageId: string): Promise<string[]> {
     try {
-      const response = await this.apiClient.machineTranslationApi.getMt(engineId);
-      return response.data.supportedLanguageIds ?? [];
+      const { supportedLanguageIds, supportedLanguagePairs } = (
+        await this.apiClient.machineTranslationApi.getMt(engineId)
+      ).data;
+
+      if (supportedLanguagePairs) {
+        return supportedLanguagePairs[sourceLanguageId] ?? [];
+      }
+
+      return supportedLanguageIds ?? [];
     } catch (error) {
       throw toCliError(error, 'Failed to fetch the specified MT engine');
     }
