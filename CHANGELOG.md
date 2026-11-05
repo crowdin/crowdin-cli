@@ -1,5 +1,24 @@
 # Changelog
 
+# [5.6.0](https://github.com/crowdin/crowdin-cli/compare/5.5.0...5.6.0) (2026-11-05)
+
+
+### Bug Fixes
+
+* **auto-translate:** fail when the MT engine lookup fails ([#1155](https://github.com/crowdin/crowdin-cli/issues/1155)) ([a3a0a86](https://github.com/crowdin/crowdin-cli/commit/a3a0a865a5e85638527bc343fc3decb331a07c2b))
+* **auto-translate:** filter MT languages by the engine's language pairs ([#1168](https://github.com/crowdin/crowdin-cli/issues/1168)) ([b5e59f6](https://github.com/crowdin/crowdin-cli/commit/b5e59f6540744c36a69ecf71aca10fb3e891439d))
+* **deps:** patch vulnerable transitive dependencies ([#1160](https://github.com/crowdin/crowdin-cli/issues/1160)) ([c46f150](https://github.com/crowdin/crowdin-cli/commit/c46f150d600b51f503dba7e9eae0ee058d607cbb))
+* **download:** retry the build while another build is in progress ([#1165](https://github.com/crowdin/crowdin-cli/issues/1165)) ([dd36409](https://github.com/crowdin/crowdin-cli/commit/dd36409c6528b9ba36f8913c070c536ab12855a8))
+* **upload:** report files skipped while being updated, refactor services and commands ([#1164](https://github.com/crowdin/crowdin-cli/issues/1164)) ([5b85636](https://github.com/crowdin/crowdin-cli/commit/5b85636840ecc53af0f53c7c56091a5c97838968))
+
+
+### Features
+
+* add native Windows arm64 binary ([#1166](https://github.com/crowdin/crowdin-cli/issues/1166)) ([ea331b9](https://github.com/crowdin/crowdin-cli/commit/ea331b94094d7cfeb53b3fe46ba1a805abf50fda))
+* **app:** install apps from a manifest URL ([#1167](https://github.com/crowdin/crowdin-cli/issues/1167)) ([873939b](https://github.com/crowdin/crowdin-cli/commit/873939b68d0c8f68e9fbd8163c1f2945a0bcd788))
+* **app:** wait for integration jobs with app api --wait ([#1156](https://github.com/crowdin/crowdin-cli/issues/1156)) ([fae6d6e](https://github.com/crowdin/crowdin-cli/commit/fae6d6e82772f3590621bd4b258b6beb39615b60))
+* **download:** add --no- forms of the export option flags ([#1157](https://github.com/crowdin/crowdin-cli/issues/1157)) ([cb2d12d](https://github.com/crowdin/crowdin-cli/commit/cb2d12da3095ba16e25d02d6acc475149c54e4c4))
+
 # [5.5.0](https://github.com/crowdin/crowdin-cli/compare/5.4.0...5.5.0) (2026-10-21)
 
 
