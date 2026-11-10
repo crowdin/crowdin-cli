@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, mock, spyOn, test } from 'bun:test';
-import { Client } from '@crowdin/crowdin-api-client';
+import { Client, CrowdinError } from '@crowdin/crowdin-api-client';
+import AuthorizationError from '@/cli/errors/AuthorizationError.ts';
 import { CommentService } from '@/cli/services/CommentService.ts';
 
 const PROJECT_ID = 123;
@@ -21,5 +22,14 @@ describe('CommentService', () => {
     expect(editStringComment).toHaveBeenCalledWith(PROJECT_ID, 4, [
       { op: 'replace', path: '/issueStatus', value: 'resolved' },
     ]);
+  });
+
+  test('list maps an API error to its exit code', () => {
+    const apiClient = new Client({ token: 'a'.repeat(80) });
+    spyOn(apiClient.stringCommentsApi, 'listStringComments').mockRejectedValue(
+      new CrowdinError('Unauthorized', 401, {}),
+    );
+
+    expect(new CommentService(apiClient, PROJECT_ID).list({})).rejects.toBeInstanceOf(AuthorizationError);
   });
 });

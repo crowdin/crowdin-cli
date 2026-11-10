@@ -15,13 +15,17 @@ export class CommentService {
     issueType?: StringCommentsModel.IssueType;
   }): Promise<StringCommentsModel.StringComment> {
     try {
-      const response = await this.client.stringCommentsApi.addStringComment(this.projectId, {
-        stringId: params.stringId,
-        text: params.text,
-        ...(params.targetLanguageId ? { targetLanguageId: params.targetLanguageId } : {}),
-        type: params.type,
-        ...(params.issueType ? { issueType: params.issueType } : {}),
-      } as StringCommentsModel.AddStringCommentRequest);
+      // biome-ignore format: one argument per line
+      const response = await this.client.stringCommentsApi.addStringComment(
+        this.projectId,
+        {
+          stringId: params.stringId,
+          text: params.text,
+          ...(params.targetLanguageId ? { targetLanguageId: params.targetLanguageId } : {}),
+          type: params.type,
+          ...(params.issueType ? { issueType: params.issueType } : {}),
+        } as StringCommentsModel.AddStringCommentRequest,
+      );
 
       return response.data;
     } catch (error) {
@@ -35,14 +39,22 @@ export class CommentService {
     issueType?: StringCommentsModel.IssueType;
     status?: StringCommentsModel.IssueStatus;
   }): Promise<StringCommentsModel.StringComment[]> {
-    const response = await this.client.stringCommentsApi.withFetchAll().listStringComments(this.projectId, {
-      ...(params.stringId !== undefined ? { stringId: params.stringId } : {}),
-      ...(params.type ? { type: params.type } : {}),
-      ...(params.issueType ? { issueType: params.issueType } : {}),
-      ...(params.status ? { issueStatus: params.status } : {}),
-    });
+    try {
+      // biome-ignore format: one argument per line
+      const response = await this.client.stringCommentsApi.withFetchAll().listStringComments(
+        this.projectId,
+        {
+          ...(params.stringId !== undefined ? { stringId: params.stringId } : {}),
+          ...(params.type ? { type: params.type } : {}),
+          ...(params.issueType ? { issueType: params.issueType } : {}),
+          ...(params.status ? { issueStatus: params.status } : {}),
+        },
+      );
 
-    return response.data.map((item) => item.data);
+      return response.data.map((item) => item.data);
+    } catch (error) {
+      throw toCliError(error, 'Failed to list comments');
+    }
   }
 
   async resolve(id: number): Promise<StringCommentsModel.StringComment> {
