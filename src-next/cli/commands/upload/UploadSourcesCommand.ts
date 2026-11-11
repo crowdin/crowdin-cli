@@ -102,8 +102,7 @@ interface UploadRun {
   fileService: FileService;
   stringService: StringService;
   branch: SourceFilesModel.Branch | undefined;
-  // Set only on strings-based projects, which can't upload without a branch.
-  stringsBranchId: number | undefined;
+  isStringsBased: boolean;
   projectFilePaths: Map<string, number>;
   projectFilesById: Map<number, SourceFilesModel.File>;
   expectedProjectFilePaths: Set<string>;
@@ -167,15 +166,19 @@ export default class UploadSourcesCommand {
     this.validateExcludedTargetLanguages(patternFilePaths, project.targetLanguages);
 
     const branch = await this.resolveBranch(branchService, options, output);
+    // A dry run doesn't create a missing branch; the real run would start it empty, so loading
+    // with no branch id would plan against the root tree instead.
+    const isBranchMissing = !branch && Boolean(options.branch) && options.branch !== 'none';
 
-    if (isStringsBased && !branch) {
+    if (isStringsBased && !branch && !isBranchMissing) {
       throw new CliError('A branch is required to upload sources for a strings-based project');
     }
 
     const branchId = branch?.id;
     const branchName = branch?.name;
-    const projectFiles = isStringsBased ? [] : await fileService.loadProjectFiles(branchId);
-    const projectDirectoryList = isStringsBased ? [] : await directoryService.loadProjectDirectories(branchId);
+    const skipProjectTree = isStringsBased || isBranchMissing;
+    const projectFiles = skipProjectTree ? [] : await fileService.loadProjectFiles(branchId);
+    const projectDirectoryList = skipProjectTree ? [] : await directoryService.loadProjectDirectories(branchId);
     const run: UploadRun = {
       options,
       basePath: config.basePath,
@@ -185,7 +188,7 @@ export default class UploadSourcesCommand {
       fileService,
       stringService,
       branch,
-      stringsBranchId: isStringsBased ? branchId : undefined,
+      isStringsBased,
       // Server paths carry the branch name; the project paths resolved from the config never do.
       projectFilePaths: new Map(projectFiles.map((file) => [stripBranchPrefix(file.path, branchName), file.id])),
       projectFilesById: new Map(projectFiles.map((file) => [file.id, file])),
@@ -338,7 +341,7 @@ export default class UploadSourcesCommand {
     const srxPath = patterns.custom_segmentation;
 
     // Strings-based import options ignore srxStorageId, so skip uploading the srx storage there.
-    if (!srxPath || run.options.dryrun || run.stringsBranchId !== undefined) {
+    if (!srxPath || run.options.dryrun || run.isStringsBased) {
       return undefined;
     }
 
@@ -358,7 +361,7 @@ export default class UploadSourcesCommand {
   }
 
   private async uploadSource(run: UploadRun, group: SourceGroup, paths: SourcePaths): Promise<void> {
-    const { output, seenFilePaths, uploadedSources, stringsBranchId } = run;
+    const { output, seenFilePaths, uploadedSources } = run;
     const { projectPath, localFilePath } = paths;
 
     if (seenFilePaths.has(projectPath)) {
@@ -379,8 +382,8 @@ export default class UploadSourcesCommand {
 
     const upload: SourceUpload = { ...group, ...paths, localFile };
 
-    if (stringsBranchId !== undefined) {
-      await this.uploadStrings(run, upload, stringsBranchId);
+    if (run.isStringsBased) {
+      await this.uploadStrings(run, upload);
       return;
     }
 
@@ -393,7 +396,7 @@ export default class UploadSourcesCommand {
     }
   }
 
-  private async uploadStrings(run: UploadRun, upload: SourceUpload, branchId: number): Promise<void> {
+  private async uploadStrings(run: UploadRun, upload: SourceUpload): Promise<void> {
     const { localFile, localFilePath, projectPath, patterns, labelIds } = upload;
 
     if (run.options.dryrun) {
@@ -401,6 +404,8 @@ export default class UploadSourcesCommand {
       return;
     }
 
+    // Only a dry run may lack the branch, and it returned above; a real run requires one up front.
+    const branchId = run.branch?.id as number;
     const checksum = run.sourceHashes ? await computeChecksum(localFile) : undefined;
 
     if (this.skipIfUpToDate(run, upload, checksum)) {

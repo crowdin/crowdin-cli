@@ -10,7 +10,6 @@ export const list = {
   file: {
     name: 'file',
     type: 'string',
-    variadic: true,
     description: 'Filter strings by file path in Crowdin',
   },
   filter: {

@@ -22,7 +22,7 @@ import { add, edit, list } from './options.ts';
 import { createStringView } from './views.ts';
 
 interface ListOptions extends GlobalOptions {
-  file?: string | string[];
+  file?: string;
   filter?: string;
   branch?: string;
   label?: string | string[];
@@ -158,7 +158,7 @@ export default class StringCommand {
 
   listAction = async (command: Command) => {
     const options = command.optsWithGlobals() as ListOptions;
-    const filePath = Array.isArray(options.file) ? options.file[0] : options.file;
+    const filePath = options.file;
     const labelNames = toArray(options.label);
     const directory = options.directory;
 
