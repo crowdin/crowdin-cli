@@ -13,7 +13,7 @@ import type {
   GetTaskService,
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
-import { toArray, toNumberArray } from '@/cli/utils/parsing.ts';
+import { toArray } from '@/cli/utils/parsing.ts';
 import {
   assigneeId,
   description,
@@ -30,7 +30,7 @@ import { taskVerboseView, taskView } from './views.ts';
 
 interface ListOptions extends GlobalOptions {
   status?: string;
-  assigneeId?: string;
+  assigneeId?: number;
 }
 
 interface AddOptions extends GlobalOptions {
@@ -38,7 +38,7 @@ interface AddOptions extends GlobalOptions {
   language?: string;
   file?: string | string[];
   branch?: string;
-  workflowStep?: string;
+  workflowStep?: number;
   description?: string;
   skipAssignedStrings?: boolean;
   includePreTranslatedStringsOnly?: boolean;
@@ -109,7 +109,7 @@ export default class TaskCommand {
       throw new CliError(`Unsupported status: '${options.status}'`);
     }
 
-    const [assigneeFilter] = toNumberArray(options.assigneeId, "The '--assignee-id' value must be numeric");
+    const assigneeFilter = options.assigneeId;
     const output = this.getOutput(command);
     const taskService = await this.getTaskService(command);
     let tasks = await taskService.list(taskStatus);
@@ -126,7 +126,7 @@ export default class TaskCommand {
     const options = command.optsWithGlobals() as AddOptions;
     const files = toArray(options.file);
     const type = options.type?.toLowerCase();
-    const [workflowStepId] = toNumberArray(options.workflowStep, "The '--workflow-step' value must be numeric");
+    const workflowStepId = options.workflowStep;
 
     if (!title) {
       throw new CliError('Task title can not be empty');

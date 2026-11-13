@@ -21,7 +21,7 @@ import type { CommandDef } from '@/cli/types.ts';
 import { colors } from '@/cli/utils/colors.ts';
 import { isStructuredFormat } from '@/cli/utils/formatter.ts';
 import type { View } from '@/cli/utils/output.ts';
-import { parseNumericId, toArray, toNumberArray } from '@/cli/utils/parsing.ts';
+import { parseNumericId, toArray } from '@/cli/utils/parsing.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
 import {
   autoTag,
@@ -36,7 +36,7 @@ import {
 } from './options.ts';
 
 interface ListOptions extends GlobalOptions {
-  stringId?: string | string[];
+  stringId?: number[];
   search?: string;
   label?: string[];
   excludeLabel?: string[];
@@ -130,7 +130,7 @@ export default class ScreenshotCommand {
     const screenshotService = await this.getScreenshotService(command);
     const { labelIds, excludeLabelIds } = await this.resolveFilterLabelIds(command, options);
     const screenshots = await screenshotService.list({
-      stringIds: toNumberArray(options.stringId, "The '--string-id' value must be numeric"),
+      stringIds: options.stringId ?? [],
       search: options.search,
       labelIds,
       excludeLabelIds,

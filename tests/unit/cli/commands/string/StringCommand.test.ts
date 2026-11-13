@@ -395,18 +395,11 @@ describe('StringCommand', () => {
       const cmd = createStringCommand();
       projectService.loadProject.mockResolvedValue(stringsBasedProject);
       branchService.resolveBranchId.mockResolvedValue(555);
-      const commandContext = createCommandContext({ ...globalOptions, branch: 'main', maxLength: '999' }, ['hello']);
+      const commandContext = createCommandContext({ ...globalOptions, branch: 'main', maxLength: 999 }, ['hello']);
 
       await cmd.addAction(commandContext);
 
       expect(stringService.add).toHaveBeenCalledWith(expect.objectContaining({ maxLength: 999 }));
-    });
-
-    test('rejects a non-numeric max-length', async () => {
-      const cmd = createStringCommand();
-      const commandContext = createCommandContext({ ...globalOptions, maxLength: 'abc' }, ['hello']);
-
-      expect(cmd.addAction(commandContext)).rejects.toThrow("The '--max-length' value must be numeric");
     });
 
     test('creates string-based plural string', async () => {

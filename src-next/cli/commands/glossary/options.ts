@@ -18,7 +18,7 @@ export const to: OptionDef = {
 
 export const id: OptionDef = {
   name: 'id',
-  type: 'string',
+  type: 'number',
   description: 'Glossary identifier for uploading to the existing glossary',
 };
 

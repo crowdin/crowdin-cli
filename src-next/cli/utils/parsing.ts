@@ -24,29 +24,6 @@ export function toArray<T = string>(value: T | T[] | undefined): T[] {
   return Array.isArray(value) ? value : [value];
 }
 
-type NumericInput = string | number | Array<string | number> | undefined;
-
-export function toNumberArray(value: NumericInput, errorMessage: string): number[] {
-  if (value === undefined || value === '') {
-    return [];
-  }
-
-  const values = Array.isArray(value) ? value : [value];
-
-  return values.map((entry) => {
-    // String input is held to the same grammar as parseNumericId.
-    if (typeof entry === 'number') {
-      return entry;
-    }
-
-    if (!/^[+-]?\d+$/.test(entry)) {
-      throw new ValidationError(errorMessage);
-    }
-
-    return Number(entry);
-  });
-}
-
 // Server paths never carry a trailing separator, so a path typed as 'en/' has to lose it before it
 // can be compared against one — otherwise '--directory en/' matches nothing.
 export function normalizePath(value: string): string {

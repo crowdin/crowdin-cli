@@ -30,7 +30,6 @@ import { downloadToFile } from '@/cli/utils/downloadToFile.ts';
 import { printFileTree } from '@/cli/utils/fileTree.ts';
 import { isMachineFormat, isStructuredFormat } from '@/cli/utils/formatter.ts';
 import type { Output, View } from '@/cli/utils/output.ts';
-import { toNumberArray } from '@/cli/utils/parsing.ts';
 import type { Config } from '@/lib/config.ts';
 import { resolveLanguagePlaceholders } from '@/lib/export/languagePlaceholders.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
@@ -46,7 +45,7 @@ import { fileVerboseView, fileView } from './views.ts';
 interface UploadFileCommandOptions extends GlobalOptions {
   dest?: string;
   type?: string;
-  parserVersion?: string;
+  parserVersion?: number;
   label?: string[];
   branch?: string;
   tree?: boolean;
@@ -184,7 +183,7 @@ export default class FileCommand {
     const labelService = await this.getLabelService(command);
     const branchService = await this.getBranchService(command);
     const fileType = options.type as SourceFilesModel.FileType | undefined;
-    const [parserVersion] = toNumberArray(options.parserVersion, "The '--parser-version' value must be numeric");
+    const { parserVersion } = options;
 
     if (!filePath) {
       throw new CliError('File path is required');

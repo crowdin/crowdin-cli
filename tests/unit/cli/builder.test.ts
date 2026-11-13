@@ -49,6 +49,35 @@ describe('buildOption', () => {
     expect(() => command.parse([], { from: 'user' })).toThrow(/required option .* not specified/);
     expect(() => command.parse(['-l', 'uk'], { from: 'user' })).not.toThrow();
   });
+
+  test('parses a number option into a number', () => {
+    const command = new Command()
+      .addOption(buildOption({ name: 'engine-id', type: 'number', description: 'd' }))
+      .exitOverride();
+
+    expect(command.parse(['--engine-id', '-7'], { from: 'user' }).opts().engineId).toBe(-7);
+  });
+
+  test('collects a variadic number option across repeated flags', () => {
+    const command = new Command()
+      .addOption(buildOption({ name: 'bundle-id', type: 'number', variadic: true, description: 'd' }))
+      .exitOverride();
+
+    expect(command.parse(['--bundle-id', '1', '2', '--bundle-id', '3'], { from: 'user' }).opts().bundleId).toEqual([
+      1, 2, 3,
+    ]);
+  });
+
+  test.each(['abc', '1.5', '1e3', '0x10', ' 12 ', 'Infinity', ''])('rejects %p as a usage error', (value) => {
+    const command = new Command()
+      .addOption(buildOption({ name: 'engine-id', type: 'number', description: 'd' }))
+      .exitOverride()
+      .configureOutput({ writeErr: () => undefined });
+
+    expect(() => command.parse(['--engine-id', value], { from: 'user' })).toThrow(
+      expect.objectContaining({ code: 'commander.invalidArgument' }),
+    );
+  });
 });
 
 describe('buildCommand arguments', () => {

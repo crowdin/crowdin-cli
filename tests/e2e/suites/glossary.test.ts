@@ -121,19 +121,16 @@ describe('glossary', () => {
   // `uploadAction` validates before it builds any service, so none of these reach the API.
   test('rejects a file that does not exist', async () => {
     const result = await ctx.runner.run(['glossary', 'upload', 'sources/missing.tbx', '--language', 'uk']);
-
     expectFailure(result, 1, "File 'sources/missing.tbx' not found in the Crowdin project");
   });
 
   test('rejects a directory', async () => {
     const result = await ctx.runner.run(['glossary', 'upload', 'sources', '--language', 'uk']);
-
     expectFailure(result, 1, 'The specified file is a directory');
   });
 
   test('rejects an unsupported file extension', async () => {
     const result = await ctx.runner.run(['glossary', 'upload', 'sources/unsupported.txt', '--language', 'uk']);
-
     expectFailure(result, 1, 'Supported formats: tbx, csv, xlsx');
   });
 
@@ -154,7 +151,6 @@ describe('glossary', () => {
 
   test('rejects a CSV without a scheme', async () => {
     const result = await ctx.runner.run(['glossary', 'upload', 'sources/simple-glossary.csv', '--language', 'en']);
-
     expectFailure(result, 1, 'Scheme is required for CSV or XLS/XLSX files');
   });
 
@@ -187,14 +183,12 @@ describe('glossary', () => {
 
   test('requires --language when creating a new glossary', async () => {
     const result = await ctx.runner.run(['glossary', 'upload', 'sources/simple-glossary.tbx']);
-
     expectFailure(result, 1, "'--language' is required for creating new glossary");
   });
 
   test('rejects a non-numeric --id on upload', async () => {
     const result = await ctx.runner.run(['glossary', 'upload', 'sources/simple-glossary.tbx', '--id', 'not-a-number']);
-
-    expectFailure(result, 2, 'Glossary id must be numeric');
+    expectFailure(result, 2, "option '--id <id>' argument 'not-a-number' is invalid");
   });
 
   test('uploads a TBX glossary, creating it', async () => {

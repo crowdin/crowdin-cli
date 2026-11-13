@@ -28,7 +28,7 @@ export const upload = {
   },
   parserVersion: {
     name: 'parser-version',
-    type: 'string',
+    type: 'number',
     description: "Parser version. Must be used together with the 'type' option",
   },
   excludedLanguage: {

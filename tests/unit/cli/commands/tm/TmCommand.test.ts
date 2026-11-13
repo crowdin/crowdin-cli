@@ -350,7 +350,7 @@ describe('TmCommand', () => {
       const tmCommand = createTmCommand();
       output = createOutput({ ...globalOptions, output: 'text' });
 
-      await tmCommand.uploadAction(createCommandContext({ id: '42' }, [tmxFile]));
+      await tmCommand.uploadAction(createCommandContext({ id: 42 }, [tmxFile]));
 
       expect(tmService.get).toHaveBeenCalledWith(42);
       expect(tmService.add).not.toHaveBeenCalled();
@@ -364,7 +364,7 @@ describe('TmCommand', () => {
       const tmCommand = createTmCommand();
       const item = spyOn(output, 'item');
 
-      await tmCommand.uploadAction(createCommandContext({ id: '42' }, [tmxFile]));
+      await tmCommand.uploadAction(createCommandContext({ id: 42 }, [tmxFile]));
 
       expect(item).toHaveBeenCalledWith(createTm(), expect.anything(), { mark: false });
     });
@@ -399,7 +399,7 @@ describe('TmCommand', () => {
       await writeFile(csvFile, 'en,uk');
 
       await tmCommand.uploadAction(
-        createCommandContext({ id: '42', scheme: ['en=0', 'uk=1'], firstLineContainsHeader: true }, [csvFile]),
+        createCommandContext({ id: 42, scheme: ['en=0', 'uk=1'], firstLineContainsHeader: true }, [csvFile]),
       );
 
       expect(tmService.import).toHaveBeenCalledWith(42, {
@@ -413,7 +413,7 @@ describe('TmCommand', () => {
       const tmCommand = createTmCommand();
       const missing = join(tempDir, 'missing.tmx');
 
-      expect(tmCommand.uploadAction(createCommandContext({ id: '42' }, [missing]))).rejects.toThrow(
+      expect(tmCommand.uploadAction(createCommandContext({ id: 42 }, [missing]))).rejects.toThrow(
         new CliError(`File '${missing}' not found in the Crowdin project`),
       );
       expect(tmService.get).not.toHaveBeenCalled();
@@ -424,7 +424,7 @@ describe('TmCommand', () => {
       const folder = join(tempDir, 'folder.tmx');
       await mkdir(folder);
 
-      expect(tmCommand.uploadAction(createCommandContext({ id: '42' }, [folder]))).rejects.toThrow(
+      expect(tmCommand.uploadAction(createCommandContext({ id: 42 }, [folder]))).rejects.toThrow(
         new CliError('The specified file is a directory'),
       );
       expect(tmService.get).not.toHaveBeenCalled();
@@ -435,7 +435,7 @@ describe('TmCommand', () => {
       const csvFile = join(tempDir, 'file.csv');
       await writeFile(csvFile, 'en,uk');
 
-      expect(tmCommand.uploadAction(createCommandContext({ id: '42' }, [csvFile]))).rejects.toThrow(
+      expect(tmCommand.uploadAction(createCommandContext({ id: 42 }, [csvFile]))).rejects.toThrow(
         new CliError('Scheme is required for CSV or XLS/XLSX files'),
       );
       expect(tmService.get).not.toHaveBeenCalled();
@@ -446,7 +446,7 @@ describe('TmCommand', () => {
       const tbxFile = join(tempDir, 'file.tbx');
       await writeFile(tbxFile, '<tbx/>');
 
-      expect(tmCommand.uploadAction(createCommandContext({ id: '42' }, [tbxFile]))).rejects.toThrow(
+      expect(tmCommand.uploadAction(createCommandContext({ id: 42 }, [tbxFile]))).rejects.toThrow(
         new CliError('Supported formats: tmx, csv, xlsx'),
       );
       expect(tmService.get).not.toHaveBeenCalled();
@@ -456,7 +456,7 @@ describe('TmCommand', () => {
       const tmCommand = createTmCommand();
 
       expect(
-        tmCommand.uploadAction(createCommandContext({ id: '42', firstLineContainsHeader: true }, [tmxFile])),
+        tmCommand.uploadAction(createCommandContext({ id: 42, firstLineContainsHeader: true }, [tmxFile])),
       ).rejects.toThrow(new CliError("'--first-line-contains-header' is used only for CSV or XLS/XLSX files"));
       expect(tmService.get).not.toHaveBeenCalled();
     });
@@ -470,21 +470,12 @@ describe('TmCommand', () => {
       expect(tmService.add).not.toHaveBeenCalled();
     });
 
-    test('requires a numeric translation memory id', async () => {
-      const tmCommand = createTmCommand();
-
-      expect(tmCommand.uploadAction(createCommandContext({ id: 'abc' }, [tmxFile]))).rejects.toThrow(
-        new CliError('Translation memory id must be numeric'),
-      );
-      expect(tmService.get).not.toHaveBeenCalled();
-    });
-
     test('throws error for a malformed scheme value', async () => {
       const tmCommand = createTmCommand();
       const csvFile = join(tempDir, 'file.csv');
       await writeFile(csvFile, 'en,uk');
 
-      expect(tmCommand.uploadAction(createCommandContext({ id: '42', scheme: ['en'] }, [csvFile]))).rejects.toThrow(
+      expect(tmCommand.uploadAction(createCommandContext({ id: 42, scheme: ['en'] }, [csvFile]))).rejects.toThrow(
         new CliError(
           "The '--scheme' parameter has an invalid value 'en'. Expected format: <column>=<index> (e.g. en=0)",
         ),
@@ -496,7 +487,7 @@ describe('TmCommand', () => {
       const tmCommand = createTmCommand();
       tmService.get.mockRejectedValue(new CliError('Failed to get translation memory #43'));
 
-      expect(tmCommand.uploadAction(createCommandContext({ id: '43' }, [tmxFile]))).rejects.toThrow(
+      expect(tmCommand.uploadAction(createCommandContext({ id: 43 }, [tmxFile]))).rejects.toThrow(
         new CliError('Failed to get translation memory #43'),
       );
       expect(storageService.addStorage).not.toHaveBeenCalled();
@@ -507,7 +498,7 @@ describe('TmCommand', () => {
       const tmCommand = createTmCommand();
       storageService.addStorage.mockRejectedValue(new CliError('Failed to upload file.tmx'));
 
-      expect(tmCommand.uploadAction(createCommandContext({ id: '42' }, [tmxFile]))).rejects.toThrow(
+      expect(tmCommand.uploadAction(createCommandContext({ id: 42 }, [tmxFile]))).rejects.toThrow(
         new CliError('Failed to upload file.tmx'),
       );
       expect(tmService.import).not.toHaveBeenCalled();

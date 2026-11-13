@@ -38,7 +38,7 @@ interface DownloadOptions extends GlobalOptions {
 }
 
 interface UploadOptions extends GlobalOptions {
-  id?: string;
+  id?: number;
   language?: string;
   scheme?: string | string[];
   firstLineContainsHeader?: boolean;
@@ -164,7 +164,7 @@ export default class TmCommand {
     const [fileArg] = command.args as [string];
     const options = command.optsWithGlobals() as UploadOptions;
     const extension = path.extname(fileArg).replace(/^\./, '').toLowerCase();
-    const id = options.id === undefined ? undefined : parseNumericId(options.id, 'Translation memory');
+    const { id } = options;
     const scheme = parseScheme(toArray(options.scheme));
     const fileStat = await stat(fileArg).catch(() => undefined);
 

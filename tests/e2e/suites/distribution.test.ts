@@ -93,7 +93,6 @@ describe('distribution', () => {
 
   test('rejects an unknown subcommand', async () => {
     const result = await ctx.runner.run(['distribution', 'bogus']);
-
     expectFailure(result, 2, "unknown command 'bogus'");
   });
 
@@ -107,21 +106,17 @@ describe('distribution', () => {
 
   test('requires a name to add', async () => {
     const result = await ctx.runner.run(['distribution', 'add']);
-
     expectFailure(result, 2, "missing required argument 'name'");
   });
 
   test('requires at least one bundle id', async () => {
     const result = await ctx.runner.run(['distribution', 'add', 'D1']);
-
     expectFailure(result, 1, 'Bundle IDs are required. Use --bundle-id <id> (can be specified multiple times)');
   });
 
   test('rejects a non-numeric bundle id', async () => {
     const result = await ctx.runner.run(['distribution', 'add', 'D1', '--bundle-id', 'abc']);
-
-    // toNumberArray raises a validation error, so exit 2 rather than the generic 1.
-    expectFailure(result, 2, 'Invalid bundle id');
+    expectFailure(result, 2, "option '--bundle-id <bundle-id...>' argument 'abc' is invalid");
   });
 
   test('adds a distribution for a bundle', async () => {
@@ -158,20 +153,17 @@ describe('distribution', () => {
 
   test('requires a hash to edit', async () => {
     const result = await ctx.runner.run(['distribution', 'edit']);
-
     expectFailure(result, 2, "missing required argument 'hash'");
   });
 
   test('requires at least one parameter to edit', async () => {
     const result = await ctx.runner.run(['distribution', 'edit', hash]);
-
     expectFailure(result, 1, 'Specify the parameters to edit the distribution');
   });
 
   test('rejects editing a hash that does not exist', async () => {
     // editAction calls getByHash before patching, so an unknown hash fails before any write.
     const result = await ctx.runner.run(['distribution', 'edit', 'nosuchhash', '--name', 'X']);
-
     expectFailure(result, 1, "Couldn't find distribution with the specified hash");
   });
 
@@ -192,7 +184,6 @@ describe('distribution', () => {
 
   test('rejects releasing a hash that does not exist', async () => {
     const result = await ctx.runner.run(['distribution', 'release', 'nosuchhash']);
-
     expectFailure(result, 1, "Couldn't find distribution with the specified hash");
   });
 
@@ -208,13 +199,11 @@ describe('distribution', () => {
 
   test('rejects an empty distribution name on add', async () => {
     const result = await ctx.runner.run(['distribution', 'add', '']);
-
     expectFailure(result, 1, 'Distribution name is required');
   });
 
   test.each([['edit'], ['release']])('rejects an empty distribution hash on %s', async (subcommand) => {
     const result = await ctx.runner.run(['distribution', subcommand, '']);
-
     expectFailure(result, 1, 'Distribution hash is required');
   });
 });

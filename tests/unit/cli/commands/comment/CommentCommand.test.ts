@@ -72,8 +72,9 @@ describe('CommentCommand', () => {
   describe('addAction', () => {
     test('adds a comment and outputs it', async () => {
       const cmd = createCommentCommand();
+      // biome-ignore format: one argument per line
       const commandContext = createCommandContext(
-        { ...globalOptions, stringId: '42', language: 'uk', type: 'comment' },
+        { ...globalOptions, stringId: 42, language: 'uk', type: 'comment' },
         ['Hello world'],
       );
 
@@ -98,7 +99,7 @@ describe('CommentCommand', () => {
       const commandContext = createCommandContext(
         {
           ...globalOptions,
-          stringId: '10',
+          stringId: 10,
           language: 'fr',
           type: 'issue',
           issueType: 'general_question',
@@ -124,7 +125,7 @@ describe('CommentCommand', () => {
 
     test('defaults type to comment when not provided', async () => {
       const cmd = createCommentCommand();
-      const commandContext = createCommandContext({ ...globalOptions, stringId: '5', language: 'de' }, ['Nice string']);
+      const commandContext = createCommandContext({ ...globalOptions, stringId: 5, language: 'de' }, ['Nice string']);
 
       spyOn(commentService, 'add').mockResolvedValue({ id: 1, text: 'Nice string' } as never);
 
@@ -135,7 +136,7 @@ describe('CommentCommand', () => {
 
     test('throws when text is missing', async () => {
       const cmd = createCommentCommand();
-      const commandContext = createCommandContext({ ...globalOptions, stringId: '1', language: 'en' }, []);
+      const commandContext = createCommandContext({ ...globalOptions, stringId: 1, language: 'en' }, []);
 
       expect(cmd.addAction(commandContext)).rejects.toThrow(new CliError('String comment text is required'));
     });
@@ -149,7 +150,7 @@ describe('CommentCommand', () => {
 
     test('adds a comment without --language', async () => {
       const cmd = createCommentCommand();
-      const commandContext = createCommandContext({ ...globalOptions, stringId: '42', type: 'comment' }, ['No lang']);
+      const commandContext = createCommandContext({ ...globalOptions, stringId: 42, type: 'comment' }, ['No lang']);
       const addSpy = spyOn(commentService, 'add').mockResolvedValue({ id: 11, text: 'No lang' } as never);
 
       await cmd.addAction(commandContext);
@@ -164,7 +165,7 @@ describe('CommentCommand', () => {
 
     test('throws when --language is missing for --type=issue', async () => {
       const cmd = createCommentCommand();
-      const commandContext = createCommandContext({ ...globalOptions, stringId: '1', type: 'issue' }, ['text']);
+      const commandContext = createCommandContext({ ...globalOptions, stringId: 1, type: 'issue' }, ['text']);
 
       expect(cmd.addAction(commandContext)).rejects.toThrow(
         new CliError("The '--language' option is required when --type=issue"),
@@ -176,7 +177,7 @@ describe('CommentCommand', () => {
       const commandContext = createCommandContext(
         {
           ...globalOptions,
-          stringId: '1',
+          stringId: 1,
           language: 'en',
           type: 'comment',
           issueType: 'general_question',
@@ -191,7 +192,7 @@ describe('CommentCommand', () => {
 
     test('propagates service errors', async () => {
       const cmd = createCommentCommand();
-      const commandContext = createCommandContext({ ...globalOptions, stringId: '1', language: 'en' }, ['text']);
+      const commandContext = createCommandContext({ ...globalOptions, stringId: 1, language: 'en' }, ['text']);
 
       spyOn(commentService, 'add').mockRejectedValue(new CliError('Comment was not added'));
 
@@ -200,7 +201,7 @@ describe('CommentCommand', () => {
 
     test('omits targetLanguageId from service payload when --language is not provided', async () => {
       const cmd = createCommentCommand();
-      const commandContext = createCommandContext({ ...globalOptions, stringId: '8' }, ['no-lang']);
+      const commandContext = createCommandContext({ ...globalOptions, stringId: 8 }, ['no-lang']);
 
       const addSpy = spyOn(apiClient.stringCommentsApi, 'addStringComment').mockResolvedValue({
         data: { id: 1, text: 'no-lang' },
@@ -300,7 +301,7 @@ describe('CommentCommand', () => {
       const cmd = createCommentCommand();
       const commandContext = createCommandContext({
         ...globalOptions,
-        stringId: '77',
+        stringId: 77,
         type: 'issue',
         issueType: 'source_mistake',
         status: 'unresolved',

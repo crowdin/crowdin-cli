@@ -10,7 +10,7 @@ import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetOutput, GetProjectConfig, GetStorageService, GetStyleGuideService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { downloadToFile } from '@/cli/utils/downloadToFile.ts';
-import { parseNumericId, toArray, toNumberArray } from '@/cli/utils/parsing.ts';
+import { parseNumericId, toArray } from '@/cli/utils/parsing.ts';
 import { toSafeFileName } from '@/lib/utils/path.ts';
 import {
   id as idOption,
@@ -31,9 +31,9 @@ interface DownloadOptions extends GlobalOptions {
 }
 
 interface UploadOptions extends GlobalOptions {
-  id?: string;
+  id?: number;
   name?: string;
-  project?: string | string[];
+  project?: number[];
   language?: string | string[];
   shared?: boolean;
 }
@@ -149,8 +149,8 @@ export default class StyleGuideCommand {
   uploadAction = async (command: Command) => {
     const [fileArg] = command.args as [string];
     const options = command.optsWithGlobals() as UploadOptions;
-    const id = options.id === undefined ? undefined : parseNumericId(options.id, 'Style guide');
-    const projectIds = toNumberArray(options.project, 'Invalid project id');
+    const { id } = options;
+    const projectIds = options.project ?? [];
     const languageIds = toArray(options.language);
 
     if (id !== undefined) {

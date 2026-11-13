@@ -7,13 +7,12 @@ import type { GetDistributionService, GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { colors } from '@/cli/utils/colors.ts';
 import type { View } from '@/cli/utils/output.ts';
-import { toNumberArray } from '@/cli/utils/parsing.ts';
 import { withSpinner } from '@/cli/utils/withSpinner.ts';
 import { bundleId, name } from './options.ts';
 
 interface DistributionOptions extends GlobalOptions {
   name?: string;
-  bundleId?: number | string | Array<number | string>;
+  bundleId?: number[];
 }
 
 // Shared by list and the add/edit echoes, so the plain echo keeps the hash that `release`/`edit`
@@ -98,7 +97,7 @@ export default class DistributionCommand {
   addAction = async (command: Command) => {
     const [distributionName] = command.args;
     const options = command.optsWithGlobals() as DistributionOptions;
-    const bundleIds = toNumberArray(options.bundleId, 'Invalid bundle id');
+    const bundleIds = options.bundleId ?? [];
 
     if (!distributionName) {
       throw new CliError('Distribution name is required');
@@ -118,7 +117,6 @@ export default class DistributionCommand {
   editAction = async (command: Command) => {
     const [hash] = command.args;
     const options = command.optsWithGlobals() as DistributionOptions;
-    const bundleIds = toNumberArray(options.bundleId, 'Invalid bundle id');
     const patch: PatchRequest[] = [];
 
     if (!hash) {
@@ -130,7 +128,7 @@ export default class DistributionCommand {
     }
 
     if (options.bundleId !== undefined) {
-      patch.push({ op: 'replace', path: '/bundleIds', value: bundleIds });
+      patch.push({ op: 'replace', path: '/bundleIds', value: options.bundleId });
     }
 
     if (patch.length === 0) {

@@ -137,19 +137,16 @@ describe('tm', () => {
   // `uploadAction` validates before it builds any service, so none of these reach the API.
   test('rejects a file that does not exist', async () => {
     const result = await ctx.runner.run(['tm', 'upload', 'sources/missing.tmx', '--language', 'en']);
-
     expectFailure(result, 1, "File 'sources/missing.tmx' not found in the Crowdin project");
   });
 
   test('rejects a directory', async () => {
     const result = await ctx.runner.run(['tm', 'upload', 'sources', '--language', 'en']);
-
     expectFailure(result, 1, 'The specified file is a directory');
   });
 
   test('rejects a CSV without a scheme', async () => {
     const result = await ctx.runner.run(['tm', 'upload', 'sources/simple-tm.csv', '--language', 'uk']);
-
     expectFailure(result, 1, 'Scheme is required for CSV or XLS/XLSX files');
   });
 
@@ -169,7 +166,6 @@ describe('tm', () => {
 
   test('rejects an unsupported file extension', async () => {
     const result = await ctx.runner.run(['tm', 'upload', 'sources/unsupported.txt', '--language', 'en']);
-
     expectFailure(result, 1, 'Supported formats: tmx, csv, xlsx');
   });
 
@@ -188,7 +184,6 @@ describe('tm', () => {
 
   test('requires --language when creating a new translation memory', async () => {
     const result = await ctx.runner.run(['tm', 'upload', 'sources/simple-tm.tmx']);
-
     expectFailure(result, 1, "'--language' is required for creating new translation memory");
   });
 
@@ -308,31 +303,26 @@ describe('tm', () => {
   // Like the upload guards, these all fire before the TM is fetched - hence the arbitrary id.
   test('rejects a non-numeric translation memory id', async () => {
     const result = await ctx.runner.run(['tm', 'download', 'not-a-number']);
-
     expectFailure(result, 2, 'Translation memory id must be numeric');
   });
 
   test('rejects a --to extension that is not a supported format', async () => {
     const result = await ctx.runner.run(['tm', 'download', '1', '--to', 'download/out.txt']);
-
     expectFailure(result, 1, 'Supported formats: tmx, csv, xlsx');
   });
 
   test('rejects --source-language-id without --target-language-id', async () => {
     const result = await ctx.runner.run(['tm', 'download', '1', '--source-language-id', 'en']);
-
     expectFailure(result, 1, "'--target-language-id' must be specified along with '--source-language-id'");
   });
 
   test('rejects --target-language-id without --source-language-id', async () => {
     const result = await ctx.runner.run(['tm', 'download', '1', '--target-language-id', 'uk']);
-
     expectFailure(result, 1, "'--source-language-id' must be specified along with '--target-language-id'");
   });
 
   test('reports a translation memory that does not exist', async () => {
     const result = await ctx.runner.run(['tm', 'download', String(MISSING_TM_ID)]);
-
     expectFailure(result, 102, 'Not Found');
   });
 
@@ -480,8 +470,7 @@ describe('tm', () => {
 
   test('rejects a non-numeric --id on upload', async () => {
     const result = await ctx.runner.run(['tm', 'upload', 'sources/simple-tm.tmx', '--id', 'not-a-number']);
-
-    expectFailure(result, 2, 'Translation memory id must be numeric');
+    expectFailure(result, 2, "option '--id <id>' argument 'not-a-number' is invalid");
   });
 
   test('lists translation memories authenticating via -T against a config without an api_token', async () => {
