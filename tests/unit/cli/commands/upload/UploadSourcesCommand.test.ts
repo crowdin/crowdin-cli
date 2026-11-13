@@ -1423,6 +1423,37 @@ describe('UploadSourcesCommand', () => {
     expect(fileService.deleteProjectFile).not.toHaveBeenCalledWith(77, expect.anything());
   });
 
+  test('matches obsolete files of a dest-mapped group by its dest pattern, not its source', async () => {
+    await Bun.write(`${tempDir}/src/app.json`, '{}');
+
+    const fileService = {
+      ...baseFileServiceMock(),
+      loadProjectFiles: mock(async () => [
+        { id: 77, path: '/out/app.json' }, // the local source's upload target -> retained
+        { id: 88, path: '/out/stale.json' }, // matches dest 'out/*.json' -> obsolete
+        { id: 99, path: '/out/notes.txt' }, // outside the dest pattern -> kept
+        { id: 66, path: '/src/legacy.json' }, // matches source, but this group uploads under dest -> kept
+      ]),
+    };
+    const command = createUploadCommand(
+      tempDir,
+      createOutputMock(),
+      baseProjectServiceMock(),
+      { addStorage: mock(async () => ({ id: 10 })) },
+      baseBranchServiceMock(),
+      baseDirectoryServiceMock(),
+      fileService,
+      baseLabelServiceMock(),
+      baseTranslationServiceMock(),
+      { dest: '/out/%original_file_name%' },
+    );
+
+    await command.uploadSourcesAction(commandContext({ deleteObsolete: true, autoUpdate: false }));
+
+    expect(fileService.deleteProjectFile).toHaveBeenCalledWith(88, '/out/stale.json');
+    expect(fileService.deleteProjectFile).toHaveBeenCalledTimes(1);
+  });
+
   test('dry-runs obsolete project deletion without mutating project', async () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
 
