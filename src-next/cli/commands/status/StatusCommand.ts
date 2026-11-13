@@ -91,10 +91,6 @@ export default class StatusCommand {
       throw new CliError(`Language '${languageId}' doesn't exist in the project. Try specifying another language code`);
     }
 
-    if (filePath && directoryPath) {
-      throw new CliError("Only one of the following options can be used at a time: '--file', '--directory'");
-    }
-
     const projectBranch = await branchService.resolveBranch(options.branch);
     let progressData: LanguageProgress[];
 

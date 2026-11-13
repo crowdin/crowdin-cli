@@ -2,6 +2,7 @@ import type { ProjectsGroupsModel, TranslationsModel } from '@crowdin/crowdin-ap
 import type { Command } from 'commander';
 import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
+import ValidationError from '@/cli/errors/ValidationError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { LabelService } from '@/cli/services/LabelService.ts';
 import type { PreTranslationStatus, TranslationService } from '@/cli/services/TranslationService.ts';
@@ -181,12 +182,8 @@ export default class AutoTranslateCommand {
     const { translationModifiedBefore, sourceLanguage: sourceLanguageId } = options;
     const replaceTranslations = this.resolveReplaceTranslationsOption(options.replaceTranslationsOption);
 
-    if (directoryPath && files.length > 0) {
-      throw new CliError("Either '--file' or '--directory' can be specified");
-    }
-
     if (excludeLanguageIds && languageIds && !this.isAllLanguages(languageIds)) {
-      throw new CliError("The '--language' and '--exclude-language' options can't be used simultaneously");
+      throw new ValidationError("The '--language' and '--exclude-language' options can't be used simultaneously");
     }
 
     if (translateMethod === 'mt' && engineIdValue === undefined) {

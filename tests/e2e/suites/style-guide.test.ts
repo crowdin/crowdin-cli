@@ -101,7 +101,7 @@ describe('style-guide', () => {
       'uk',
     ]);
 
-    expectFailure(result, 2, "'--name', '--language' can't be used with '--id'");
+    expectFailure(result, 2, "option '--id <id>' cannot be used with option '--name <name>'");
   });
 
   test('rejects --shared together with --project', async () => {
@@ -114,7 +114,7 @@ describe('style-guide', () => {
       String(ctx.project.id),
     ]);
 
-    expectFailure(result, 2, "'--shared' can't be used with '--project'");
+    expectFailure(result, 2, "option '--shared' cannot be used with option '--project <project...>'");
   });
 
   test('rejects a non-numeric --id on upload', async () => {

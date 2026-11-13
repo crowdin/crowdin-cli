@@ -166,6 +166,10 @@ export function buildOption(opt: OptionDef): Option {
     option.choices(opt.choices);
   }
 
+  if (opt.conflicts) {
+    option.conflicts(opt.conflicts.map(toAttributeName));
+  }
+
   if (opt.required) {
     option.makeOptionMandatory();
   }
@@ -175,4 +179,9 @@ export function buildOption(opt: OptionDef): Option {
   }
 
   return option;
+}
+
+// commander matches conflicts by attribute name, the camelCase form of the flag: 'dry-run' -> 'dryRun'.
+function toAttributeName(optionName: string): string {
+  return optionName.replace(/-([a-z])/g, (_, char: string) => char.toUpperCase());
 }

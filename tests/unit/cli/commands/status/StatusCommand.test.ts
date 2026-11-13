@@ -353,19 +353,4 @@ describe('StatusCommand', () => {
       new CliError("Project doesn't contain the 'feature/docs/readme.md' file"),
     );
   });
-
-  test('rejects when both --file and --directory are passed', async () => {
-    const statusCommand = createStatusCommand();
-    commandContext = createCommandContext({
-      ...globalOptions,
-      file: 'docs/readme.md',
-      directory: 'docs',
-    });
-
-    spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
-
-    expect(statusCommand.defaultAction(commandContext)).rejects.toThrow(
-      new CliError("Only one of the following options can be used at a time: '--file', '--directory'"),
-    );
-  });
 });

@@ -370,14 +370,6 @@ export default class ScreenshotCommand {
         throw new CliError(`'--auto-tag' is required for '${flag}' option`);
       }
     }
-
-    const selected = targetingFlags.filter(([key]) => Boolean(options[key]));
-
-    if (selected.length > 1) {
-      throw new CliError(
-        "Only one of the following options can be used at a time: '--file', '--branch' or '--directory'",
-      );
-    }
   }
 
   private async isDirectory(inputPath: string): Promise<boolean> {

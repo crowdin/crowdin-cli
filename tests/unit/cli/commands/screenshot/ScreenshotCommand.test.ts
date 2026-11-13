@@ -268,20 +268,6 @@ describe('ScreenshotCommand', () => {
     ).rejects.toThrow(new CliError("'--auto-tag' is required for '--directory' option"));
   });
 
-  test('uploadAction validates mutually exclusive targeting options', async () => {
-    const cmd = createScreenshotCommand();
-    const localPath = path.join(tempDirectory, 'welcome.png');
-    await writeFile(localPath, 'image');
-
-    expect(
-      cmd.uploadAction(
-        createCommandContext({ ...globalOptions, autoTag: true, file: '/home/index.ts', branch: 'main' }, [localPath]),
-      ),
-    ).rejects.toThrow(
-      new CliError("Only one of the following options can be used at a time: '--file', '--branch' or '--directory'"),
-    );
-  });
-
   test('listAction accepts multiple string ids', async () => {
     const cmd = createScreenshotCommand();
 

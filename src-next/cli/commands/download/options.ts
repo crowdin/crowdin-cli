@@ -13,6 +13,7 @@ export const excludeLanguage: OptionDef = {
   type: 'string',
   variadic: true,
   description: 'Skip the language during download. Can be specified multiple times',
+  conflicts: ['language'],
 };
 
 export const exportOnlyApproved: OptionDef = {
