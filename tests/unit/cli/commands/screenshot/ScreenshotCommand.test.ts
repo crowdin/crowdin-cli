@@ -285,13 +285,9 @@ describe('ScreenshotCommand', () => {
   test('listAction accepts multiple string ids', async () => {
     const cmd = createScreenshotCommand();
 
-    await cmd.listAction(createCommandContext({ ...globalOptions, stringId: ['42', '43'] }));
+    await cmd.listAction(createCommandContext({ ...globalOptions, stringId: [42, 43] }));
 
     expect(screenshotService.list).toHaveBeenCalledWith(expect.objectContaining({ stringIds: [42, 43] }));
-
-    expect(cmd.listAction(createCommandContext({ ...globalOptions, stringId: ['x'] }))).rejects.toThrow(
-      new CliError("The '--string-id' value must be numeric"),
-    );
   });
 
   test('listAction resolves label filters to ids and fails on unknown labels', async () => {

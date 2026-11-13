@@ -60,7 +60,7 @@ describe('FileCommand', () => {
     basePath?: string;
     dest?: string;
     type?: string;
-    parserVersion?: string;
+    parserVersion?: number;
     label?: string[];
     branch?: string;
     tree?: boolean;
@@ -321,7 +321,7 @@ describe('FileCommand', () => {
         output: 'json',
         dest: 'nested/translations/remote.json',
         type: 'json',
-        parserVersion: '2',
+        parserVersion: 2,
       },
       [localFilePath],
     );
@@ -427,22 +427,11 @@ describe('FileCommand', () => {
 
     await Bun.write(localFilePath, '{}');
 
-    commandContext = createCommandContext({ ...globalOptions, parserVersion: '2' }, [localFilePath]);
+    commandContext = createCommandContext({ ...globalOptions, parserVersion: 2 }, [localFilePath]);
 
     expect(fileCommand.uploadAction(commandContext)).rejects.toThrow(
       new CliError("'--type' is required for '--parser-version' option"),
     );
-  });
-
-  test.each(['abc', '2x'])('rejects a non-numeric --parser-version %p', async (parserVersion) => {
-    const fileCommand = createFileCommand();
-    const localFilePath = join(tempDir, 'example.json');
-
-    await Bun.write(localFilePath, '{}');
-
-    commandContext = createCommandContext({ ...globalOptions, type: 'json', parserVersion }, [localFilePath]);
-
-    expect(fileCommand.uploadAction(commandContext)).rejects.toThrow("The '--parser-version' value must be numeric");
   });
 
   test('rejects a missing local file', async () => {

@@ -580,17 +580,6 @@ describe('AutoTranslateCommand', () => {
       );
     });
 
-    test.each([
-      ['engineId', 'abc', "The '--engine-id' value must be numeric"],
-      ['engineId', '1.5', "The '--engine-id' value must be numeric"],
-      ['aiPrompt', '0x10', "The '--ai-prompt' value must be numeric"],
-    ])("rejects a non-integer '%s' value %p", async (option, value, message) => {
-      const command = createCommand();
-      commandContext = createCommandContext({ ...globalOptions, method: 'mt', [option]: value });
-
-      expect(command.defaultAction(commandContext)).rejects.toThrow(new CliError(message));
-    });
-
     test("throws when '--translate-with-perfect-match-only' is used with a non-tm method", async () => {
       const command = createCommand();
       commandContext = createCommandContext({

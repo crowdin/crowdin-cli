@@ -75,19 +75,16 @@ describe('style-guide', () => {
   // `uploadAction` validates before it builds any service, so none of these reach the API.
   test('rejects a file that does not exist', async () => {
     const result = await ctx.runner.run(['style-guide', 'upload', 'sources/missing.md']);
-
     expectFailure(result, 1, "File 'sources/missing.md' not found");
   });
 
   test('rejects a directory', async () => {
     const result = await ctx.runner.run(['style-guide', 'upload', 'sources']);
-
     expectFailure(result, 1, 'The specified file is a directory');
   });
 
   test('rejects an unsupported file extension', async () => {
     const result = await ctx.runner.run(['style-guide', 'upload', 'sources/unsupported.txt']);
-
     expectFailure(result, 1, 'Supported formats: md, pdf, docx, xlsx');
   });
 
@@ -122,8 +119,7 @@ describe('style-guide', () => {
 
   test('rejects a non-numeric --id on upload', async () => {
     const result = await ctx.runner.run(['style-guide', 'upload', 'sources/acme-style-guide.md', '--id', 'abc']);
-
-    expectFailure(result, 2, 'Style guide id must be numeric');
+    expectFailure(result, 2, "option '--id <id>' argument 'abc' is invalid");
   });
 
   test('creates a style guide assigned to the project and a language', async () => {
@@ -229,13 +225,11 @@ describe('style-guide', () => {
 
   test('rejects a non-numeric style guide id on download', async () => {
     const result = await ctx.runner.run(['style-guide', 'download', 'not-a-number']);
-
     expectFailure(result, 2, 'Style guide id must be numeric');
   });
 
   test('reports a style guide that does not exist', async () => {
     const result = await ctx.runner.run(['style-guide', 'download', String(MISSING_STYLE_GUIDE_ID)]);
-
     expectFailure(result, 102, 'Not Found');
   });
 
@@ -330,7 +324,6 @@ describe('style-guide', () => {
 
   test('reports a style guide that is already deleted', async () => {
     const result = await ctx.runner.run(['style-guide', 'delete', String(unassignedId)]);
-
     expectFailure(result, 102, 'Not Found');
   });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import CliError, { ExitCode } from '@/cli/errors/CliError.ts';
-import { normalizeBranchName, normalizePath, parseNumericId, parseScheme, toNumberArray } from '@/cli/utils/parsing.ts';
+import { normalizeBranchName, normalizePath, parseNumericId, parseScheme } from '@/cli/utils/parsing.ts';
 
 // Ids must be plain integers; anything else is a usage error. Number() would accept all of the below and forward junk to the API as a real id.
 describe('parseNumericId', () => {
@@ -62,17 +62,6 @@ describe('parseScheme', () => {
     } catch (error) {
       expect(CliError.getExitCode(error)).toBe(ExitCode.VALIDATION);
     }
-  });
-});
-
-describe('toNumberArray', () => {
-  test('accepts integers and passes through real numbers', () => {
-    expect(toNumberArray(['1', '2'], 'bad')).toEqual([1, 2]);
-    expect(toNumberArray([3, '4'], 'bad')).toEqual([3, 4]);
-  });
-
-  test.each(['1.5', '1e3', ' 1 '])('rejects %p', (value) => {
-    expect(() => toNumberArray([value], "'--label' value must be numeric")).toThrow('must be numeric');
   });
 });
 

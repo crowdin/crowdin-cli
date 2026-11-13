@@ -5,7 +5,7 @@ import type { OptionDef } from '@/cli/types.ts';
 // --string-id is shared verbatim, so it stays a single const referenced by both.
 const stringId: OptionDef = {
   name: 'string-id',
-  type: 'string',
+  type: 'number',
   description: 'Numeric string identifier',
 };
 

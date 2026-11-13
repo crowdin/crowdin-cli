@@ -30,7 +30,7 @@ export const to: OptionDef = {
 
 export const id: OptionDef = {
   name: 'id',
-  type: 'string',
+  type: 'number',
   description: 'Translation memory identifier for uploading to the existing TM',
 };
 

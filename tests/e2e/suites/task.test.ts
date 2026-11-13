@@ -94,7 +94,6 @@ describe('task', () => {
 
   test('rejects an unknown subcommand', async () => {
     const result = await ctx.runner.run(['task', 'bogus']);
-
     expectFailure(result, 2, "unknown command 'bogus'");
   });
 
@@ -108,31 +107,26 @@ describe('task', () => {
 
   test('requires a title', async () => {
     const result = await ctx.runner.run(['task', 'add']);
-
     expectFailure(result, 2, "missing required argument 'title'");
   });
 
   test('requires a language', async () => {
     const result = await ctx.runner.run(['task', 'add', 'T1']);
-
     expectFailure(result, 1, 'Language can not be empty. (e.g. es-ES, en-US)');
   });
 
   test('requires at least one file', async () => {
     const result = await ctx.runner.run(['task', 'add', 'T1', '--language', 'uk']);
-
     expectFailure(result, 1, "The '--file' value can not be empty");
   });
 
   test.skipIf(isEnterprise)('requires a type outside Enterprise', async () => {
     const result = await ctx.runner.run(['task', 'add', 'T1', '--language', 'uk', '--file', 'sources/1_android.xml']);
-
     expectFailure(result, 1, 'Task type can not be empty. Possible values: translate, proofread');
   });
 
   test.if(isEnterprise)('requires a workflow step on Enterprise', async () => {
     const result = await ctx.runner.run(['task', 'add', 'T1', '--language', 'uk', '--file', 'sources/1_android.xml']);
-
     expectFailure(result, 1, 'Workflow step id can not be empty');
   });
 
@@ -326,15 +320,12 @@ describe('task', () => {
 
   test('rejects an unsupported status', async () => {
     const result = await ctx.runner.run(['task', 'list', '--status', 'bogus']);
-
     expectFailure(result, 1, "Unsupported status: 'bogus'");
   });
 
   test('rejects a non-numeric --assignee-id', async () => {
     const result = await ctx.runner.run(['task', 'list', '--assignee-id', 'abc']);
-
-    // toNumberArray raises a validation error, so exit 2 rather than the generic 1.
-    expectFailure(result, 2, "The '--assignee-id' value must be numeric");
+    expectFailure(result, 2, "option '--assignee-id <assignee-id>' argument 'abc' is invalid");
   });
 
   test('filters by assignee, client-side', async () => {
@@ -347,7 +338,6 @@ describe('task', () => {
 
   test('rejects an empty task title', async () => {
     const result = await ctx.runner.run(['task', 'add', '']);
-
     expectFailure(result, 1, 'Task title can not be empty');
   });
 });

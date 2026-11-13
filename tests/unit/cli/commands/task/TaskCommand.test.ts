@@ -89,13 +89,6 @@ describe('TaskCommand', () => {
       expect(cmd.listAction(commandContext)).rejects.toThrow(new CliError("Unsupported status: 'unknown'"));
     });
 
-    test('throws when assignee id is not numeric', async () => {
-      const cmd = createTaskCommand();
-      const commandContext = createCommandContext({ ...globalOptions, assigneeId: 'abc' });
-
-      expect(cmd.listAction(commandContext)).rejects.toThrow(new CliError("The '--assignee-id' value must be numeric"));
-    });
-
     test('serializes the tasks themselves in structured formats', async () => {
       const cmd = createTaskCommand();
       const commandContext = createCommandContext({ ...globalOptions, status: 'todo' });
@@ -144,7 +137,7 @@ describe('TaskCommand', () => {
 
     test('filters by assignee id', async () => {
       const cmd = createTaskCommand();
-      const commandContext = createCommandContext({ ...globalOptions, assigneeId: '101' });
+      const commandContext = createCommandContext({ ...globalOptions, assigneeId: 101 });
       taskService.list.mockResolvedValue([
         createTask({
           id: 1,
@@ -321,7 +314,7 @@ describe('TaskCommand', () => {
           ...globalOptions,
           language: 'it',
           file: ['content.md'],
-          workflowStep: '7',
+          workflowStep: 7,
           skipAssignedStrings: true,
         },
         ['Enterprise task'],

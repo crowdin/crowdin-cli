@@ -135,7 +135,7 @@ describe('DistributionCommand', () => {
   test('echoes hash and name in plain format after add', async () => {
     output = createOutput({ ...globalOptions, output: 'plain' });
     const distributionCommand = createDistributionCommand();
-    const commandContext = createCommandContext({ ...globalOptions, output: 'plain', bundleId: ['4'] }, ['CDN']);
+    const commandContext = createCommandContext({ ...globalOptions, output: 'plain', bundleId: [4] }, ['CDN']);
 
     distributionService.add.mockResolvedValue(createDistribution({ hash: 'hash-1', name: 'CDN' }));
     await distributionCommand.addAction(commandContext);
@@ -145,7 +145,7 @@ describe('DistributionCommand', () => {
 
   test('adds distribution with bundle IDs', async () => {
     const distributionCommand = createDistributionCommand();
-    const commandContext = createCommandContext({ ...globalOptions, bundleId: ['4', '7'] }, ['CDN']);
+    const commandContext = createCommandContext({ ...globalOptions, bundleId: [4, 7] }, ['CDN']);
     const distribution = createDistribution({ hash: 'hash-1', name: 'CDN' });
 
     distributionService.add.mockResolvedValue(distribution);
@@ -175,7 +175,7 @@ describe('DistributionCommand', () => {
 
   test('edits distribution name and bundle IDs', async () => {
     const distributionCommand = createDistributionCommand();
-    const commandContext = createCommandContext({ ...globalOptions, name: 'New', bundleId: ['8', '9'] }, ['hash-1']);
+    const commandContext = createCommandContext({ ...globalOptions, name: 'New', bundleId: [8, 9] }, ['hash-1']);
 
     distributionService.edit.mockResolvedValue(createDistribution({ hash: 'hash-1', name: 'New' }));
     await distributionCommand.editAction(commandContext);

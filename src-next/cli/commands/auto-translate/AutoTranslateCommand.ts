@@ -16,7 +16,7 @@ import type {
 import type { CommandDef } from '@/cli/types.ts';
 import { isMachineFormat } from '@/cli/utils/formatter.ts';
 import type { Output } from '@/cli/utils/output.ts';
-import { normalizePath, toNumberArray } from '@/cli/utils/parsing.ts';
+import { normalizePath } from '@/cli/utils/parsing.ts';
 import { withSpinner } from '@/cli/utils/withSpinner.ts';
 import { FILE_MANAGEMENT_UNAVAILABLE, isStringsBasedProject } from '@/lib/project/type.ts';
 import { stripBranchPrefix } from '@/lib/utils/path.ts';
@@ -169,8 +169,7 @@ export default class AutoTranslateCommand {
     const translationService = await this.getTranslationService(command);
 
     const translateMethod = this.resolveMethod(options.method);
-    const [engineIdValue] = toNumberArray(options.engineId, "The '--engine-id' value must be numeric");
-    const [aiPromptId] = toNumberArray(options.aiPrompt, "The '--ai-prompt' value must be numeric");
+    const { engineId: engineIdValue, aiPrompt: aiPromptId } = options;
     const files = (options.file ?? []).map((value) => normalizePath(value));
     const directoryPath = options.directory ? normalizePath(options.directory) : undefined;
     const languageIds = options.language;

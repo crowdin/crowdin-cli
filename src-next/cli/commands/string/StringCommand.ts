@@ -16,7 +16,7 @@ import type {
 import type { CommandDef } from '@/cli/types.ts';
 import { isStructuredFormat } from '@/cli/utils/formatter.ts';
 import type { View } from '@/cli/utils/output.ts';
-import { parseNumericId, toArray, toNumberArray } from '@/cli/utils/parsing.ts';
+import { parseNumericId, toArray } from '@/cli/utils/parsing.ts';
 import { isStringsBasedProject } from '@/lib/project/type.ts';
 import { add, edit, list } from './options.ts';
 import { createStringView } from './views.ts';
@@ -33,7 +33,7 @@ interface ListOptions extends GlobalOptions {
 
 interface AddOptions extends GlobalOptions {
   identifier?: string;
-  maxLength?: number | string;
+  maxLength?: number;
   context?: string;
   file?: string | string[];
   label?: string | string[];
@@ -50,7 +50,7 @@ interface EditOptions extends GlobalOptions {
   identifier?: string;
   text?: string;
   context?: string;
-  maxLength?: number | string;
+  maxLength?: number;
   label?: string | string[];
   hidden?: boolean;
 }
@@ -241,9 +241,7 @@ export default class StringCommand {
       throw new CliError('Source string text can not be empty');
     }
 
-    // Commander yields option values as strings, so the request builders below would forward
-    // '999' to an int field and the API would reject it.
-    const [maxLength] = toNumberArray(options.maxLength, "The '--max-length' value must be numeric");
+    const { maxLength } = options;
 
     if (maxLength !== undefined && maxLength < 0) {
       throw new CliError("'--max-length' cannot be lower than 0");
@@ -324,7 +322,7 @@ export default class StringCommand {
       throw new CliError('Specify some parameters to edit the string');
     }
 
-    const [maxLength] = toNumberArray(options.maxLength, "The '--max-length' value must be numeric");
+    const { maxLength } = options;
 
     if (maxLength !== undefined && maxLength < 0) {
       throw new CliError("'--max-length' cannot be lower than 0");

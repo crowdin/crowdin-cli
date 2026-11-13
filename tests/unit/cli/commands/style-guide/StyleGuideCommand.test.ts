@@ -252,7 +252,7 @@ describe('StyleGuideCommand', () => {
 
     test('passes name, assignments and shared flag on create', async () => {
       await createStyleGuideCommand().uploadAction(
-        createCommandContext({ name: 'Brand', project: ['1', '2'], language: ['uk', 'de'] }, [file]),
+        createCommandContext({ name: 'Brand', project: [1, 2], language: ['uk', 'de'] }, [file]),
       );
       await createStyleGuideCommand().uploadAction(createCommandContext({ shared: true }, [file]));
 
@@ -266,17 +266,17 @@ describe('StyleGuideCommand', () => {
     });
 
     test('replaces the file of an existing guide with --id', async () => {
-      await createStyleGuideCommand().uploadAction(createCommandContext({ id: '42' }, [file]));
+      await createStyleGuideCommand().uploadAction(createCommandContext({ id: 42 }, [file]));
 
       expect(styleGuideService.replaceFile).toHaveBeenCalledWith(42, 52);
       expect(styleGuideService.add).not.toHaveBeenCalled();
     });
 
     test.each([
-      [{ id: '42', name: 'x' }, "'--name' can't be used with '--id'"],
-      [{ id: '42', project: ['1'], shared: true }, "'--project', '--shared' can't be used with '--id'"],
-      [{ id: '42', language: 'uk' }, "'--language' can't be used with '--id'"],
-      [{ shared: true, project: ['1'] }, "'--shared' can't be used with '--project'"],
+      [{ id: 42, name: 'x' }, "'--name' can't be used with '--id'"],
+      [{ id: 42, project: [1], shared: true }, "'--project', '--shared' can't be used with '--id'"],
+      [{ id: 42, language: 'uk' }, "'--language' can't be used with '--id'"],
+      [{ shared: true, project: [1] }, "'--shared' can't be used with '--project'"],
     ])('rejects conflicting options %p', async (options, message) => {
       expect(createStyleGuideCommand().uploadAction(createCommandContext(options, [file]))).rejects.toThrow(
         new ValidationError(message),

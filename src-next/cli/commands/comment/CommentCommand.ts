@@ -10,14 +10,14 @@ import { add, list } from './options.ts';
 import { commentVerboseView, commentView } from './views.ts';
 
 interface AddOptions extends GlobalOptions {
-  stringId?: string;
+  stringId?: number;
   language?: string;
   type?: string;
   issueType?: string;
 }
 
 interface ListOptions extends GlobalOptions {
-  stringId?: string;
+  stringId?: number;
   type?: string;
   issueType?: string;
   status?: string;
@@ -100,7 +100,7 @@ export default class CommentCommand {
     const commentService = await this.getCommentService(command);
     const comment = await commentService.add({
       text,
-      stringId: Number(options.stringId),
+      stringId: options.stringId,
       ...(options.language ? { targetLanguageId: options.language } : {}),
       type,
       ...(issueTypeValue ? { issueType: issueTypeValue } : {}),
@@ -123,7 +123,7 @@ export default class CommentCommand {
     }
 
     const comments = await commentService.list({
-      ...(options.stringId !== undefined ? { stringId: Number(options.stringId) } : {}),
+      ...(options.stringId !== undefined ? { stringId: options.stringId } : {}),
       ...(type ? { type } : {}),
       ...(options.issueType ? { issueType: options.issueType as StringCommentsModel.IssueType } : {}),
       ...(status ? { status } : {}),

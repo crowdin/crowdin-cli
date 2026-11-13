@@ -61,7 +61,6 @@ describe('screenshot', () => {
 
   test('rejects an unknown subcommand', async () => {
     const result = await ctx.runner.run(['screenshot', 'bogus']);
-
     expectFailure(result, 2, "unknown command 'bogus'");
   });
 
@@ -75,13 +74,11 @@ describe('screenshot', () => {
 
   test('requires a file path', async () => {
     const result = await ctx.runner.run(['screenshot', 'upload']);
-
     expectFailure(result, 2, "missing required argument 'path'");
   });
 
   test('rejects a path that does not exist locally', async () => {
     const result = await ctx.runner.run(['screenshot', 'upload', 'images/missing.png']);
-
     expectFailure(result, 1, "File 'images/missing.png' not found in the Crowdin project");
   });
 
@@ -195,7 +192,6 @@ describe('screenshot', () => {
 
   test('filters by name with --search', async () => {
     const screenshots = await listScreenshots(['--search', 'second']);
-
     expect(screenshots.map((screenshot) => screenshot.name)).toEqual(['second.png']);
   });
 
@@ -211,19 +207,16 @@ describe('screenshot', () => {
 
   test('rejects a label the project does not have', async () => {
     const result = await ctx.runner.run(['screenshot', 'list', '--label', 'no-such-label']);
-
     expectFailure(result, 1, "Project doesn't contain the 'no-such-label' label");
   });
 
   test('rejects a non-numeric --string-id', async () => {
     const result = await ctx.runner.run(['screenshot', 'list', '--string-id', 'abc']);
-
-    expectFailure(result, 2, "The '--string-id' value must be numeric");
+    expectFailure(result, 2, "option '--string-id <string-id...>' argument 'abc' is invalid");
   });
 
   test('rejects a non-numeric id to delete', async () => {
     const result = await ctx.runner.run(['screenshot', 'delete', 'abc']);
-
     expectFailure(result, 2, 'Screenshot id must be numeric');
   });
 
@@ -257,7 +250,6 @@ describe('screenshot', () => {
 
   test('rejects an empty screenshot path', async () => {
     const result = await ctx.runner.run(['screenshot', 'upload', '']);
-
     expectFailure(result, 1, 'Screenshot path can not be empty');
   });
 });

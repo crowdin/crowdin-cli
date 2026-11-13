@@ -374,7 +374,7 @@ describe('GlossaryCommand', () => {
       const glossaryCommand = createGlossaryCommand();
       output = createOutput({ ...globalOptions, output: 'text' });
 
-      await glossaryCommand.uploadAction(createCommandContext({ id: '42' }, [tbxFile]));
+      await glossaryCommand.uploadAction(createCommandContext({ id: 42 }, [tbxFile]));
 
       expect(glossaryService.get).toHaveBeenCalledWith(42);
       expect(glossaryService.add).not.toHaveBeenCalled();
@@ -388,7 +388,7 @@ describe('GlossaryCommand', () => {
       const glossaryCommand = createGlossaryCommand();
       const item = spyOn(output, 'item');
 
-      await glossaryCommand.uploadAction(createCommandContext({ id: '42' }, [tbxFile]));
+      await glossaryCommand.uploadAction(createCommandContext({ id: 42 }, [tbxFile]));
 
       expect(item).toHaveBeenCalledWith(createGlossary(), expect.anything(), { mark: false });
     });
@@ -423,9 +423,11 @@ describe('GlossaryCommand', () => {
       await writeFile(csvFile, 'term_en,description_en');
 
       await glossaryCommand.uploadAction(
-        createCommandContext({ id: '42', scheme: ['term_en=0', 'description_en=1'], firstLineContainsHeader: true }, [
-          csvFile,
-        ]),
+        // biome-ignore format: one argument per line
+        createCommandContext(
+          { id: 42, scheme: ['term_en=0', 'description_en=1'], firstLineContainsHeader: true },
+          [csvFile],
+        ),
       );
 
       expect(glossaryService.import).toHaveBeenCalledWith(42, {
@@ -439,7 +441,7 @@ describe('GlossaryCommand', () => {
       const glossaryCommand = createGlossaryCommand();
       const missing = join(tempDir, 'missing.tbx');
 
-      expect(glossaryCommand.uploadAction(createCommandContext({ id: '42' }, [missing]))).rejects.toThrow(
+      expect(glossaryCommand.uploadAction(createCommandContext({ id: 42 }, [missing]))).rejects.toThrow(
         new CliError(`File '${missing}' not found in the Crowdin project`),
       );
       expect(glossaryService.get).not.toHaveBeenCalled();
@@ -450,7 +452,7 @@ describe('GlossaryCommand', () => {
       const folder = join(tempDir, 'folder.tbx');
       await mkdir(folder);
 
-      expect(glossaryCommand.uploadAction(createCommandContext({ id: '42' }, [folder]))).rejects.toThrow(
+      expect(glossaryCommand.uploadAction(createCommandContext({ id: 42 }, [folder]))).rejects.toThrow(
         new CliError('The specified file is a directory'),
       );
       expect(glossaryService.get).not.toHaveBeenCalled();
@@ -461,7 +463,7 @@ describe('GlossaryCommand', () => {
       const txtFile = join(tempDir, 'file.txt');
       await writeFile(txtFile, 'text');
 
-      expect(glossaryCommand.uploadAction(createCommandContext({ id: '42' }, [txtFile]))).rejects.toThrow(
+      expect(glossaryCommand.uploadAction(createCommandContext({ id: 42 }, [txtFile]))).rejects.toThrow(
         new CliError('Supported formats: tbx, csv, xlsx'),
       );
       expect(glossaryService.get).not.toHaveBeenCalled();
@@ -471,7 +473,7 @@ describe('GlossaryCommand', () => {
       const glossaryCommand = createGlossaryCommand();
 
       expect(
-        glossaryCommand.uploadAction(createCommandContext({ id: '42', scheme: ['term_en=0'] }, [tbxFile])),
+        glossaryCommand.uploadAction(createCommandContext({ id: 42, scheme: ['term_en=0'] }, [tbxFile])),
       ).rejects.toThrow(new CliError('Scheme is used only for CSV or XLS/XLSX files'));
       expect(glossaryService.get).not.toHaveBeenCalled();
     });
@@ -481,7 +483,7 @@ describe('GlossaryCommand', () => {
       const csvFile = join(tempDir, 'file.csv');
       await writeFile(csvFile, 'term_en');
 
-      expect(glossaryCommand.uploadAction(createCommandContext({ id: '42' }, [csvFile]))).rejects.toThrow(
+      expect(glossaryCommand.uploadAction(createCommandContext({ id: 42 }, [csvFile]))).rejects.toThrow(
         new CliError('Scheme is required for CSV or XLS/XLSX files'),
       );
       expect(glossaryService.get).not.toHaveBeenCalled();
@@ -491,7 +493,7 @@ describe('GlossaryCommand', () => {
       const glossaryCommand = createGlossaryCommand();
 
       expect(
-        glossaryCommand.uploadAction(createCommandContext({ id: '42', firstLineContainsHeader: true }, [tbxFile])),
+        glossaryCommand.uploadAction(createCommandContext({ id: 42, firstLineContainsHeader: true }, [tbxFile])),
       ).rejects.toThrow(new CliError("'--first-line-contains-header' is used only for CSV or XLS/XLSX files"));
       expect(glossaryService.get).not.toHaveBeenCalled();
     });
@@ -505,22 +507,13 @@ describe('GlossaryCommand', () => {
       expect(glossaryService.add).not.toHaveBeenCalled();
     });
 
-    test('requires a numeric glossary id', async () => {
-      const glossaryCommand = createGlossaryCommand();
-
-      expect(glossaryCommand.uploadAction(createCommandContext({ id: 'abc' }, [tbxFile]))).rejects.toThrow(
-        new CliError('Glossary id must be numeric'),
-      );
-      expect(glossaryService.get).not.toHaveBeenCalled();
-    });
-
     test('throws error for a malformed scheme value', async () => {
       const glossaryCommand = createGlossaryCommand();
       const csvFile = join(tempDir, 'file.csv');
       await writeFile(csvFile, 'term_en');
 
       expect(
-        glossaryCommand.uploadAction(createCommandContext({ id: '42', scheme: ['term_en'] }, [csvFile])),
+        glossaryCommand.uploadAction(createCommandContext({ id: 42, scheme: ['term_en'] }, [csvFile])),
       ).rejects.toThrow(
         new CliError(
           "The '--scheme' parameter has an invalid value 'term_en'. Expected format: <column>=<index> (e.g. en=0)",
@@ -533,7 +526,7 @@ describe('GlossaryCommand', () => {
       const glossaryCommand = createGlossaryCommand();
       glossaryService.get.mockRejectedValue(new CliError('Failed to get glossary #43'));
 
-      expect(glossaryCommand.uploadAction(createCommandContext({ id: '43' }, [tbxFile]))).rejects.toThrow(
+      expect(glossaryCommand.uploadAction(createCommandContext({ id: 43 }, [tbxFile]))).rejects.toThrow(
         new CliError('Failed to get glossary #43'),
       );
       expect(storageService.addStorage).not.toHaveBeenCalled();
@@ -544,7 +537,7 @@ describe('GlossaryCommand', () => {
       const glossaryCommand = createGlossaryCommand();
       storageService.addStorage.mockRejectedValue(new CliError('Failed to upload file.tbx'));
 
-      expect(glossaryCommand.uploadAction(createCommandContext({ id: '42' }, [tbxFile]))).rejects.toThrow(
+      expect(glossaryCommand.uploadAction(createCommandContext({ id: 42 }, [tbxFile]))).rejects.toThrow(
         new CliError('Failed to upload file.tbx'),
       );
       expect(glossaryService.import).not.toHaveBeenCalled();

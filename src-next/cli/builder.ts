@@ -1,4 +1,4 @@
-import { Command, Option } from 'commander';
+import { Command, InvalidArgumentError, Option } from 'commander';
 import getGlobalOptions from './options.ts';
 import type { ArgumentDef, CommandDef, OptionDef, OptionGroupDef } from './types.ts';
 import { colors } from './utils/colors.ts';
@@ -123,6 +123,16 @@ function formatArgument(arg: ArgumentDef): string {
   return arg.optional ? `[${arg.name}]` : `<${arg.name}>`;
 }
 
+// Bad values become commander usage errors (exit 2). `Number()` alone would accept '1.5', '1e3',
+// '0x10', ' 12 ' and 'Infinity'.
+function parseInteger(value: string): number {
+  if (!/^[+-]?\d+$/.test(value)) {
+    throw new InvalidArgumentError('Expected an integer.');
+  }
+
+  return Number(value);
+}
+
 function isOptionGroup(item: OptionDef | OptionGroupDef): item is OptionGroupDef {
   return 'group' in item;
 }
@@ -139,6 +149,14 @@ export function buildOption(opt: OptionDef): Option {
   }
 
   const option = new Option(flags, opt.description);
+
+  if (opt.type === 'number') {
+    option.argParser(
+      opt.variadic
+        ? (value: string, previous: unknown) => [...(Array.isArray(previous) ? previous : []), parseInteger(value)]
+        : parseInteger,
+    );
+  }
 
   if (opt.default !== undefined) {
     option.default(opt.default);
