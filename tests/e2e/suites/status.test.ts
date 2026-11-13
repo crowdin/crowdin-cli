@@ -144,32 +144,28 @@ describe('status', () => {
   test('scopes the progress to one file with --file', async () => {
     // Counts, not percentages: uk is 100% at every scope, so only the totals prove the filter ran.
     const [italian] = await statusJson(['status', '-f', 'sources/1_android.xml', '--verbose']);
-
     expect(italian).toMatchObject({ language: 'it', totalPhrases: 5, totalWords: 20 });
   });
 
   test('rejects a file the project does not contain', async () => {
     const result = await ctx.runner.run(['status', '-f', 'nope.xml']);
-
     expectFailure(result, 1, "Project doesn't contain the 'nope.xml' file");
   });
 
   test('scopes the progress to one directory with --directory', async () => {
     const [italian] = await statusJson(['status', '-d', 'sources/nested', '--verbose']);
-
     expect(italian).toMatchObject({ language: 'it', totalPhrases: 3, totalWords: 12 });
   });
 
   test('rejects a directory the project does not contain', async () => {
     const result = await ctx.runner.run(['status', '-d', 'nope']);
-
     expectFailure(result, 1, "Project doesn't contain the 'nope' directory");
   });
 
   test('rejects --file and --directory together', async () => {
     const result = await ctx.runner.run(['status', '-f', 'sources/1_android.xml', '-d', 'sources/nested']);
 
-    expectFailure(result, 1, "Only one of the following options can be used at a time: '--file', '--directory'");
+    expectFailure(result, 2, "option '-f, --file <file>' cannot be used with option '-d, --directory <directory>'");
     expect(normalize(result.stderr)).toMatchSnapshot();
   });
 
@@ -192,7 +188,6 @@ describe('status', () => {
 
   test('fails --fail-if-incomplete for proofreading, which nothing here approves', async () => {
     const result = await ctx.runner.run(['status', 'proofreading', '--fail-if-incomplete']);
-
     expectFailure(result, 1, 'The current project is incomplete');
   });
 
@@ -212,7 +207,6 @@ describe('status', () => {
 
   test('rejects a branch that does not exist', async () => {
     const result = await ctx.runner.run(['status', '-b', 'nope']);
-
     expectFailure(result, 1, "Project doesn't contain the 'nope' branch");
   });
 });

@@ -31,6 +31,7 @@ export const file: OptionDef = {
   short: 'f',
   type: 'string',
   description: "Path to the source file in Crowdin. Requires the '--auto-tag' to be passed",
+  conflicts: ['branch', 'directory'],
 };
 
 export const branch: OptionDef = {
@@ -59,4 +60,5 @@ export const directory: OptionDef = {
   short: 'd',
   type: 'string',
   description: "Path to the directory in Crowdin. Requires the '--auto-tag' to be passed",
+  conflicts: ['branch'],
 };

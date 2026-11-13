@@ -5,7 +5,6 @@ import { assigned as assignedOption, baseConfigGroup } from '@/cli/commands/comm
 import { downloadedPathView } from '@/cli/commands/common/views.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
-import ValidationError from '@/cli/errors/ValidationError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetOutput, GetProjectConfig, GetStorageService, GetStyleGuideService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
@@ -152,23 +151,6 @@ export default class StyleGuideCommand {
     const { id } = options;
     const projectIds = options.project ?? [];
     const languageIds = toArray(options.language);
-
-    if (id !== undefined) {
-      const conflicting = [
-        options.name !== undefined && '--name',
-        projectIds.length > 0 && '--project',
-        languageIds.length > 0 && '--language',
-        options.shared !== undefined && '--shared',
-      ].filter(Boolean);
-
-      if (conflicting.length > 0) {
-        throw new ValidationError(`'${conflicting.join("', '")}' can't be used with '--id'`);
-      }
-    }
-
-    if (options.shared && projectIds.length > 0) {
-      throw new ValidationError("'--shared' can't be used with '--project'");
-    }
 
     const fileStat = await stat(fileArg).catch(() => undefined);
 

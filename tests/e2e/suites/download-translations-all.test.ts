@@ -225,7 +225,11 @@ describe('download translations --all', () => {
   test('rejects --language and --exclude-language together', async () => {
     const result = await ctx.runner.run(['download', 'translations', '-l', 'uk', '--exclude-language', 'it']);
 
-    expectFailure(result, 1, "The '--language' and '--exclude-language' options can't be used simultaneously");
+    expectFailure(
+      result,
+      2,
+      "option '-e, --exclude-language <exclude-language...>' cannot be used with option '-l, --language <language...>'",
+    );
   });
 
   test('rejects an excluded language the project does not target', async () => {

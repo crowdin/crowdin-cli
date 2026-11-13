@@ -6,6 +6,7 @@ export const file: OptionDef = {
   short: 'f',
   type: 'string',
   description: 'Path to the source file in Crowdin',
+  conflicts: ['directory'],
 };
 
 export const directory: OptionDef = {
