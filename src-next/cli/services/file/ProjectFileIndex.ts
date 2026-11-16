@@ -1,6 +1,6 @@
+import path from 'node:path';
 import type { SourceFilesModel } from '@crowdin/crowdin-api-client';
 import { normalizePath } from '@/cli/utils/parsing.ts';
-import { fileLookup } from '@/lib/upload/fileLookup.ts';
 import { stripBranchPrefix } from '@/lib/utils/path.ts';
 
 /**
@@ -10,14 +10,10 @@ import { stripBranchPrefix } from '@/lib/utils/path.ts';
 export class ProjectFileIndex {
   readonly files: SourceFilesModel.File[];
   private readonly byPath: Map<string, SourceFilesModel.File>;
-  private readonly byId: Map<number, SourceFilesModel.File>;
-  private readonly idsByPath: Map<string, number>;
 
   constructor(files: SourceFilesModel.File[], branchName?: string) {
     this.files = files.map((file) => ({ ...file, path: stripBranchPrefix(normalizePath(file.path), branchName) }));
     this.byPath = new Map(this.files.map((file) => [file.path, file]));
-    this.byId = new Map(this.files.map((file) => [file.id, file]));
-    this.idsByPath = new Map(this.files.map((file) => [file.path, file.id]));
   }
 
   exact(path: string): SourceFilesModel.File | undefined {
@@ -25,14 +21,39 @@ export class ProjectFileIndex {
   }
 
   /**
-   * Like `exact`, but falls back to a file whose path differs only by extension. `exact: false`
-   * marks that fallback, so the caller can rename the project file. Paths in `localPaths` are never
-   * a fallback: they have a local file of their own.
+   * Like `exact`, but falls back to a file whose path differs only by its last extension
+   * ('app.yml' for 'app.yaml'), or else by one extra extension ('app' for 'app.json'). `exact: false`
+   * marks a fallback, so the caller can rename the project file. Paths in `localPaths` are never a
+   * fallback: they have a local file of their own.
    */
   soft(path: string, localPaths?: Set<string>): { file: SourceFilesModel.File; exact: boolean } | undefined {
-    const match = fileLookup(normalizePath(path), this.idsByPath, localPaths);
-    const file = match && this.byId.get(match.id);
+    const wanted = normalizePath(path);
+    const exactMatch = this.byPath.get(wanted);
 
-    return file && { file, exact: match.exact };
+    if (exactMatch) {
+      return { file: exactMatch, exact: true };
+    }
+
+    let extraExtensionMatch: SourceFilesModel.File | undefined;
+
+    for (const file of this.files) {
+      if (localPaths?.has(file.path)) {
+        continue;
+      }
+
+      if (this.removeExtension(wanted) === this.removeExtension(file.path)) {
+        return { file, exact: false };
+      }
+
+      if (wanted === this.removeExtension(file.path) || this.removeExtension(wanted) === file.path) {
+        extraExtensionMatch = file;
+      }
+    }
+
+    return extraExtensionMatch && { file: extraExtensionMatch, exact: false };
+  }
+
+  private removeExtension(filePath: string): string {
+    return filePath.slice(0, filePath.length - path.posix.extname(filePath).length);
   }
 }

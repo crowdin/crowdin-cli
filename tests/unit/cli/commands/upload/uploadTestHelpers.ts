@@ -36,7 +36,6 @@ export function baseBranchServiceMock() {
 
 export function baseFileServiceMock() {
   return {
-    loadProjectFiles: mock(async () => []),
     loadIndex: mock(async () => new ProjectFileIndex([])),
     updateProjectFile: mock(async () => undefined),
     deleteProjectFile: mock(async () => undefined),
