@@ -98,12 +98,12 @@ export class FileService {
     rawPaths: string[],
     branch?: ProjectBranch,
   ): Promise<{ fileIds: number[]; missingPaths: string[] }> {
-    const fileIdsByPath = await this.loadFileIdsByPath(branch);
+    const index = await this.loadQuietIndex(branch);
     const fileIds: number[] = [];
     const missingPaths: string[] = [];
 
     for (const rawPath of rawPaths) {
-      const fileId = fileIdsByPath.get(normalizePath(rawPath));
+      const fileId = index.exact(rawPath)?.id;
 
       if (fileId === undefined) {
         missingPaths.push(rawPath);
@@ -154,11 +154,10 @@ export class FileService {
   // A file inside a branch is addressable only once '--branch' names that branch: the branch is
   // never part of '--file', so without the filter two branches holding the same relative path would
   // collide and one would silently win.
-  private async loadFileIdsByPath(branch?: ProjectBranch): Promise<Map<string, number>> {
+  // Same files as loadIndex, without its spinner.
+  private async loadQuietIndex(branch?: ProjectBranch): Promise<ProjectFileIndex> {
     const files = await this.fetchProjectFiles(branch?.id);
-    const addressable = branch ? files : files.filter((file) => file.branchId === null);
-
-    return new Map(addressable.map((file) => [this.toLookupPath(file.path, branch?.name), file.id]));
+    return new ProjectFileIndex(branch ? files : files.filter((file) => file.branchId == null), branch?.name);
   }
 
   // Unlike the lookup above this keeps branch files, because it labels strings that were already
@@ -172,16 +171,13 @@ export class FileService {
       files.map((file) => {
         // A branch file's server path starts with its branch name, so with no '--branch' to name it
         // the first segment is the branch — no second request to list them.
-        const branchName = file.branchId === null ? undefined : (branch?.name ?? this.firstPathSegment(file.path));
-
+        const branchName = file.branchId == null ? undefined : (branch?.name ?? this.firstPathSegment(file.path));
         return [file.id, { path: this.toLookupPath(file.path, branchName), branch: branchName }];
       }),
     );
   }
 
-  private async fetchProjectFiles(
-    branchId?: number,
-  ): Promise<Array<{ id: number; path: string; branchId: number | null }>> {
+  private async fetchProjectFiles(branchId?: number): Promise<SourceFilesModel.File[]> {
     try {
       const response = await this.apiClient.sourceFilesApi.withFetchAll().listProjectFiles(this.projectId, {
         ...(branchId !== undefined ? { branchId } : {}),
@@ -190,11 +186,7 @@ export class FileService {
 
       // Files nested in a branch's directories carry their branchId too, so it alone says whether
       // a file sits in a branch — no walking the directory chain up to one.
-      return response.data.map((entry) => ({
-        id: entry.data.id,
-        path: entry.data.path,
-        branchId: entry.data.branchId ?? null,
-      }));
+      return response.data.map((entry) => entry.data);
     } catch (error) {
       throw toCliError(error, 'Failed to fetch project files');
     }

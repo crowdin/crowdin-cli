@@ -13,7 +13,6 @@ import type {
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { isStructuredFormat } from '@/cli/utils/formatter.ts';
-import { stripBranchPrefix, toPosixPath, toProjectPath } from '@/lib/utils/path.ts';
 import { directory, file, proofreading, status, translation } from './options.ts';
 import { type ProgressRow, type ProgressView, statusPlainView, statusTableView, toProgressList } from './views.ts';
 
@@ -95,14 +94,7 @@ export default class StatusCommand {
     let progressData: LanguageProgress[];
 
     if (filePath) {
-      const projectFiles = await fileService.loadProjectFiles(projectBranch?.id);
-      const normalizedFilePath = this.normalizePath(filePath);
-      // Server paths carry the branch name, '--file' never does, so the branch only arrives
-      // through '--branch' (same addressing as FileService.resolveFileIds).
-      const projectFile = projectFiles.find(
-        (fileEntry) =>
-          stripBranchPrefix(this.normalizePath(fileEntry.path), projectBranch?.name) === normalizedFilePath,
-      );
+      const projectFile = (await fileService.loadIndex(projectBranch)).exact(filePath);
 
       if (!projectFile) {
         throw new CliError(`Project doesn't contain the '${filePath}' file`);
@@ -158,10 +150,6 @@ export default class StatusCommand {
       words: entry.words,
       phrases: entry.phrases,
     }));
-  }
-
-  private normalizePath(value: string): string {
-    return toProjectPath(toPosixPath(value));
   }
 
   private getTranslationProgress(progress: LanguageProgress): number {
