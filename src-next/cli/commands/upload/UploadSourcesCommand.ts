@@ -44,6 +44,7 @@ import {
   buildImportOptions,
   buildStringsImportOptions,
   changedFileSettings,
+  prepareDest,
   replaceFileDependentPlaceholders,
   resolveProjectPath,
 } from '@/lib/upload/fileOptions.ts';
@@ -640,11 +641,7 @@ export default class UploadSourcesCommand {
     const obsoleteFiles = projectFiles.filter(
       (projectFile) =>
         !retainedFileIds.has(projectFile.id) &&
-        this.isManagedBySourcePatterns(
-          stripBranch(projectFile.path),
-          getExportPattern(projectFile.exportOptions),
-          config,
-        ),
+        this.isManagedByConfig(stripBranch(projectFile.path), getExportPattern(projectFile.exportOptions), config),
     );
 
     for (const projectFile of obsoleteFiles) {
@@ -715,20 +712,24 @@ export default class UploadSourcesCommand {
 
   /**
    * Whether a project file is covered by any configured group (and not ignored). Checked per group,
-   * so `source` and `translation` stay paired: a file only counts as managed when the same group both
-   * matches its path and accepts its stored export pattern.
+   * so the path pattern and `translation` stay paired: a file only counts as managed when the same
+   * group both matches its path and accepts its stored export pattern. A group with `dest` uploads
+   * under the dest path, so its files are found by the dest pattern, its file placeholders filled
+   * from `source` the way an upload fills them from each local file.
    *
    * Matching goes through `matchesSourcePattern`, not `cli/utils/pathMatcher`: that one is for
    * user-supplied CLI file filters and expands no placeholders, so a `source` carrying
    * `%original_file_name%` would match nothing.
    */
-  private isManagedBySourcePatterns(
+  private isManagedByConfig(
     projectPath: string,
     fileExportPattern: string | undefined,
     { files, preserveHierarchy }: Config,
   ): boolean {
-    return files.some(({ source, translation, ignore }) => {
-      if (!matchesSourcePattern(projectPath, source, preserveHierarchy)) {
+    return files.some(({ source, dest, translation, ignore }) => {
+      const pathPattern = dest === undefined ? source : prepareDest(dest, stripLeadingSlashes(source));
+
+      if (!matchesSourcePattern(projectPath, pathPattern, preserveHierarchy)) {
         return false;
       }
 

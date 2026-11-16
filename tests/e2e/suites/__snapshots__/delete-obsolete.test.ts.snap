@@ -15,18 +15,6 @@ exports[`delete obsolete uploads all sources 1`] = `
 ◆  File 'lang/en-US.json'"
 `;
 
-exports[`delete obsolete deletes nothing for real with --delete-obsolete --dryrun 1`] = `
-"●  '2_android.xml' file would be deleted
-●  Fetching project files
-●  Fetching project info
-●  File '1_android.xml' would be updated
-●  File '3_android.xml' would be updated
-●  File 'lang/4_android.xml' would be updated
-●  File 'lang/en-US.json' would be updated
-●  Project files fetched
-●  Project info fetched"
-`;
-
 exports[`delete obsolete deletes obsolete files and directories for real with --delete-obsolete 1`] = `
 "●  Fetching project files
 ●  Fetching project info
@@ -39,17 +27,6 @@ exports[`delete obsolete deletes obsolete files and directories for real with --
 ◆  'lang/en-US.json' file was deleted
 ◆  File '1_android.xml'
 ◆  File 'destination/1_simple.csv'"
-`;
-
-exports[`delete obsolete deletes an obsolete file whose remaining sibling now has a dest 1`] = `
-"●  Fetching project files
-●  Fetching project info
-●  Project files fetched
-●  Project info fetched
-◆  '1_android.xml' file was deleted
-◆  'destination/1_simple.csv' file was deleted
-◆  File 'destination/1_android.xml'
-◆  No obsolete directories found"
 `;
 
 exports[`delete obsolete nothing to delete when the dest remap makes local and remote paths coincide (dryrun) 1`] = `
@@ -70,4 +47,28 @@ exports[`delete obsolete reports the steady state once local and remote paths al
 ◆  File 'other_destination/2_android.xml'
 ◆  No obsolete directories found
 ◆  No obsolete files were found"
+`;
+
+exports[`delete obsolete deletes nothing for real with --delete-obsolete --dryrun 1`] = `
+"●  '2_android.xml' file would be deleted
+●  'destination/' directory would be deleted
+●  'destination/1_simple.csv' file would be deleted
+●  Fetching project files
+●  Fetching project info
+●  File '1_android.xml' would be updated
+●  File '3_android.xml' would be updated
+●  File 'lang/4_android.xml' would be updated
+●  File 'lang/en-US.json' would be updated
+●  Project files fetched
+●  Project info fetched"
+`;
+
+exports[`delete obsolete deletes an obsolete file whose remaining sibling now has a dest 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  'destination/1_simple.csv' file was deleted
+◆  File 'destination/1_android.xml'
+◆  No obsolete directories found"
 `;
