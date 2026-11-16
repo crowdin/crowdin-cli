@@ -29,6 +29,7 @@ export const file: OptionDef = {
   type: 'string',
   variadic: true,
   description: 'Path to the file in the Crowdin project. Can be specified multiple times',
+  conflicts: ['directory'],
 };
 
 export const method: OptionDef = {

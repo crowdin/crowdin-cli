@@ -272,18 +272,6 @@ describe('StyleGuideCommand', () => {
       expect(styleGuideService.add).not.toHaveBeenCalled();
     });
 
-    test.each([
-      [{ id: 42, name: 'x' }, "'--name' can't be used with '--id'"],
-      [{ id: 42, project: [1], shared: true }, "'--project', '--shared' can't be used with '--id'"],
-      [{ id: 42, language: 'uk' }, "'--language' can't be used with '--id'"],
-      [{ shared: true, project: [1] }, "'--shared' can't be used with '--project'"],
-    ])('rejects conflicting options %p', async (options, message) => {
-      expect(createStyleGuideCommand().uploadAction(createCommandContext(options, [file]))).rejects.toThrow(
-        new ValidationError(message),
-      );
-      expect(storageService.addStorage).not.toHaveBeenCalled();
-    });
-
     test('rejects a missing file, a directory and an unsupported extension before any request', async () => {
       const directory = join(tempDir, 'dir.md');
       const text = join(tempDir, 'guide.txt');

@@ -83,28 +83,6 @@ describe('DownloadTranslationsCommand', () => {
       expect(translationService.getTranslationDownloadUrl).toHaveBeenCalledWith(buildId);
     });
 
-    test('fails when language and exclude-language are both specified', async () => {
-      const downloadCommand = createDownloadCommand();
-
-      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
-        data: {
-          id: 123,
-          languageMapping: {},
-          targetLanguages: [{ id: 'fr' }, { id: 'de' }],
-        },
-      } as never);
-
-      commandContext = createCommandContext({
-        ...globalOptions,
-        language: ['fr'],
-        excludeLanguage: ['de'],
-      });
-
-      expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow(
-        new CliError("The '--language' and '--exclude-language' options can't be used simultaneously"),
-      );
-    });
-
     test('fails when both skip-untranslated flags are passed', async () => {
       const downloadCommand = createDownloadCommand();
 

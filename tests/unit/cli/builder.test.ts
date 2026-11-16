@@ -68,6 +68,19 @@ describe('buildOption', () => {
     ]);
   });
 
+  test('rejects options declared as conflicting, by their kebab-case names', () => {
+    const command = new Command()
+      .addOption(buildOption({ name: 'source-language', type: 'string', description: 'd', conflicts: ['dry-run'] }))
+      .addOption(buildOption({ name: 'dry-run', type: 'boolean', description: 'd' }))
+      .exitOverride()
+      .configureOutput({ writeErr: () => undefined });
+
+    expect(() => command.parse(['--source-language', 'en'], { from: 'user' })).not.toThrow();
+    expect(() => command.parse(['--dry-run', '--source-language', 'en'], { from: 'user' })).toThrow(
+      expect.objectContaining({ code: 'commander.conflictingOption' }),
+    );
+  });
+
   test.each(['abc', '1.5', '1e3', '0x10', ' 12 ', 'Infinity', ''])('rejects %p as a usage error', (value) => {
     const command = new Command()
       .addOption(buildOption({ name: 'engine-id', type: 'number', description: 'd' }))

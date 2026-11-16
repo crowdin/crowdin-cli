@@ -10,6 +10,7 @@ export const id: OptionDef = {
   name: 'id',
   type: 'number',
   description: 'Style guide identifier for replacing the file of the existing style guide',
+  conflicts: ['name', 'project', 'language', 'shared'],
 };
 
 export const name: OptionDef = {
@@ -36,4 +37,5 @@ export const shared: OptionDef = {
   name: 'shared',
   type: 'boolean',
   description: 'Share the new style guide with all projects',
+  conflicts: ['project'],
 };

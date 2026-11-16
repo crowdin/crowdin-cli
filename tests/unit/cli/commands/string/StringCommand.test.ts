@@ -134,15 +134,6 @@ describe('StringCommand', () => {
   });
 
   describe('listAction', () => {
-    test('throws when --file and --directory are used together', async () => {
-      const cmd = createStringCommand();
-      const commandContext = createCommandContext({ ...globalOptions, file: 'a.yml', directory: '/a' });
-
-      expect(cmd.listAction(commandContext)).rejects.toThrow(
-        new CliError("The '--file' and '--directory' options can't be used together"),
-      );
-    });
-
     test('throws when --scope is used without --filter', async () => {
       const cmd = createStringCommand();
       const commandContext = createCommandContext({ ...globalOptions, scope: 'text' });

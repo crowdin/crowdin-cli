@@ -496,20 +496,17 @@ describe('string', () => {
 
   test('rejects --file and --directory together', async () => {
     const result = await ctx.runner.run(['string', 'list', '--file', 'android.xml', '--directory', 'sources']);
-
-    expectFailure(result, 1, "The '--file' and '--directory' options can't be used together");
+    expectFailure(result, 2, "option '--file <file>' cannot be used with option '--directory <directory>'");
   });
 
   test('rejects --scope without --filter', async () => {
     const result = await ctx.runner.run(['string', 'list', '--scope', 'identifier']);
-
     expectFailure(result, 1, "The '--scope' option can only be used together with '--filter'");
   });
 
   test('rejects --croql alongside another filter', async () => {
     const result = await ctx.runner.run(['string', 'list', '--croql', 'text = "x"', '--filter', 'str']);
-
-    expectFailure(result, 1, "The '--croql' option can't be used together with --filter");
+    expectFailure(result, 2, "The '--croql' option can't be used together with --filter");
   });
 
   test('names every filter that conflicts with --croql, not just the first', async () => {
@@ -524,30 +521,26 @@ describe('string', () => {
       'android.xml',
     ]);
 
-    expectFailure(result, 1, "The '--croql' option can't be used together with --filter, --file");
+    expectFailure(result, 2, "The '--croql' option can't be used together with --filter, --file");
   });
 
   test('rejects a negative --max-length when adding', async () => {
     const result = await ctx.runner.run(['string', 'add', 'negative', '--file', 'android.xml', '--max-length=-1']);
-
     expectFailure(result, 1, "'--max-length' cannot be lower than 0");
   });
 
   test('rejects a negative --max-length when editing', async () => {
     const result = await ctx.runner.run(['string', 'edit', String(thirdStringId), '--max-length=-1']);
-
     expectFailure(result, 1, "'--max-length' cannot be lower than 0");
   });
 
   test('requires at least one parameter on edit', async () => {
     const result = await ctx.runner.run(['string', 'edit', String(thirdStringId)]);
-
     expectFailure(result, 1, 'Specify some parameters to edit the string');
   });
 
   test('requires --file when adding to a file-based project', async () => {
     const result = await ctx.runner.run(['string', 'add', 'no file given']);
-
     expectFailure(result, 1, "The '--file' value can not be empty");
   });
 
@@ -605,7 +598,6 @@ describe('string', () => {
     expect(result).toMatchObject({ exitCode: 0 });
 
     const lines = result.stdout.split('\n').filter((line) => line.length > 0);
-
     const ids = (await runJson<{ id: number }[]>(ctx, ['string', 'list'])).map((entry) => String(entry.id));
 
     expect(lines.every((line) => /^\d+$/.test(line))).toBe(true);

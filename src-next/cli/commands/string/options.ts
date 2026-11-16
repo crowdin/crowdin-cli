@@ -11,6 +11,7 @@ export const list = {
     name: 'file',
     type: 'string',
     description: 'Filter strings by file path in Crowdin',
+    conflicts: ['directory'],
   },
   filter: {
     name: 'filter',

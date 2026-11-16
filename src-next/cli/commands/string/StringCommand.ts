@@ -2,6 +2,7 @@ import type { PatchRequest, SourceFilesModel, SourceStringsModel } from '@crowdi
 import type { Command } from 'commander';
 import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
+import ValidationError from '@/cli/errors/ValidationError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { FileService, ProjectFilePath } from '@/cli/services/FileService.ts';
 import type {
@@ -162,10 +163,6 @@ export default class StringCommand {
     const labelNames = toArray(options.label);
     const directory = options.directory;
 
-    if (filePath && directory) {
-      throw new CliError("The '--file' and '--directory' options can't be used together");
-    }
-
     // The API only reads `scope` as the target of `filter` and rejects it on its own with
     // "Key: scope. Message: Any of [filter] must be set" — caught here so the round trip is spared.
     if (options.scope && !options.filter) {
@@ -188,7 +185,7 @@ export default class StringCommand {
         .map(([flag]) => flag);
 
       if (conflicting.length > 0) {
-        throw new CliError(`The '--croql' option can't be used together with ${conflicting.join(', ')}`);
+        throw new ValidationError(`The '--croql' option can't be used together with ${conflicting.join(', ')}`);
       }
     }
 

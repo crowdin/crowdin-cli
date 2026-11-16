@@ -49,12 +49,6 @@ describe('resolveDownloadLanguages', () => {
     expect(result.languageIds).toEqual(['uk']);
   });
 
-  test('rejects --language together with --exclude-language', () => {
-    expect(() => resolveDownloadLanguages(projectLanguages, { language: ['de'], excludeLanguage: ['fr'] })).toThrow(
-      "can't be used simultaneously",
-    );
-  });
-
   test.each([
     ['--language', { language: ['es'] }, undefined],
     ['--exclude-language', { excludeLanguage: ['es'] }, undefined],
@@ -68,7 +62,6 @@ describe('resolveDownloadLanguages', () => {
   // getProjectLanguages(true) includes the in-context pseudo language, so it is selectable.
   test('accepts a language only present because of the in-context pseudo language', () => {
     const result = resolveDownloadLanguages([...projectLanguages, language('pseudo')], { language: ['pseudo'] });
-
     expect(ids(result)).toEqual(['pseudo']);
   });
 });

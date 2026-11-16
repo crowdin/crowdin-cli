@@ -17,6 +17,8 @@ export interface OptionDef {
   variadic?: boolean;
   default?: unknown;
   choices?: string[];
+  /** Names of options on the same command that can't be passed together with this one. */
+  conflicts?: string[];
 }
 
 export interface OptionGroupDef {

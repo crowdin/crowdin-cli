@@ -113,11 +113,7 @@ describe('screenshot', () => {
       'some-branch',
     ]);
 
-    expectFailure(
-      result,
-      1,
-      "Only one of the following options can be used at a time: '--file', '--branch' or '--directory'",
-    );
+    expectFailure(result, 2, "option '-f, --file <file>' cannot be used with option '-b, --branch <branch>'");
   });
 
   test('uploads a screenshot and attaches a label', async () => {

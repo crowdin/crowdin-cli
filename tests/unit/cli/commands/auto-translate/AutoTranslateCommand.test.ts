@@ -543,20 +543,6 @@ describe('AutoTranslateCommand', () => {
   });
 
   describe('validation', () => {
-    test("throws when both '--file' and '--directory' are given", async () => {
-      const command = createCommand();
-      commandContext = createCommandContext({
-        ...globalOptions,
-        method: 'tm',
-        file: ['first.po'],
-        directory: 'src',
-      });
-
-      expect(command.defaultAction(commandContext)).rejects.toThrow(
-        new CliError("Either '--file' or '--directory' can be specified"),
-      );
-    });
-
     test("throws when both '--language' and '--exclude-language' are given", async () => {
       const command = createCommand();
       commandContext = createCommandContext({

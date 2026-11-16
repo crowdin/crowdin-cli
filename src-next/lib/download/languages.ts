@@ -29,10 +29,6 @@ export function resolveDownloadLanguages(
   const requested = options.language ?? [];
   const excluded = options.excludeLanguage ?? [];
 
-  if (requested.length > 0 && excluded.length > 0) {
-    throw new CliError(`The '--language' and '--exclude-language' options can't be used simultaneously`);
-  }
-
   const projectLanguageIds = projectLanguages.map((language) => language.id);
   const assertKnown = (languageId: string) => {
     if (!projectLanguageIds.includes(languageId)) {

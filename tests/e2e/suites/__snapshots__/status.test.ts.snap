@@ -55,8 +55,6 @@ exports[`status shows only the proofreading column for \`status proofreading\` 1
 
 exports[`status rejects a language the project does not target 1`] = `"■  Language 'zz' doesn't exist in the project. Try specifying another language code"`;
 
-exports[`status rejects --file and --directory together 1`] = `"■  Only one of the following options can be used at a time: '--file', '--directory'"`;
-
 exports[`status fails on an incomplete project with --fail-if-incomplete 1`] = `
 "●  Fetching project info
 ●  Fetching project progress
@@ -69,3 +67,5 @@ exports[`status fails on an incomplete project with --fail-if-incomplete 1`] = `
 │ Ukrainian(uk) │ 100%       │ 0%        │
 └───────────────┴────────────┴───────────┘"
 `;
+
+exports[`status rejects --file and --directory together 1`] = `"error: option '-f, --file <file>' cannot be used with option '-d, --directory <directory>'"`;

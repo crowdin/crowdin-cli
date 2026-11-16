@@ -39,13 +39,11 @@ describe('auto-translate', () => {
 
   test('requires --method', async () => {
     const result = await ctx.runner.run(['auto-translate']);
-
     expectFailure(result, 1, "Missing required option '--method'. Supported values: mt, tm, ai");
   });
 
   test('rejects an unsupported --method', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'human']);
-
     expectFailure(result, 1, "Invalid value for '--method'. Supported values: mt, tm, ai");
   });
 
@@ -61,7 +59,7 @@ describe('auto-translate', () => {
       '/sources',
     ]);
 
-    expectFailure(result, 1, "Either '--file' or '--directory' can be specified");
+    expectFailure(result, 2, "option '--file <file...>' cannot be used with option '--directory <directory>'");
   });
 
   test('refuses --language together with --exclude-language', async () => {
@@ -75,7 +73,7 @@ describe('auto-translate', () => {
       'it',
     ]);
 
-    expectFailure(result, 1, "The '--language' and '--exclude-language' options can't be used simultaneously");
+    expectFailure(result, 2, "The '--language' and '--exclude-language' options can't be used simultaneously");
   });
 
   test('restricts --translate-with-perfect-match-only to the TM method', async () => {
@@ -93,13 +91,11 @@ describe('auto-translate', () => {
 
   test('requires --ai-prompt for the AI method', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'ai']);
-
     expectFailure(result, 1, "AI should be used with the '--ai-prompt' parameter");
   });
 
   test('rejects an unsupported --auto-approve-option', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'tm', '--auto-approve-option', 'sometimes']);
-
     expectFailure(result, 1, "Wrong '--auto-approve-option' parameter");
   });
 
@@ -120,43 +116,36 @@ describe('auto-translate', () => {
 
   test('rejects a language the project does not target', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'tm', '--language', 'de']);
-
     expectFailure(result, 1, "Language(s) 'de' doesn't exist in the project");
   });
 
   test('rejects an excluded language the project does not target', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'tm', '--exclude-language', 'de']);
-
     expectFailure(result, 1, "Language(s) 'de' doesn't exist in the project");
   });
 
   test('fails on a branch the project does not hold', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'tm', '-b', 'no-such-branch']);
-
     expectFailure(result, 1, "Project doesn't contain the 'no-such-branch' branch");
   });
 
   test('fails on a single --file the project does not hold', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'tm', '--file', '/sources/missing.xml']);
-
     expectFailure(result, 1, "Project doesn't contain the '/sources/missing.xml' file");
   });
 
   test('finds no files to translate under an empty --directory', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'tm', '--directory', '/nowhere']);
-
     expectFailure(result, 1, "Couldn't find any files to Auto-Translate in the current project");
   });
 
   test('translates the whole project', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'tm']);
-
     expect(result).toMatchObject({ exitCode: 0 });
   });
 
   test('translates a single file', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'tm', '--file', SOURCE_FILE]);
-
     expect(result).toMatchObject({ exitCode: 0 });
   });
 
@@ -181,7 +170,6 @@ describe('auto-translate', () => {
 
   test('translates the files of a --directory', async () => {
     const result = await ctx.runner.run(['auto-translate', '--method', 'tm', '--directory', '/sources/nested']);
-
     expect(result).toMatchObject({ exitCode: 0 });
   });
 

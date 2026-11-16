@@ -121,6 +121,30 @@ describe('exit codes (offline, end-to-end)', () => {
     expect(await runCli(['file', '--bogus'], workspace)).toBe(2);
   });
 
+  // Declared through OptionDef.conflicts, so commander rejects them before any action runs.
+  test.each([
+    [['status', '--file', 'a', '--directory', 'b'], '--file', '--directory'],
+    [['status', 'translation', '--directory', 'b', '--file', 'a'], '--file', '--directory'],
+    [['string', 'list', '--file', 'a', '--directory', 'b'], '--file', '--directory'],
+    [['auto-translate', '--file', 'a', '--directory', 'b'], '--file', '--directory'],
+    [['download', 'translations', '--language', 'uk', '--exclude-language', 'it'], '--exclude-language', '--language'],
+    [['screenshot', 'upload', 'x.png', '--auto-tag', '--file', 'a', '--branch', 'b'], '--file', '--branch'],
+    [['screenshot', 'upload', 'x.png', '--auto-tag', '--branch', 'b', '--directory', 'd'], '--directory', '--branch'],
+    [['style-guide', 'upload', 'x.md', '--id', '1', '--language', 'uk'], '--id', '--language'],
+    [['style-guide', 'upload', 'x.md', '--shared', '--project', '1'], '--shared', '--project'],
+  ])('rejects conflicting options %p with exit 2', async (args, first, second) => {
+    const proc = Bun.spawn(['bun', CLI, ...args], {
+      cwd: workspace,
+      env: cleanEnv(),
+      stdout: 'ignore',
+      stderr: 'pipe',
+    });
+    const stderr = await new Response(proc.stderr).text();
+
+    expect(await proc.exited).toBe(2);
+    expect(stderr).toMatch(new RegExp(`option '[^']*${first}[^']*' cannot be used with option '[^']*${second}`));
+  });
+
   // Only the files tier insists on a config file, and only when no --source/--translation replaces it.
   test('missing config file exits 102 (not found) for a file-based command', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'crowdin-exitcode-missing-'));
