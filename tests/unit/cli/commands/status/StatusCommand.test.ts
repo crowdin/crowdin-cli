@@ -6,7 +6,7 @@ import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import { BranchService } from '@/cli/services/BranchService.ts';
 import { DirectoryService } from '@/cli/services/DirectoryService.ts';
-import { FileService } from '@/cli/services/FileService.ts';
+import { FileService } from '@/cli/services/file/FileService.ts';
 import { ProgressService } from '@/cli/services/ProgressService.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';

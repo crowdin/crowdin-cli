@@ -8,7 +8,7 @@ import type { Command } from 'commander';
 import DownloadCommand from '@/cli/commands/download/DownloadCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { BranchService } from '@/cli/services/BranchService.ts';
-import type { FileService } from '@/cli/services/FileService.ts';
+import type { FileService } from '@/cli/services/file/FileService.ts';
 import type { ProjectService } from '@/cli/services/ProjectService.ts';
 import type { TranslationService } from '@/cli/services/TranslationService.ts';
 import type { Output } from '@/cli/utils/output.ts';

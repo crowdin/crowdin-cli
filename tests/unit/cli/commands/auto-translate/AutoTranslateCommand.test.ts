@@ -5,7 +5,7 @@ import AutoTranslateCommand from '@/cli/commands/auto-translate/AutoTranslateCom
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import { BranchService } from '@/cli/services/BranchService.ts';
-import { FileService } from '@/cli/services/FileService.ts';
+import { FileService } from '@/cli/services/file/FileService.ts';
 import { LabelService } from '@/cli/services/LabelService.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
 import { TranslationService } from '@/cli/services/TranslationService.ts';

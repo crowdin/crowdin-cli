@@ -4,7 +4,7 @@ import CliError from '@/cli/errors/CliError.ts';
 import FileExistsError from '@/cli/errors/FileExistsError.ts';
 import FileInUpdateError from '@/cli/errors/FileInUpdateError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import { FileService } from '@/cli/services/FileService.ts';
+import { FileService } from '@/cli/services/file/FileService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
 
 const PROJECT_ID = 123;
@@ -34,6 +34,32 @@ describe('FileService', () => {
 
   afterEach(() => {
     mock.restore();
+  });
+
+  describe('loadIndex', () => {
+    test('indexes the branch files under branch-relative paths', async () => {
+      const listProjectFiles = spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [{ data: { id: 1, path: '/main/docs/readme.md', branchId: BRANCH.id } }],
+      } as never);
+
+      const index = await fileService.loadIndex(BRANCH);
+
+      expect(listProjectFiles).toHaveBeenCalledWith(PROJECT_ID, { branchId: BRANCH.id, recursion: '1' });
+      expect(index.exact('docs/readme.md')?.id).toBe(1);
+    });
+
+    test('indexes only the root tree without a branch', async () => {
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [
+          { data: { id: 1, path: '/docs/readme.md', branchId: null } },
+          { data: { id: 2, path: '/main/docs/readme.md', branchId: BRANCH.id } },
+        ],
+      } as never);
+
+      const index = await fileService.loadIndex();
+
+      expect(index.files.map((file) => file.id)).toEqual([1]);
+    });
   });
 
   describe('loadBranchRelativeFiles', () => {

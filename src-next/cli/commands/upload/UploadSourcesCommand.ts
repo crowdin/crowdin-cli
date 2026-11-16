@@ -16,7 +16,7 @@ import FileInUpdateError from '@/cli/errors/FileInUpdateError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { BranchService } from '@/cli/services/BranchService.ts';
 import type { DirectoryService } from '@/cli/services/DirectoryService.ts';
-import type { FileService } from '@/cli/services/FileService.ts';
+import type { FileService } from '@/cli/services/file/FileService.ts';
 import type { StorageService } from '@/cli/services/StorageService.ts';
 import type { StringService } from '@/cli/services/StringService.ts';
 import type {

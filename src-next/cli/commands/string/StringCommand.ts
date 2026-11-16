@@ -4,7 +4,7 @@ import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import ValidationError from '@/cli/errors/ValidationError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { FileService, ProjectFilePath } from '@/cli/services/FileService.ts';
+import type { FileService, ProjectFilePath } from '@/cli/services/file/FileService.ts';
 import type {
   GetBranchService,
   GetDirectoryService,

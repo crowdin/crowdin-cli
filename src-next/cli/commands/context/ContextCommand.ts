@@ -4,7 +4,7 @@ import { dryRun, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { ProjectFilePath } from '@/cli/services/FileService.ts';
+import type { ProjectFilePath } from '@/cli/services/file/FileService.ts';
 import type {
   GetBranchService,
   GetFileService,

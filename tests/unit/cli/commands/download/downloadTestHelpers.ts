@@ -7,7 +7,7 @@ import AdmZip from 'adm-zip';
 import type { Command } from 'commander';
 import type { GlobalOptions } from '@/cli/options.ts';
 import { BranchService } from '@/cli/services/BranchService.ts';
-import { FileService } from '@/cli/services/FileService.ts';
+import { FileService } from '@/cli/services/file/FileService.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
 import { TranslationService } from '@/cli/services/TranslationService.ts';
 import { createOutput } from '@/cli/utils/output.ts';

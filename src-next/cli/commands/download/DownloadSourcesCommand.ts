@@ -9,7 +9,7 @@ import { pathView } from '@/cli/commands/common/views.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { FileService } from '@/cli/services/FileService.ts';
+import type { FileService } from '@/cli/services/file/FileService.ts';
 import type { GetBranchService, GetConfig, GetFileService, GetOutput, GetProjectService } from '@/cli/services.ts';
 import { downloadToFile, withDownloadedArchive } from '@/cli/utils/downloadToFile.ts';
 import { isMachineFormat, isStructuredFormat } from '@/cli/utils/formatter.ts';

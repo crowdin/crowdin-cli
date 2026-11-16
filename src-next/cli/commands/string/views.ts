@@ -1,5 +1,5 @@
 import type { SourceStringsModel } from '@crowdin/crowdin-api-client';
-import type { ProjectFilePath } from '@/cli/services/FileService.ts';
+import type { ProjectFilePath } from '@/cli/services/file/FileService.ts';
 import { colors } from '@/cli/utils/colors.ts';
 import type { View } from '@/cli/utils/output.ts';
 

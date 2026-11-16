@@ -8,7 +8,7 @@ import { BundleService } from '@/cli/services/BundleService.ts';
 import { CommentService } from '@/cli/services/CommentService.ts';
 import { DirectoryService } from '@/cli/services/DirectoryService.ts';
 import { DistributionService } from '@/cli/services/DistributionService.ts';
-import { FileService } from '@/cli/services/FileService.ts';
+import { FileService } from '@/cli/services/file/FileService.ts';
 import { GlossaryService } from '@/cli/services/GlossaryService.ts';
 import { LabelService } from '@/cli/services/LabelService.ts';
 import { LanguageService } from '@/cli/services/LanguageService.ts';
