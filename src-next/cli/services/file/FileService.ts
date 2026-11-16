@@ -1,12 +1,13 @@
 import type { Client, PatchRequest, SourceFilesModel } from '@crowdin/crowdin-api-client';
+import FileExistsError from '@/cli/errors/FileExistsError.ts';
+import FileInUpdateError from '@/cli/errors/FileInUpdateError.ts';
+import { toCliError } from '@/cli/errors/toCliError.ts';
+import type { Output } from '@/cli/utils/output.ts';
+import { normalizePath } from '@/cli/utils/parsing.ts';
+import { withSpinner } from '@/cli/utils/withSpinner.ts';
 import { pollUntilFinished } from '@/lib/api/pollStatus.ts';
 import { stripBranchPrefix, toPosixPath } from '@/lib/utils/path.ts';
-import FileExistsError from '../errors/FileExistsError.ts';
-import FileInUpdateError from '../errors/FileInUpdateError.ts';
-import { toCliError } from '../errors/toCliError.ts';
-import type { Output } from '../utils/output.ts';
-import { normalizePath } from '../utils/parsing.ts';
-import { withSpinner } from '../utils/withSpinner.ts';
+import { ProjectFileIndex } from './ProjectFileIndex.ts';
 
 // Only the id and the name matter here: the id scopes the request, the name comes back off every
 // path the request returns.
@@ -128,6 +129,10 @@ export class FileService {
     );
 
     return response.data.map((entry) => entry.data).filter((file) => (file.branchId ?? null) === (branchId ?? null));
+  }
+
+  async loadIndex(branch?: ProjectBranch): Promise<ProjectFileIndex> {
+    return new ProjectFileIndex(await this.loadProjectFiles(branch?.id), branch?.name);
   }
 
   /**

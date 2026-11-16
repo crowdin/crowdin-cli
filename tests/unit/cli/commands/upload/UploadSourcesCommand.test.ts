@@ -6,7 +6,7 @@ import { ProjectsGroupsModel, SourceFilesModel } from '@crowdin/crowdin-api-clie
 import CliError from '@/cli/errors/CliError.ts';
 import FileExistsError from '@/cli/errors/FileExistsError.ts';
 import FileInUpdateError from '@/cli/errors/FileInUpdateError.ts';
-import type { ProjectFileUpdate } from '@/cli/services/FileService.ts';
+import type { ProjectFileUpdate } from '@/cli/services/file/FileService.ts';
 import { computeChecksum } from '@/lib/upload/sourceCache.ts';
 import {
   baseBranchServiceMock,

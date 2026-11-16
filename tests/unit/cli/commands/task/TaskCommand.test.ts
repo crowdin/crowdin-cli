@@ -5,7 +5,7 @@ import TaskCommand from '@/cli/commands/task/TaskCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { BranchService } from '@/cli/services/BranchService.ts';
-import type { FileService } from '@/cli/services/FileService.ts';
+import type { FileService } from '@/cli/services/file/FileService.ts';
 import type { LabelService } from '@/cli/services/LabelService.ts';
 import type { TaskService } from '@/cli/services/TaskService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
