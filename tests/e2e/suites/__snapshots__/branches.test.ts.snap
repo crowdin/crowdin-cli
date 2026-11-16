@@ -9,25 +9,6 @@ exports[`branches uploads a single source file to a brand-new branch 1`] = `
 ◆  File '1_android.xml'"
 `;
 
-exports[`branches previews uploading two more source files to a not-yet-existing branch (dry run) 1`] = `
-"●  Fetching project files
-●  Fetching project info
-●  File '1_android.xml' would be created
-●  File '2_android.xml' would be created
-●  Project files fetched
-●  Project info fetched"
-`;
-
-exports[`branches previews the source upload dry run as a tree 1`] = `
-"●  Fetching project files
-●  Fetching project info
-●  Project files fetched
-●  Project info fetched
-.
-├─ 1_android.xml
-╰─ 2_android.xml"
-`;
-
 exports[`branches uploads the two source files for real, creating the branch 1`] = `
 "●  Fetching project files
 ●  Fetching project info
@@ -100,4 +81,19 @@ exports[`branches downloads translations for the branch 1`] = `
 ◆  File 'translations/it/2_android.xml' extracted
 ◆  File 'translations/uk/1_android.xml' extracted
 ◆  File 'translations/uk/2_android.xml' extracted"
+`;
+
+exports[`branches previews uploading two more source files to a not-yet-existing branch (dry run) 1`] = `
+"●  Fetching project info
+●  File '1_android.xml' would be created
+●  File '2_android.xml' would be created
+●  Project info fetched"
+`;
+
+exports[`branches previews the source upload dry run as a tree 1`] = `
+"●  Fetching project info
+●  Project info fetched
+.
+├─ 1_android.xml
+╰─ 2_android.xml"
 `;
