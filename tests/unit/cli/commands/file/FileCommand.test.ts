@@ -11,6 +11,7 @@ import type { GlobalOptions } from '@/cli/options.ts';
 import { BranchService } from '@/cli/services/BranchService.ts';
 import { DirectoryService } from '@/cli/services/DirectoryService.ts';
 import { FileService } from '@/cli/services/file/FileService.ts';
+import { ProjectFileIndex } from '@/cli/services/file/ProjectFileIndex.ts';
 import { LabelService } from '@/cli/services/LabelService.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
 import { StorageService } from '@/cli/services/StorageService.ts';
@@ -1058,10 +1059,10 @@ describe('FileCommand', () => {
     expect(listSpy.mock.calls.at(-1)?.[0]).toEqual([]);
   });
 
-  test('deletes matching project file', async () => {
+  test.each(['docs/readme.md', '//docs/readme.md/'])('deletes the project file at %p', async (filePath) => {
     const deleteProjectFile = mock(async () => undefined);
     const mockFileService = {
-      loadProjectFiles: mock(async () => [{ id: 55, path: '/docs/readme.md' }]),
+      loadIndex: mock(async () => new ProjectFileIndex([{ id: 55, path: '/docs/readme.md' }] as never)),
       deleteProjectFile,
     };
     const fileCommand = new FileCommand(
@@ -1079,7 +1080,7 @@ describe('FileCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue({ id: 123 } as never);
 
-    commandContext = createCommandContext(globalOptions, ['docs/readme.md']);
+    commandContext = createCommandContext(globalOptions, [filePath]);
 
     await fileCommand.deleteAction(commandContext);
 
@@ -1088,8 +1089,10 @@ describe('FileCommand', () => {
 
   test('deletes a file scoped to a branch', async () => {
     const deleteProjectFile = mock(async () => undefined);
-    const loadProjectFiles = mock(async () => [{ id: 55, path: '/feature.x/docs/readme.md' }]);
-    const mockFileService = { loadProjectFiles, deleteProjectFile };
+    const loadIndex = mock(
+      async () => new ProjectFileIndex([{ id: 55, path: '/feature.x/docs/readme.md' }] as never, 'feature.x'),
+    );
+    const mockFileService = { loadIndex, deleteProjectFile };
     const fileCommand = new FileCommand(
       async () => ({ ...config, basePath: tempDir }),
       () => output,
@@ -1110,7 +1113,7 @@ describe('FileCommand', () => {
 
     await fileCommand.deleteAction(commandContext);
 
-    expect(loadProjectFiles).toHaveBeenCalledWith(9);
-    expect(deleteProjectFile).toHaveBeenCalledWith(55, '/feature.x/docs/readme.md');
+    expect(loadIndex).toHaveBeenCalledWith({ id: 9, name: 'feature.x' });
+    expect(deleteProjectFile).toHaveBeenCalledWith(55, '/docs/readme.md');
   });
 });

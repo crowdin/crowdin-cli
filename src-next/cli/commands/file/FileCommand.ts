@@ -150,14 +150,8 @@ export default class FileCommand {
     const branchService = await this.getBranchService(command);
     await projectService.loadProject();
     const branch = await branchService.resolveBranch(options.branch);
-    // loadProjectFiles is already scoped to the branch (root tree without one), so without
-    // '--branch' a project whose files all live in branches lists nothing at all.
-    const projectFiles = await fileService.loadProjectFiles(branch?.id);
-    // Paths inside a branch come back prefixed with the branch name; the listing shows project paths.
-    const files = projectFiles.map((file) => ({
-      ...file,
-      path: stripBranchPrefix(file.path, branch?.name),
-    }));
+    // Without '--branch' a project whose files all live in branches lists nothing at all.
+    const { files } = await fileService.loadIndex(branch);
 
     // Tree is an interactive-only rendering; a machine --output (json/toon/plain) is a parseable
     // contract and wins, falling through to output.list so the format stays intact.
@@ -734,8 +728,6 @@ export default class FileCommand {
     const fileService = await this.getFileService(command);
     const branchService = await this.getBranchService(command);
     const branch = await branchService.resolveBranch(branchName);
-    const projectFiles = await fileService.loadProjectFiles(branch?.id);
-
-    return projectFiles.find((file) => stripBranchPrefix(file.path, branch?.name) === wantedPath);
+    return (await fileService.loadIndex(branch)).exact(wantedPath);
   };
 }

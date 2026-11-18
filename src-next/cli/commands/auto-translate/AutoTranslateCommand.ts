@@ -4,6 +4,7 @@ import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import ValidationError from '@/cli/errors/ValidationError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import type { ProjectFileIndex } from '@/cli/services/file/ProjectFileIndex.ts';
 import type { LabelService } from '@/cli/services/LabelService.ts';
 import type { PreTranslationStatus, TranslationService } from '@/cli/services/TranslationService.ts';
 import type {
@@ -20,7 +21,6 @@ import type { Output } from '@/cli/utils/output.ts';
 import { normalizePath } from '@/cli/utils/parsing.ts';
 import { withSpinner } from '@/cli/utils/withSpinner.ts';
 import { FILE_MANAGEMENT_UNAVAILABLE, isStringsBasedProject } from '@/lib/project/type.ts';
-import { stripBranchPrefix } from '@/lib/utils/path.ts';
 import {
   aiPrompt,
   async,
@@ -251,21 +251,16 @@ export default class AutoTranslateCommand {
     }
 
     const branch = await branchService.resolveBranch(options.branch);
-    const projectFiles = await fileService.loadProjectFiles(branch?.id);
-    // loadProjectFiles is already scoped to the branch (root tree without one); server paths carry
-    // the branch name, the paths passed via --file never do.
-    const paths = new Map(
-      projectFiles.map((entry) => [stripBranchPrefix(normalizePath(entry.path), branch?.name), entry.id]),
-    );
+    const index = await fileService.loadIndex(branch);
 
     let fileIds: number[];
 
     if (files.length > 0) {
-      fileIds = this.findFileIds(paths, files, output);
+      fileIds = this.findFileIds(index, files, output);
     } else if (directoryPath) {
-      fileIds = this.findDirectoryFileIds(paths, directoryPath);
+      fileIds = this.findDirectoryFileIds(index, directoryPath);
     } else {
-      fileIds = [...paths.values()];
+      fileIds = index.files.map((file) => file.id);
     }
 
     if (fileIds.length === 0) {
@@ -319,11 +314,11 @@ export default class AutoTranslateCommand {
     await this.reportResult(translationService, status, output, verbose, options.output);
   }
 
-  private findFileIds(paths: Map<string, number>, files: string[], output: Output): number[] {
+  private findFileIds(index: ProjectFileIndex, files: string[], output: Output): number[] {
     const fileIds: number[] = [];
 
     for (const filePath of files) {
-      const fileId = paths.get(filePath);
+      const fileId = index.exact(filePath)?.id;
 
       if (fileId === undefined) {
         const message = `Project doesn't contain the '${filePath}' file`;
@@ -342,19 +337,10 @@ export default class AutoTranslateCommand {
     return fileIds;
   }
 
-  private findDirectoryFileIds(paths: Map<string, number>, directoryPath: string): number[] {
-    // Compare against the separator too: a bare prefix would pull '/enterprise/app.json' into
-    // '--directory en'.
+  private findDirectoryFileIds(index: ProjectFileIndex, directoryPath: string): number[] {
+    // Compare against the separator too: a bare prefix would pull '/enterprise/app.json' into '--directory en'.
     const directoryPrefix = `${directoryPath}/`;
-    const fileIds: number[] = [];
-
-    for (const [path, fileId] of paths) {
-      if (path.startsWith(directoryPrefix)) {
-        fileIds.push(fileId);
-      }
-    }
-
-    return fileIds;
+    return index.files.filter((file) => file.path.startsWith(directoryPrefix)).map((file) => file.id);
   }
 
   statusAction = async (command: Command) => {

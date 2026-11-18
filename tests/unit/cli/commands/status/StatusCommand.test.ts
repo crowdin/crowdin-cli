@@ -302,23 +302,23 @@ describe('StatusCommand', () => {
     expect(loadBranchProgress).toHaveBeenCalledWith(15);
   });
 
-  test('loads file progress when --file is passed', async () => {
-    const statusCommand = createStatusCommand();
-    commandContext = createCommandContext({
-      ...globalOptions,
-      file: 'docs/readme.md',
-    });
+  test.each(['docs/readme.md', '/docs/readme.md/', '//docs/readme.md'])(
+    'loads file progress for --file %p',
+    async (file) => {
+      const statusCommand = createStatusCommand();
+      commandContext = createCommandContext({ ...globalOptions, file });
 
-    spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([{ id: 33, path: '/docs/readme.md' }] as never);
-    const loadFileProgress = spyOn(progressService, 'loadFileProgress').mockResolvedValue([
-      createProgress('fr', 100, 100),
-    ] as never);
+      spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
+      spyOn(fileService, 'loadProjectFiles').mockResolvedValue([{ id: 33, path: '/docs/readme.md' }] as never);
+      const loadFileProgress = spyOn(progressService, 'loadFileProgress').mockResolvedValue([
+        createProgress('fr', 100, 100),
+      ] as never);
 
-    await statusCommand.defaultAction(commandContext);
+      await statusCommand.defaultAction(commandContext);
 
-    expect(loadFileProgress).toHaveBeenCalledWith(33);
-  });
+      expect(loadFileProgress).toHaveBeenCalledWith(33);
+    },
+  );
 
   // Server paths carry the branch name, '--file' never does.
   test('resolves --file inside the branch named by --branch', async () => {
