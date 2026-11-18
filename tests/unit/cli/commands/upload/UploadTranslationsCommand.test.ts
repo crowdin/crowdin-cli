@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import CliError from '@/cli/errors/CliError.ts';
 import WrongLanguageError from '@/cli/errors/WrongLanguageError.ts';
+import { ProjectFileIndex } from '@/cli/services/file/ProjectFileIndex.ts';
 import type { TranslationService } from '@/cli/services/TranslationService.ts';
 import {
   baseBranchServiceMock,
@@ -71,7 +72,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.xml' }]),
+      loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/app.xml' }] as never)),
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
@@ -109,7 +110,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.json' }]),
+      loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/app.json' }] as never)),
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
@@ -152,10 +153,13 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => [
-        { id: 55, path: '/src/app.json' },
-        { id: 77, path: '/emails/welcome.json' },
-      ]),
+      loadIndex: mock(
+        async () =>
+          new ProjectFileIndex([
+            { id: 55, path: '/src/app.json' },
+            { id: 77, path: '/emails/welcome.json' },
+          ] as never),
+      ),
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
@@ -222,7 +226,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.json' }]),
+      loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/app.json' }] as never)),
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
@@ -275,7 +279,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.json' }]),
+      loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/app.json' }] as never)),
     };
     const translationService = {
       ...baseTranslationServiceMock(),
@@ -314,7 +318,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.json' }]),
+      loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/app.json' }] as never)),
     };
     // A failed status makes the service throw (TranslationService.test covers the poll).
     const translationService = {
@@ -360,7 +364,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.json' }]),
+      loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/app.json' }] as never)),
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
@@ -379,7 +383,7 @@ describe('UploadTranslationsCommand', () => {
     await command.uploadTranslationsAction(commandContext({ branch: 'feature' }));
 
     expect(branchService.getOrCreateBranch).toHaveBeenCalledWith('feature');
-    expect(fileService.loadProjectFiles).toHaveBeenCalledWith(44);
+    expect(fileService.loadIndex).toHaveBeenCalledWith({ id: 44, name: 'feature' });
     expect(translationService.importProjectTranslation).toHaveBeenCalledWith(
       10,
       77,
@@ -407,7 +411,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.json' }]),
+      loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/app.json' }] as never)),
     };
     const translationService = {
       ...baseTranslationServiceMock(),
@@ -449,7 +453,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.json' }]),
+      loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/app.json' }] as never)),
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
@@ -488,7 +492,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.json' }]),
+      loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/app.json' }] as never)),
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
@@ -537,7 +541,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.json' }]),
+      loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/app.json' }] as never)),
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
@@ -569,7 +573,7 @@ describe('UploadTranslationsCommand', () => {
     const projectService = {
       loadProject: mock(async () => ({ id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] })),
     };
-    const fileService = { ...baseFileServiceMock(), loadProjectFiles: mock(async () => []) };
+    const fileService = { ...baseFileServiceMock(), loadIndex: mock(async () => new ProjectFileIndex([] as never)) };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
     const command = createUploadCommand(
@@ -607,7 +611,7 @@ describe('UploadTranslationsCommand', () => {
       { addStorage: mock(async () => ({ id: 10 })) },
       baseBranchServiceMock(),
       baseDirectoryServiceMock(),
-      { ...baseFileServiceMock(), loadProjectFiles: mock(async () => []) },
+      { ...baseFileServiceMock(), loadIndex: mock(async () => new ProjectFileIndex([] as never)) },
       baseLabelServiceMock(),
       baseTranslationServiceMock(),
     );
@@ -657,7 +661,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.json' }]),
+      loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/app.json' }] as never)),
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
@@ -792,7 +796,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => [{ id: 88, path: '/foo/app.json' }]),
+      loadIndex: mock(async () => new ProjectFileIndex([{ id: 88, path: '/foo/app.json' }] as never)),
     };
     const translationService = baseTranslationServiceMock();
     const command = createUploadCommand(
@@ -829,7 +833,7 @@ describe('UploadTranslationsCommand', () => {
     const projectService = {
       loadProject: mock(async () => ({ id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] })),
     };
-    const fileService = { ...baseFileServiceMock(), loadProjectFiles: mock(async () => []) };
+    const fileService = { ...baseFileServiceMock(), loadIndex: mock(async () => new ProjectFileIndex([] as never)) };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
     const command = createUploadCommand(
@@ -863,10 +867,13 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => [
-        { id: 77, path: '/src/app.json' },
-        { id: 78, path: '/src/skip.json' },
-      ]),
+      loadIndex: mock(
+        async () =>
+          new ProjectFileIndex([
+            { id: 77, path: '/src/app.json' },
+            { id: 78, path: '/src/skip.json' },
+          ] as never),
+      ),
     };
     const translationService = baseTranslationServiceMock();
     const command = createUploadCommand(
@@ -909,7 +916,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => [{ id: 90, path: '/src/data.csv' }]),
+      loadIndex: mock(async () => new ProjectFileIndex([{ id: 90, path: '/src/data.csv' }] as never)),
     };
     const translationService = baseTranslationServiceMock();
     const command = createUploadCommand(
@@ -953,7 +960,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => [{ id: 90, path: '/src/Localizable.xcstrings' }]),
+      loadIndex: mock(async () => new ProjectFileIndex([{ id: 90, path: '/src/Localizable.xcstrings' }] as never)),
     };
     const translationService = baseTranslationServiceMock();
     const command = createUploadCommand(
@@ -1026,7 +1033,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const fileService = {
       ...baseFileServiceMock(),
-      loadProjectFiles: mock(async () => [{ id: 77, path: '/src/messages.po' }]),
+      loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/messages.po' }] as never)),
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
@@ -1082,7 +1089,7 @@ describe('UploadTranslationsCommand', () => {
         baseDirectoryServiceMock(),
         {
           ...baseFileServiceMock(),
-          loadProjectFiles: mock(async () => [{ id: 77, path: '/src/app.json' }]),
+          loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/app.json' }] as never)),
         },
         baseLabelServiceMock(),
         baseTranslationServiceMock(),
@@ -1139,10 +1146,13 @@ describe('UploadTranslationsCommand', () => {
         baseDirectoryServiceMock(),
         {
           ...baseFileServiceMock(),
-          loadProjectFiles: mock(async () => [
-            { id: 77, path: '/src/a.json' },
-            { id: 78, path: '/src/b.json' },
-          ]),
+          loadIndex: mock(
+            async () =>
+              new ProjectFileIndex([
+                { id: 77, path: '/src/a.json' },
+                { id: 78, path: '/src/b.json' },
+              ] as never),
+          ),
         },
         baseLabelServiceMock(),
         {

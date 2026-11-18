@@ -26,16 +26,9 @@ import { assertFilesConfigured, type Config, isMultilingualFile } from '@/lib/co
 import { containsLanguagePlaceholder } from '@/lib/export/languagePlaceholders.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { isStringsBasedProject } from '@/lib/project/type.ts';
-import { fileLookup } from '@/lib/upload/fileLookup.ts';
 import { resolveProjectPath } from '@/lib/upload/fileOptions.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
-import {
-  getCommonPath,
-  stripBranchPrefix,
-  stripLeadingSlashes,
-  toProjectPath,
-  toSortedRelativePaths,
-} from '@/lib/utils/path.ts';
+import { getCommonPath, stripLeadingSlashes, toSortedRelativePaths } from '@/lib/utils/path.ts';
 import { type UploadedFile, uploadedFileView } from './views.ts';
 
 interface UploadTranslationsOptions extends GlobalOptions {
@@ -134,9 +127,7 @@ export default class UploadTranslationsCommand {
     const branch = options.dryrun
       ? await branchService.getBranch(options.branch)
       : (await branchService.getOrCreateBranch(options.branch)).branch;
-    const projectFiles = await fileService.loadProjectFiles(branch?.id);
-    // Server paths carry the branch name; the project paths resolved from the config never do.
-    const projectFilePaths = new Map(projectFiles.map((file) => [stripBranchPrefix(file.path, branch?.name), file.id]));
+    const index = await fileService.loadIndex(branch);
     const { entries, hasErrors } = this.buildTranslationEntries(
       config,
       targetLanguages,
@@ -144,7 +135,7 @@ export default class UploadTranslationsCommand {
       run,
       // A dry run resolves translation paths from local sources only; it never looks the source up
       // in the project.
-      options.dryrun ? undefined : (projectPath) => fileLookup(toProjectPath(projectPath), projectFilePaths)?.id,
+      options.dryrun ? undefined : (projectPath) => index.soft(projectPath)?.file.id,
     );
 
     await this.uploadEntries(run, entries, hasErrors, async (storageId, entry, onProgress) => {

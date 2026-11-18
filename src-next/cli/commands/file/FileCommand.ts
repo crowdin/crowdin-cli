@@ -34,9 +34,8 @@ import type { Config } from '@/lib/config.ts';
 import { resolveLanguagePlaceholders } from '@/lib/export/languagePlaceholders.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { FILE_MANAGEMENT_UNAVAILABLE, isStringsBasedProject } from '@/lib/project/type.ts';
-import { fileLookup } from '@/lib/upload/fileLookup.ts';
 import { changedFileSettings } from '@/lib/upload/fileOptions.ts';
-import { stripBranchPrefix, stripLeadingSlashes, toPosixPath, toProjectPath } from '@/lib/utils/path.ts';
+import { stripLeadingSlashes, toPosixPath, toProjectPath } from '@/lib/utils/path.ts';
 import { type DownloadedFile, downloadedFileView } from '../download/views.ts';
 import { type UploadedFile, uploadedFileView } from '../upload/views.ts';
 import { download, upload } from './options.ts';
@@ -241,20 +240,15 @@ export default class FileCommand {
       return;
     }
 
-    const wantedPath = toProjectPath(destPath);
-    const projectFiles = await fileService.loadProjectFiles(branchId);
-    // Server paths carry the branch name; the path given on the command line never does.
-    const projectFilePaths = new Map(projectFiles.map((file) => [stripBranchPrefix(file.path, branch?.name), file.id]));
-    const existingFile = fileLookup(wantedPath, projectFilePaths);
+    const existing = (await fileService.loadIndex(branch)).soft(destPath);
     const excludedTargetLanguages = options.excludedLanguage?.length ? options.excludedLanguage : undefined;
     const pathDetails = path.parse(destPath);
-    const projectFile = existingFile && projectFiles.find((file) => file.id === existingFile.id);
 
-    if (existingFile && projectFile) {
+    if (existing) {
       // On a soft match the project file has a different name/extension; rename it to the source.
-      const newName = existingFile.exact ? undefined : pathDetails.base;
+      const newName = existing.exact ? undefined : pathDetails.base;
 
-      await this.updateExistingFile(command, options, filePath, fileFullPath, projectFile, newName, labelIds);
+      await this.updateExistingFile(command, options, filePath, fileFullPath, existing.file, newName, labelIds);
 
       return;
     }
@@ -728,6 +722,7 @@ export default class FileCommand {
     const fileService = await this.getFileService(command);
     const branchService = await this.getBranchService(command);
     const branch = await branchService.resolveBranch(branchName);
+
     return (await fileService.loadIndex(branch)).exact(wantedPath);
   };
 }

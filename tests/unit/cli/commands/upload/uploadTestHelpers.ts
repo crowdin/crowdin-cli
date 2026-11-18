@@ -4,6 +4,7 @@ import UploadCommand from '@/cli/commands/upload/UploadCommand.ts';
 import type { BranchService } from '@/cli/services/BranchService.ts';
 import type { DirectoryService } from '@/cli/services/DirectoryService.ts';
 import type { FileService } from '@/cli/services/file/FileService.ts';
+import { ProjectFileIndex } from '@/cli/services/file/ProjectFileIndex.ts';
 import type { LabelService } from '@/cli/services/LabelService.ts';
 import type { ProjectService } from '@/cli/services/ProjectService.ts';
 import type { StorageService } from '@/cli/services/StorageService.ts';
@@ -36,6 +37,7 @@ export function baseBranchServiceMock() {
 export function baseFileServiceMock() {
   return {
     loadProjectFiles: mock(async () => []),
+    loadIndex: mock(async () => new ProjectFileIndex([])),
     updateProjectFile: mock(async () => undefined),
     deleteProjectFile: mock(async () => undefined),
     createProjectFile: mock(async () => undefined),
