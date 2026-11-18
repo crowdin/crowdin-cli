@@ -10,7 +10,7 @@ export class DirectoryService {
     private projectId: number,
   ) {}
 
-  // Scoped to one branch, and to the root tree when none is given — see FileService.loadProjectFiles.
+  // Scoped to one branch, and to the root tree when none is given — see FileService.loadIndex.
   async loadProjectDirectories(branchId?: number): Promise<SourceFilesModel.Directory[]> {
     try {
       const response = await this.apiClient.sourceFilesApi.withFetchAll().listProjectDirectories(this.projectId, {

@@ -81,7 +81,7 @@ export default class DownloadSourcesCommand {
     const branch = await branchService.resolveBranch(options.branch);
     const downloads = this.collectSourceDownloads(
       config,
-      await fileService.loadBranchRelativeFiles(branch),
+      (await fileService.loadIndex(branch)).files,
       hasManagerAccess(project),
       output,
     );

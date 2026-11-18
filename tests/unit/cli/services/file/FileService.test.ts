@@ -60,95 +60,34 @@ describe('FileService', () => {
 
       expect(index.files.map((file) => file.id)).toEqual([1]);
     });
-  });
 
-  describe('loadBranchRelativeFiles', () => {
-    test('strips the branch name from the paths', async () => {
+    test('requests recursively, with no branch id for the root tree', async () => {
       const listProjectFiles = spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
-        data: [{ data: { id: 1, path: '/main/docs/readme.md', branchId: BRANCH.id } }],
-      } as never);
-
-      const result = await fileService.loadBranchRelativeFiles(BRANCH);
-
-      expect(listProjectFiles).toHaveBeenCalledWith(PROJECT_ID, { branchId: BRANCH.id, recursion: '1' });
-      expect(result[0]?.path).toBe('/docs/readme.md');
-    });
-
-    test('keeps the paths as they are without a branch', async () => {
-      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
-        data: [{ data: { id: 1, path: '/docs/readme.md' } }],
-      } as never);
-
-      const result = await fileService.loadBranchRelativeFiles();
-
-      expect(result[0]?.path).toBe('/docs/readme.md');
-    });
-  });
-
-  describe('loadProjectFiles', () => {
-    test('returns file list from API', async () => {
-      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
         data: mockFiles,
       } as never);
 
-      const result = await fileService.loadProjectFiles();
+      const index = await fileService.loadIndex();
 
-      expect(result).toHaveLength(2);
-      expect(result[0]?.path).toBe('/docs/readme.md');
+      expect(listProjectFiles).toHaveBeenCalledWith(PROJECT_ID, { branchId: undefined, recursion: '1' });
+      expect(index.files.map((file) => file.path)).toEqual(['/docs/readme.md', '/src/index.ts']);
     });
 
-    test('passes branchId when provided', async () => {
-      const spy = spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
-        data: [],
-      } as never);
-
-      await fileService.loadProjectFiles(5);
-
-      expect(spy).toHaveBeenCalledWith(PROJECT_ID, { branchId: 5, recursion: '1' });
-    });
-
-    test('requests recursively so files in subdirectories are included', async () => {
-      const spy = spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
-        data: [],
-      } as never);
-
-      await fileService.loadProjectFiles();
-
-      expect(spy).toHaveBeenCalledWith(PROJECT_ID, { branchId: undefined, recursion: '1' });
-    });
-
-    // The endpoint returns every branch's files when no branchId is sent, and their paths carry the
-    // branch name — leaving them in would make them addressable by that prefixed path.
-    test('keeps only the root tree when no branch is given', async () => {
+    test('keeps only the named branch even if the response holds others', async () => {
       spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
         data: [
           { data: { id: 1, path: '/docs/readme.md', branchId: null } },
-          { data: { id: 2, path: '/feature/docs/readme.md', branchId: 7 } },
+          { data: { id: 2, path: '/main/docs/readme.md', branchId: BRANCH.id } },
         ],
       } as never);
 
-      const result = await fileService.loadProjectFiles();
+      const index = await fileService.loadIndex(BRANCH);
 
-      expect(result.map((file) => file.id)).toEqual([1]);
-    });
-
-    test('keeps only the named branch when one is given', async () => {
-      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
-        data: [
-          { data: { id: 1, path: '/docs/readme.md', branchId: null } },
-          { data: { id: 2, path: '/feature/docs/readme.md', branchId: 7 } },
-        ],
-      } as never);
-
-      const result = await fileService.loadProjectFiles(7);
-
-      expect(result.map((file) => file.id)).toEqual([2]);
+      expect(index.files.map((file) => file.id)).toEqual([2]);
     });
 
     test('throws CliError when API fails', async () => {
       spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockRejectedValue(new Error('fail'));
-
-      expect(fileService.loadProjectFiles()).rejects.toThrow(CliError);
+      expect(fileService.loadIndex()).rejects.toThrow(CliError);
     });
   });
 
@@ -175,7 +114,6 @@ describe('FileService', () => {
 
     test('deduplicates file ids', async () => {
       const result = await fileService.resolveFileIds(['docs/readme.md', 'docs/readme.md']);
-
       expect(result.fileIds).toEqual([1]);
     });
 
@@ -318,13 +256,11 @@ describe('FileService', () => {
 
     test('wraps API error as CliError', async () => {
       spyOn(apiClient.sourceFilesApi, 'updateOrRestoreFile').mockRejectedValue(new Error('conflict'));
-
       expect(fileService.updateProjectFile(10, 99, 'local.md')).rejects.toThrow(CliError);
     });
 
     test('throws FileInUpdateError on a 409 conflict', async () => {
       spyOn(apiClient.sourceFilesApi, 'updateOrRestoreFile').mockRejectedValue(new CrowdinError('Conflict', 409, {}));
-
       expect(fileService.updateProjectFile(10, 99, 'local.md')).rejects.toBeInstanceOf(FileInUpdateError);
     });
   });
@@ -340,7 +276,6 @@ describe('FileService', () => {
 
     test('wraps API error as CliError', async () => {
       spyOn(apiClient.sourceFilesApi, 'deleteFile').mockRejectedValue(new Error('not found'));
-
       expect(fileService.deleteProjectFile(99, '/gone.md')).rejects.toThrow(CliError);
     });
   });
@@ -404,7 +339,6 @@ describe('FileService', () => {
 
     test('wraps API error as CliError', async () => {
       spyOn(apiClient.sourceFilesApi, 'downloadFile').mockRejectedValue(new Error('forbidden'));
-
       expect(fileService.getSourceFileDownloadUrl(99)).rejects.toThrow(CliError);
     });
   });
@@ -450,7 +384,6 @@ describe('FileService', () => {
 
     test('wraps API error from buildReviewedSourceFiles as CliError', async () => {
       spyOn(apiClient.sourceFilesApi, 'buildReviewedSourceFiles').mockRejectedValue(new Error('server error'));
-
       expect(fileService.buildReviewedSources()).rejects.toThrow(CliError);
     });
   });
@@ -478,7 +411,6 @@ describe('FileService', () => {
 
     test('wraps API error as CliError', async () => {
       spyOn(apiClient.sourceFilesApi, 'downloadReviewedSourceFiles').mockRejectedValue(new Error('gone'));
-
       expect(fileService.getReviewedSourcesDownloadUrl(55)).rejects.toThrow(CliError);
     });
   });

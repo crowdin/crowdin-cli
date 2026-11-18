@@ -36,7 +36,7 @@ describe('dest', () => {
     }
 
     // `recursion` is what reaches the files nested in directories; without it the listing stops at
-    // the branch (or project) root. Same call the CLI's own `loadProjectFiles` makes, including the
+    // the branch (or project) root. Same call the CLI's own `FileService.loadIndex` makes, including the
     // branch filter, since the recursive listing spans every branch.
     const files = await ctx.client.sourceFilesApi
       .withFetchAll()

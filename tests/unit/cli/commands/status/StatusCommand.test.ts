@@ -7,6 +7,7 @@ import type { GlobalOptions } from '@/cli/options.ts';
 import { BranchService } from '@/cli/services/BranchService.ts';
 import { DirectoryService } from '@/cli/services/DirectoryService.ts';
 import { FileService } from '@/cli/services/file/FileService.ts';
+import { ProjectFileIndex } from '@/cli/services/file/ProjectFileIndex.ts';
 import { ProgressService } from '@/cli/services/ProgressService.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
@@ -309,7 +310,9 @@ describe('StatusCommand', () => {
       commandContext = createCommandContext({ ...globalOptions, file });
 
       spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
-      spyOn(fileService, 'loadProjectFiles').mockResolvedValue([{ id: 33, path: '/docs/readme.md' }] as never);
+      spyOn(fileService, 'loadIndex').mockResolvedValue(
+        new ProjectFileIndex([{ id: 33, path: '/docs/readme.md' }] as never),
+      );
       const loadFileProgress = spyOn(progressService, 'loadFileProgress').mockResolvedValue([
         createProgress('fr', 100, 100),
       ] as never);
@@ -327,16 +330,17 @@ describe('StatusCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
     spyOn(branchService, 'getBranch').mockResolvedValue({ id: 7, name: 'feature' } as never);
-    const loadProjectFiles = spyOn(fileService, 'loadProjectFiles').mockResolvedValue([
-      { id: 44, path: '/feature/docs/readme.md' },
-    ] as never);
+    const loadIndex = spyOn(fileService, 'loadIndex');
+    spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+      data: [{ data: { id: 44, path: '/feature/docs/readme.md', branchId: 7 } }],
+    } as never);
     const loadFileProgress = spyOn(progressService, 'loadFileProgress').mockResolvedValue([
       createProgress('fr', 100, 100),
     ] as never);
 
     await statusCommand.defaultAction(commandContext);
 
-    expect(loadProjectFiles).toHaveBeenCalledWith(7);
+    expect(loadIndex).toHaveBeenCalledWith({ id: 7, name: 'feature' });
     expect(loadFileProgress).toHaveBeenCalledWith(44);
   });
 
