@@ -245,7 +245,11 @@ export default class UploadSourcesCommand {
       const group: SourceGroup = {
         patterns,
         fileOptions,
-        labelIds: fileOptions.labels !== undefined ? await labelService.resolveLabelIds(fileOptions.labels) : undefined,
+        // Resolving creates missing labels, and a dry run never sends the ids anyway.
+        labelIds:
+          fileOptions.labels === undefined || options.dryrun
+            ? undefined
+            : await labelService.resolveLabelIds(fileOptions.labels),
         srxStorageIdPromise: this.uploadSrx(run, patterns),
       };
       const results = await runConcurrently(files.map((file) => () => this.uploadSource(run, group, file)));
