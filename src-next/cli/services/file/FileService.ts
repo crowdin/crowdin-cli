@@ -6,14 +6,13 @@ import type { Output } from '@/cli/utils/output.ts';
 import { normalizePath } from '@/cli/utils/parsing.ts';
 import { withSpinner } from '@/cli/utils/withSpinner.ts';
 import { pollUntilFinished } from '@/lib/api/pollStatus.ts';
-import { stripBranchPrefix, toPosixPath } from '@/lib/utils/path.ts';
+import { stripBranchPrefix } from '@/lib/utils/path.ts';
 import { ProjectFileIndex } from './ProjectFileIndex.ts';
 
-// Only the id and the name matter here: the id scopes the request, the name comes back off every
-// path the request returns.
+// The id scopes the request; the name is stripped off the returned paths.
 type ProjectBranch = Pick<SourceFilesModel.Branch, 'id' | 'name'>;
 
-/** A project file path with its branch kept apart from the path instead of prefixed onto it. */
+// A project file path with its branch kept apart from the path instead of prefixed onto it.
 export type ProjectFilePath = { path: string; branch?: string };
 
 export interface ProjectFileUpdate {
@@ -55,14 +54,19 @@ export class FileService {
       update;
 
     try {
-      await this.apiClient.sourceFilesApi.updateOrRestoreFile(this.projectId, fileId, {
-        storageId,
-        name,
-        exportOptions,
-        importOptions,
-        updateOption,
-        attachLabelIds,
-      });
+      // biome-ignore format: one argument per line
+      await this.apiClient.sourceFilesApi.updateOrRestoreFile(
+        this.projectId,
+        fileId,
+        {
+          storageId,
+          name,
+          exportOptions,
+          importOptions,
+          updateOption,
+          attachLabelIds,
+        },
+      );
 
       const patches: PatchRequest[] = [];
 
@@ -116,61 +120,45 @@ export class FileService {
     return { fileIds: Array.from(new Set(fileIds)), missingPaths };
   }
 
-  // Scoped to one branch, and to the root tree when none is given: without a branchId the endpoint
-  // returns every branch's files too, whose paths carry the branch name, so they would answer to
-  // their prefixed path everywhere below (and 'upload sources --delete-obsolete' would delete them
-  // as obsolete).
-  async loadProjectFiles(branchId?: number): Promise<SourceFilesModel.File[]> {
+  // One branch, or the root tree without one: without a branchId the endpoint also returns every
+  // branch's files, which would answer to their prefixed paths and look obsolete to delete-obsolete.
+  async loadIndex(branch?: ProjectBranch): Promise<ProjectFileIndex> {
+    const branchId = branch?.id;
     const response = await withSpinner(
       this.output,
       'projectFiles',
       { start: 'Fetching project files', stop: 'Project files fetched', fail: 'Failed to fetch project files' },
-      () => this.apiClient.sourceFilesApi.withFetchAll().listProjectFiles(this.projectId, { branchId, recursion: '1' }),
+      // biome-ignore format: one argument per line
+      () => this.apiClient.sourceFilesApi.withFetchAll().listProjectFiles(
+        this.projectId,
+        {
+          branchId,
+          recursion: '1',
+        },
+      ),
     );
+    const files = response.data
+      .map((entry) => entry.data)
+      .filter((file) => (file.branchId ?? null) === (branchId ?? null));
 
-    return response.data.map((entry) => entry.data).filter((file) => (file.branchId ?? null) === (branchId ?? null));
+    return new ProjectFileIndex(files, branch?.name);
   }
 
-  async loadIndex(branch?: ProjectBranch): Promise<ProjectFileIndex> {
-    return new ProjectFileIndex(await this.loadProjectFiles(branch?.id), branch?.name);
-  }
-
-  /**
-   * Drops the branch name that files inside a branch carry in their project path
-   * ('/dev/src/en.json' -> '/src/en.json'). Every config-derived path is branch-relative, so without
-   * this nothing matches once `--branch` is given. Stripping once at the load boundary keeps every
-   * consumer below comparing plain project-relative paths.
-   */
-  async loadBranchRelativeFiles(branch?: ProjectBranch): Promise<SourceFilesModel.File[]> {
-    const files = await this.loadProjectFiles(branch?.id);
-
-    if (!branch) {
-      return files;
-    }
-
-    return files.map((file) => ({ ...file, path: stripBranchPrefix(toPosixPath(file.path), branch.name) }));
-  }
-
-  // A file inside a branch is addressable only once '--branch' names that branch: the branch is
-  // never part of '--file', so without the filter two branches holding the same relative path would
-  // collide and one would silently win.
-  // Same files as loadIndex, without its spinner.
+  // Same files as loadIndex, without its spinner. Branch files stay out unless '--branch' names the
+  // branch: '--file' never carries it, so two branches' copies of a path would collide.
   private async loadQuietIndex(branch?: ProjectBranch): Promise<ProjectFileIndex> {
     const files = await this.fetchProjectFiles(branch?.id);
     return new ProjectFileIndex(branch ? files : files.filter((file) => file.branchId == null), branch?.name);
   }
 
-  // Unlike the lookup above this keeps branch files, because it labels strings that were already
-  // fetched rather than addressing one: dropping them would leave those strings without a path.
-  // The branch travels as its own field instead of a path prefix, so a caller can tell two
-  // branches' copies of the same file apart without parsing the path.
+  // Unlike the index, keeps every branch's files: it labels strings already fetched, and dropping a
+  // branch would leave its strings without a path. The branch is its own field, not a path prefix.
   async listProjectFilePaths(branch?: ProjectBranch): Promise<Map<number, ProjectFilePath>> {
     const files = await this.fetchProjectFiles(branch?.id);
 
     return new Map(
       files.map((file) => {
-        // A branch file's server path starts with its branch name, so with no '--branch' to name it
-        // the first segment is the branch — no second request to list them.
+        // Without '--branch', a branch file's first path segment is its branch name.
         const branchName = file.branchId == null ? undefined : (branch?.name ?? this.firstPathSegment(file.path));
         return [file.id, { path: this.toLookupPath(file.path, branchName), branch: branchName }];
       }),
@@ -184,8 +172,7 @@ export class FileService {
         recursion: '1',
       });
 
-      // Files nested in a branch's directories carry their branchId too, so it alone says whether
-      // a file sits in a branch — no walking the directory chain up to one.
+      // Nested files carry their branchId too, so it alone tells whether a file sits in a branch.
       return response.data.map((entry) => entry.data);
     } catch (error) {
       throw toCliError(error, 'Failed to fetch project files');
@@ -196,8 +183,7 @@ export class FileService {
     return normalizePath(projectPath).split('/')[1];
   }
 
-  // Server paths carry the branch name, the path given on the command line never does, so '--file'
-  // stays branch-relative and the branch only arrives through '--branch'.
+  // '--file' never carries the branch, so lookups compare branch-relative paths.
   private toLookupPath(projectPath: string, branchName?: string): string {
     return stripBranchPrefix(normalizePath(projectPath), branchName);
   }
@@ -223,8 +209,7 @@ export class FileService {
       async () => {
         const build = await this.apiClient.sourceFilesApi.buildReviewedSourceFiles(this.projectId, { branchId });
 
-        // Keyed by the build id rather than a status identifier, so the poll closure ignores its
-        // argument and closes over the build instead.
+        // Keyed by the build id, not a status identifier, so the poll closure ignores its argument.
         await pollUntilFinished(
           build,
           () => this.apiClient.sourceFilesApi.checkReviewedSourceFilesBuildStatus(this.projectId, build.data.id),

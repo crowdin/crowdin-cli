@@ -135,7 +135,7 @@ export default class DownloadTranslationsCommand {
         config,
         options,
         output,
-        await fileService.loadBranchRelativeFiles(branch),
+        (await fileService.loadIndex(branch)).files,
         resolvedLanguages,
         serverLanguageMapping,
       );
@@ -171,7 +171,7 @@ export default class DownloadTranslationsCommand {
         );
       }
 
-      projectFiles = await fileService.loadBranchRelativeFiles(branch);
+      projectFiles = (await fileService.loadIndex(branch)).files;
     }
 
     const run: TranslationsRun = {
@@ -204,7 +204,7 @@ export default class DownloadTranslationsCommand {
       !isMachineFormat(options.output) &&
       run.perBuildOmitted.some((omitted) => omitted.length > 0)
     ) {
-      const files = projectFiles ?? (await fileService.loadBranchRelativeFiles(branch));
+      const files = projectFiles ?? (await fileService.loadIndex(branch)).files;
       const allProjectTranslations = buildAllProjectTranslations(files, projectLanguages, serverLanguageMapping);
 
       this.reportOmittedFiles(run.perBuildOmitted, allProjectTranslations, output, options.verbose ?? false);

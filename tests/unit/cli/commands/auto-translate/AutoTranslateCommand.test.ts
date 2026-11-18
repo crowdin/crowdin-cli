@@ -6,6 +6,7 @@ import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import { BranchService } from '@/cli/services/BranchService.ts';
 import { FileService } from '@/cli/services/file/FileService.ts';
+import { ProjectFileIndex } from '@/cli/services/file/ProjectFileIndex.ts';
 import { LabelService } from '@/cli/services/LabelService.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
 import { TranslationService } from '@/cli/services/TranslationService.ts';
@@ -121,7 +122,7 @@ describe('AutoTranslateCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
     spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex(projectFiles as never));
     spyOn(labelService, 'list').mockResolvedValue([{ id: 91, title: 'label_1' }] as never);
     const preTranslate = spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
 
@@ -148,7 +149,9 @@ describe('AutoTranslateCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
     spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'feature.x' } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([{ id: 107, path: '/feature.x/src/app.po' }] as never);
+    spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+      data: [{ data: { id: 107, path: '/feature.x/src/app.po', branchId: 81 } }],
+    } as never);
     const preTranslate = spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
 
     await command.defaultAction(commandContext);
@@ -169,7 +172,7 @@ describe('AutoTranslateCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
     spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex(projectFiles as never));
     const preTranslate = spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
 
     await command.defaultAction(commandContext);
@@ -193,10 +196,12 @@ describe('AutoTranslateCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
     spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([
-      ...projectFiles,
-      { id: 103, path: '/srcfiles/third.po', branchId: 81, directoryId: 62 },
-    ] as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(
+      new ProjectFileIndex([
+        ...projectFiles,
+        { id: 103, path: '/srcfiles/third.po', branchId: 81, directoryId: 62 },
+      ] as never),
+    );
     const preTranslate = spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
 
     await command.defaultAction(commandContext);
@@ -216,7 +221,7 @@ describe('AutoTranslateCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
     spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex(projectFiles as never));
     const preTranslate = spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
 
     await command.defaultAction(commandContext);
@@ -257,7 +262,7 @@ describe('AutoTranslateCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
     spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex(projectFiles as never));
     const supported = spyOn(translationService, 'getMtSupportedLanguageIds').mockResolvedValue(['ua', 'fr']);
     const preTranslate = spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
 
@@ -308,7 +313,7 @@ describe('AutoTranslateCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
     spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex(projectFiles as never));
 
     const preTranslate = spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
 
@@ -350,7 +355,7 @@ describe('AutoTranslateCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
     spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex(projectFiles as never));
     spyOn(translationService, 'getMtSupportedLanguageIds').mockResolvedValue(['ua', 'en', 'fr']);
 
     const warning = spyOn(output, 'warning').mockImplementation(() => {});
@@ -374,7 +379,7 @@ describe('AutoTranslateCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
     spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex(projectFiles as never));
     const preTranslate = spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
 
     await command.defaultAction(commandContext);
@@ -400,7 +405,7 @@ describe('AutoTranslateCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
     spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex(projectFiles as never));
     const preTranslate = spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
 
     await command.defaultAction(commandContext);
@@ -426,7 +431,7 @@ describe('AutoTranslateCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
     spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex(projectFiles as never));
     const preTranslate = spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
 
     await command.defaultAction(commandContext);
@@ -447,7 +452,7 @@ describe('AutoTranslateCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
     spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex(projectFiles as never));
     spyOn(labelService, 'list').mockResolvedValue([
       { id: 91, title: 'label_1' },
       { id: 92, title: 'label_2' },
@@ -495,7 +500,7 @@ describe('AutoTranslateCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
     spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex(projectFiles as never));
     spyOn(labelService, 'list').mockResolvedValue([{ id: 91, title: 'label_1' }] as never);
     const warning = spyOn(output, 'warning').mockImplementation(() => {});
     const preTranslate = spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
@@ -519,7 +524,7 @@ describe('AutoTranslateCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
     spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex(projectFiles as never));
     spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
     spyOn(translationService, 'getPreTranslationReport').mockResolvedValue({
       preTranslateType: 'tm',
@@ -680,7 +685,7 @@ describe('AutoTranslateCommand', () => {
 
       spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
       spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
-      spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
+      spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex(projectFiles as never));
 
       expect(command.defaultAction(commandContext)).rejects.toThrow(
         new CliError("Project doesn't contain the '/missing.po' file"),
@@ -693,7 +698,7 @@ describe('AutoTranslateCommand', () => {
 
       spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
       spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
-      spyOn(fileService, 'loadProjectFiles').mockResolvedValue([] as never);
+      spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex([] as never));
 
       expect(command.defaultAction(commandContext)).rejects.toThrow(
         new CliError("Couldn't find any files to Auto-Translate in the current project"),
@@ -711,7 +716,7 @@ describe('AutoTranslateCommand', () => {
 
       spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
       spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
-      spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
+      spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex(projectFiles as never));
       const warning = spyOn(output, 'warning').mockImplementation(() => {});
       const preTranslate = spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
 
@@ -729,7 +734,7 @@ describe('AutoTranslateCommand', () => {
 
       spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
       spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
-      spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
+      spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex(projectFiles as never));
       spyOn(translationService, 'preTranslate').mockRejectedValue(
         new CliError('Failed to auto-translate the project. Please contact our support team for help'),
       );
@@ -751,7 +756,7 @@ describe('AutoTranslateCommand', () => {
 
       spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
       spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
-      spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
+      spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex(projectFiles as never));
       spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
       spyOn(translationService, 'getPreTranslationReport').mockResolvedValue({
         preTranslateType: 'tm',
@@ -814,7 +819,7 @@ describe('AutoTranslateCommand', () => {
 
       spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
       spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
-      spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
+      spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex(projectFiles as never));
       const start = spyOn(translationService, 'startPreTranslation').mockResolvedValue({
         identifier: '121',
         status: 'created',

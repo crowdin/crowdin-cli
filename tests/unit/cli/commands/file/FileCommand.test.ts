@@ -141,10 +141,12 @@ describe('FileCommand', () => {
     const fileCommand = createFileCommand();
 
     spyOn(projectService, 'loadProject').mockResolvedValue({ id: 123 } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([
-      { id: 1, path: '/docs/readme.md' },
-      { id: 2, path: '/docs/changelog.md' },
-    ] as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(
+      new ProjectFileIndex([
+        { id: 1, path: '/docs/readme.md' },
+        { id: 2, path: '/docs/changelog.md' },
+      ] as never),
+    );
 
     await fileCommand.listAction(commandContext);
 
@@ -165,7 +167,7 @@ describe('FileCommand', () => {
     const fileCommand = createFileCommandWith(textOutput);
 
     spyOn(projectService, 'loadProject').mockResolvedValue({ id: 123 } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([] as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex([] as never));
 
     await fileCommand.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
@@ -177,7 +179,9 @@ describe('FileCommand', () => {
     const fileCommand = createFileCommandWith(textOutput);
 
     spyOn(projectService, 'loadProject').mockResolvedValue({ id: 123 } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([{ id: 1, path: '/docs/readme.md' }] as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(
+      new ProjectFileIndex([{ id: 1, path: '/docs/readme.md' }] as never),
+    );
 
     await fileCommand.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
@@ -190,9 +194,9 @@ describe('FileCommand', () => {
     const fileCommand = createFileCommandWith(textOutput);
 
     spyOn(projectService, 'loadProject').mockResolvedValue({ id: 123 } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([
-      { id: 1, path: '/docs/readme.md', type: 'md', parserVersion: 4, revisionId: 7 },
-    ] as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(
+      new ProjectFileIndex([{ id: 1, path: '/docs/readme.md', type: 'md', parserVersion: 4, revisionId: 7 }] as never),
+    );
 
     await fileCommand.listAction(createCommandContext({ ...globalOptions, output: 'text', verbose: true }));
 
@@ -205,17 +209,17 @@ describe('FileCommand', () => {
     spyOn(projectService, 'loadProject').mockResolvedValue({ id: 123 } as never);
 
     const resolveBranch = spyOn(branchService, 'resolveBranch').mockResolvedValue({ id: 5, name: 'feature' } as never);
-    const loadProjectFiles = spyOn(fileService, 'loadProjectFiles').mockResolvedValue([] as never);
+    const loadIndex = spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex([] as never));
 
     commandContext = createCommandContext({ ...globalOptions, branch: 'feature' });
 
     await fileCommand.listAction(commandContext);
 
     expect(resolveBranch).toHaveBeenCalledWith('feature');
-    expect(loadProjectFiles).toHaveBeenCalledWith(5);
+    expect(loadIndex).toHaveBeenCalledWith(expect.objectContaining({ id: 5 }));
   });
 
-  // loadProjectFiles is scoped to the branch (see FileService), so without '--branch' the listing
+  // loadIndex is scoped to the branch (see FileService), so without '--branch' the listing
   // only ever sees the root tree — a project whose files all sit in a branch lists nothing.
   test('lists the root tree when no branch is given', async () => {
     const textOutput = createOutput({ ...globalOptions, output: 'text' });
@@ -223,14 +227,14 @@ describe('FileCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue({ id: 123 } as never);
     const resolveBranch = spyOn(branchService, 'resolveBranch').mockResolvedValue(undefined);
-    const loadProjectFiles = spyOn(fileService, 'loadProjectFiles').mockResolvedValue([
-      { id: 2, path: '/docs/changelog.md', branchId: null },
-    ] as never);
+    const loadIndex = spyOn(fileService, 'loadIndex').mockResolvedValue(
+      new ProjectFileIndex([{ id: 2, path: '/docs/changelog.md', branchId: null }] as never),
+    );
 
     await fileCommand.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
     expect(resolveBranch).toHaveBeenCalledWith(undefined);
-    expect(loadProjectFiles).toHaveBeenCalledWith(undefined);
+    expect(loadIndex).toHaveBeenCalledWith(undefined);
     expect(console.log).toHaveBeenCalledWith(expect.stringContaining('docs/changelog.md'));
   });
 
@@ -239,9 +243,9 @@ describe('FileCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue({ id: 123 } as never);
     spyOn(branchService, 'resolveBranch').mockResolvedValue({ id: 5, name: 'main' } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([
-      { id: 1, path: '/main/docs/readme.md', branchId: 5 },
-    ] as never);
+    spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+      data: [{ data: { id: 1, path: '/main/docs/readme.md', branchId: 5 } }],
+    } as never);
 
     await fileCommand.listAction(createCommandContext({ ...globalOptions, branch: 'main' }));
 
@@ -253,9 +257,9 @@ describe('FileCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue({ id: 123 } as never);
     spyOn(branchService, 'resolveBranch').mockResolvedValue({ id: 5, name: 'feature.x' } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([
-      { id: 1, path: '/feature.x/docs/readme.md', branchId: 5 },
-    ] as never);
+    spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+      data: [{ data: { id: 1, path: '/feature.x/docs/readme.md', branchId: 5 } }],
+    } as never);
 
     await fileCommand.listAction(createCommandContext({ ...globalOptions, branch: 'feature/x' }));
 
@@ -268,7 +272,9 @@ describe('FileCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue({ id: 123 } as never);
     spyOn(branchService, 'resolveBranchId').mockResolvedValue(undefined);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([{ id: 1, path: '/docs/readme.md' }] as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(
+      new ProjectFileIndex([{ id: 1, path: '/docs/readme.md' }] as never),
+    );
 
     await fileCommand.listAction(createCommandContext({ ...globalOptions, output: 'text', tree: true }));
 
@@ -286,7 +292,9 @@ describe('FileCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue({ id: 123 } as never);
     spyOn(branchService, 'resolveBranchId').mockResolvedValue(undefined);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([{ id: 1, path: '/docs/readme.md' }] as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(
+      new ProjectFileIndex([{ id: 1, path: '/docs/readme.md' }] as never),
+    );
 
     await fileCommand.listAction(createCommandContext({ ...globalOptions, output: 'json', tree: true }));
 
@@ -311,7 +319,7 @@ describe('FileCommand', () => {
       .mockResolvedValueOnce({ data: { id: 20 } } as never);
     const addStorage = spyOn(storageService, 'addStorage').mockResolvedValue({ id: 99 } as never);
 
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([] as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex([] as never));
     spyOn(directoryService, 'loadProjectDirectories').mockResolvedValue([] as never);
 
     const createFile = spyOn(apiClient.sourceFilesApi, 'createFile').mockResolvedValue({ data: { id: 777 } } as never);
@@ -367,7 +375,7 @@ describe('FileCommand', () => {
 
     spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({ data: { id: 123 } } as never);
     spyOn(storageService, 'addStorage').mockResolvedValue({ id: 99 } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([] as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex([] as never));
     spyOn(directoryService, 'loadProjectDirectories').mockResolvedValue([] as never);
     spyOn(apiClient.sourceFilesApi, 'createFile').mockResolvedValue({ data: { id: 777 } } as never);
 
@@ -386,7 +394,7 @@ describe('FileCommand', () => {
 
     spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({ data: { id: 123 } } as never);
     spyOn(storageService, 'addStorage').mockResolvedValue({ id: 99 } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([] as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex([] as never));
 
     const resolveLabelIds = spyOn(labelService, 'resolveLabelIds').mockResolvedValue([7, 8]);
     const createFile = spyOn(apiClient.sourceFilesApi, 'createFile').mockResolvedValue({ data: { id: 777 } } as never);
@@ -409,7 +417,7 @@ describe('FileCommand', () => {
 
     spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({ data: { id: 123 } } as never);
     spyOn(storageService, 'addStorage').mockResolvedValue({ id: 99 } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([] as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex([] as never));
 
     const resolveLabelIds = spyOn(labelService, 'resolveLabelIds');
 
@@ -459,7 +467,9 @@ describe('FileCommand', () => {
 
     spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({ data: { id: 123 } } as never);
     spyOn(storageService, 'addStorage').mockResolvedValue({ id: 99 } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([{ id: 42, path: '/remote.json' }] as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(
+      new ProjectFileIndex([{ id: 42, path: '/remote.json' }] as never),
+    );
 
     const updateProjectFile = spyOn(fileService, 'updateProjectFile').mockResolvedValue(undefined as never);
     const createFile = spyOn(apiClient.sourceFilesApi, 'createFile');
@@ -488,9 +498,11 @@ describe('FileCommand', () => {
 
       spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({ data: { id: 123 } } as never);
       spyOn(storageService, 'addStorage').mockResolvedValue({ id: 99 } as never);
-      spyOn(fileService, 'loadProjectFiles').mockResolvedValue([
-        { id: 42, path: '/remote.json', context: 'same', excludedTargetLanguages: ['de'] },
-      ] as never);
+      spyOn(fileService, 'loadIndex').mockResolvedValue(
+        new ProjectFileIndex([
+          { id: 42, path: '/remote.json', context: 'same', excludedTargetLanguages: ['de'] },
+        ] as never),
+      );
 
       const updateProjectFile = spyOn(fileService, 'updateProjectFile').mockResolvedValue(undefined as never);
 
@@ -522,7 +534,9 @@ describe('FileCommand', () => {
 
     spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({ data: { id: 123 } } as never);
     spyOn(storageService, 'addStorage').mockResolvedValue({ id: 99 } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([{ id: 42, path: '/docs/remote.yaml' }] as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(
+      new ProjectFileIndex([{ id: 42, path: '/docs/remote.yaml' }] as never),
+    );
 
     const updateProjectFile = spyOn(fileService, 'updateProjectFile').mockResolvedValue(undefined as never);
 
@@ -547,9 +561,10 @@ describe('FileCommand', () => {
     } as never);
     spyOn(storageService, 'addStorage').mockResolvedValue({ id: 99 } as never);
 
-    const loadProjectFiles = spyOn(fileService, 'loadProjectFiles').mockResolvedValue([
-      { id: 42, path: '/feature.x/remote.json' },
-    ] as never);
+    const loadIndex = spyOn(fileService, 'loadIndex');
+    spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+      data: [{ data: { id: 42, path: '/feature.x/remote.json', branchId: 7 } }],
+    } as never);
     const updateProjectFile = spyOn(fileService, 'updateProjectFile').mockResolvedValue(undefined as never);
     const createFile = spyOn(apiClient.sourceFilesApi, 'createFile');
     const listSpy = spyOn(output, 'list');
@@ -560,7 +575,7 @@ describe('FileCommand', () => {
 
     await fileCommand.uploadAction(commandContext);
 
-    expect(loadProjectFiles).toHaveBeenCalledWith(7);
+    expect(loadIndex).toHaveBeenCalledWith({ id: 7, name: 'feature.x' });
     expect(updateProjectFile.mock.calls[0]?.[0]).toBe(42);
     expect(createFile).not.toHaveBeenCalled();
     expect(listSpy.mock.calls.at(-1)?.[0]).toEqual([{ path: 'feature.x/remote.json', action: 'updated' }]);
@@ -573,7 +588,9 @@ describe('FileCommand', () => {
     await Bun.write(localFilePath, '{}');
 
     spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({ data: { id: 123 } } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([{ id: 42, path: '/remote.json' }] as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(
+      new ProjectFileIndex([{ id: 42, path: '/remote.json' }] as never),
+    );
 
     const updateProjectFile = spyOn(fileService, 'updateProjectFile');
     const addStorage = spyOn(storageService, 'addStorage');
@@ -601,7 +618,9 @@ describe('FileCommand', () => {
     await Bun.write(localFilePath, '{}');
 
     spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({ data: { id: 123 } } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([{ id: 42, path: '/remote.json' }] as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(
+      new ProjectFileIndex([{ id: 42, path: '/remote.json' }] as never),
+    );
     spyOn(storageService, 'addStorage').mockResolvedValue({ id: 99 } as never);
     spyOn(fileService, 'updateProjectFile').mockRejectedValue(new FileInUpdateError());
 
@@ -626,7 +645,9 @@ describe('FileCommand', () => {
     await Bun.write(localFilePath, '{}');
 
     spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({ data: { id: 123 } } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([{ id: 42, path: '/remote.json' }] as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(
+      new ProjectFileIndex([{ id: 42, path: '/remote.json' }] as never),
+    );
 
     commandContext = createCommandContext(
       { ...globalOptions, output: 'plain', dest: 'remote.json', autoUpdate: false },
@@ -720,7 +741,7 @@ describe('FileCommand', () => {
       data: { id: 123, languageMapping: {}, targetLanguages: [{ id: 'uk' }], type: 0 },
     } as never);
     spyOn(storageService, 'addStorage').mockResolvedValue({ id: 99 } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([{ id: 40, path: '/main.json' }] as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex([{ id: 40, path: '/main.json' }] as never));
 
     const importProjectTranslation = spyOn(translationService, 'importProjectTranslation').mockResolvedValue({
       data: { identifier: 'import-1', status: 'finished', progress: 100 },
@@ -755,7 +776,7 @@ describe('FileCommand', () => {
       data: { id: 123, languageMapping: {}, targetLanguages: [{ id: 'uk' }], type: 0 },
     } as never);
     spyOn(storageService, 'addStorage').mockResolvedValue({ id: 99 } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([{ id: 40, path: '/main.json' }] as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(new ProjectFileIndex([{ id: 40, path: '/main.json' }] as never));
     // The service invokes onProgress for each poll; drive it here so the command's wiring is tested.
     spyOn(translationService, 'importProjectTranslation').mockImplementation((async (
       ...args: Parameters<typeof translationService.importProjectTranslation>
@@ -914,7 +935,7 @@ describe('FileCommand', () => {
   test('skips delete for a string-based project', async () => {
     const deleteProjectFile = mock(async () => undefined);
     const mockFileService = {
-      loadProjectFiles: mock(async () => []),
+      loadIndex: mock(async () => new ProjectFileIndex([])),
       deleteProjectFile,
     };
     const fileCommand = new FileCommand(
@@ -953,9 +974,9 @@ describe('FileCommand', () => {
         type: 0,
       },
     } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([
-      { id: 40, path: '/main.json', name: 'main.json' },
-    ] as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(
+      new ProjectFileIndex([{ id: 40, path: '/main.json', name: 'main.json' }] as never),
+    );
 
     const build = spyOn(translationService, 'buildProjectFileTranslation').mockResolvedValue(
       'https://example.test/uk.json',
@@ -985,9 +1006,9 @@ describe('FileCommand', () => {
         type: 0,
       },
     } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue([
-      { id: 40, path: '/main.json', name: 'main.json' },
-    ] as never);
+    spyOn(fileService, 'loadIndex').mockResolvedValue(
+      new ProjectFileIndex([{ id: 40, path: '/main.json', name: 'main.json' }] as never),
+    );
     spyOn(translationService, 'buildProjectFileTranslation').mockResolvedValue('https://example.test/uk.json');
     spyOn(globalThis, 'fetch').mockResolvedValue(new Response('translated'));
 
@@ -1038,9 +1059,9 @@ describe('FileCommand', () => {
       data: { id: 123, targetLanguages: [{ id: 'uk' }], type: 0 },
     } as never);
 
-    const loadProjectFiles = spyOn(fileService, 'loadProjectFiles').mockResolvedValue([
-      { id: 40, path: '/main.json', name: 'main.json' },
-    ] as never);
+    const loadIndex = spyOn(fileService, 'loadIndex').mockResolvedValue(
+      new ProjectFileIndex([{ id: 40, path: '/main.json', name: 'main.json' }] as never),
+    );
     const build = spyOn(translationService, 'buildProjectFileTranslation').mockResolvedValue(
       'https://example.test/uk.json',
     );
@@ -1054,7 +1075,7 @@ describe('FileCommand', () => {
     expect(warning).toHaveBeenCalledWith(
       'You must have manager or developer role in the project to perform this action',
     );
-    expect(loadProjectFiles).not.toHaveBeenCalled();
+    expect(loadIndex).not.toHaveBeenCalled();
     expect(build).not.toHaveBeenCalled();
     expect(listSpy.mock.calls.at(-1)?.[0]).toEqual([]);
   });
