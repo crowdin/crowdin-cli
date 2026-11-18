@@ -17,6 +17,7 @@ import type { GlobalOptions } from '@/cli/options.ts';
 import type { BranchService } from '@/cli/services/BranchService.ts';
 import type { DirectoryService } from '@/cli/services/DirectoryService.ts';
 import type { FileService } from '@/cli/services/file/FileService.ts';
+import { ProjectFileIndex } from '@/cli/services/file/ProjectFileIndex.ts';
 import type { StorageService } from '@/cli/services/StorageService.ts';
 import type { StringService } from '@/cli/services/StringService.ts';
 import type {
@@ -38,7 +39,6 @@ import { assertFilesConfigured, type Config } from '@/lib/config.ts';
 import { getExportPattern } from '@/lib/download/projectTranslations.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { isStringsBasedProject } from '@/lib/project/type.ts';
-import { type FileLookupResult, fileLookup } from '@/lib/upload/fileLookup.ts';
 import {
   buildExportOptions,
   buildImportOptions,
@@ -104,8 +104,7 @@ interface UploadRun {
   stringService: StringService;
   branch: SourceFilesModel.Branch | undefined;
   isStringsBased: boolean;
-  projectFilePaths: Map<string, number>;
-  projectFilesById: Map<number, SourceFilesModel.File>;
+  projectFiles: ProjectFileIndex;
   expectedProjectFilePaths: Set<string>;
   projectDirectories: Map<string, number>;
   sourceHashes: Map<string, string> | undefined;
@@ -175,11 +174,9 @@ export default class UploadSourcesCommand {
       throw new CliError('A branch is required to upload sources for a strings-based project');
     }
 
-    const branchId = branch?.id;
-    const branchName = branch?.name;
     const skipProjectTree = isStringsBased || isBranchMissing;
-    const projectFiles = skipProjectTree ? [] : await fileService.loadProjectFiles(branchId);
-    const projectDirectoryList = skipProjectTree ? [] : await directoryService.loadProjectDirectories(branchId);
+    const projectFiles = skipProjectTree ? new ProjectFileIndex([]) : await fileService.loadIndex(branch);
+    const projectDirectoryList = skipProjectTree ? [] : await directoryService.loadProjectDirectories(branch?.id);
     const run: UploadRun = {
       options,
       basePath: config.basePath,
@@ -190,9 +187,7 @@ export default class UploadSourcesCommand {
       stringService,
       branch,
       isStringsBased,
-      // Server paths carry the branch name; the project paths resolved from the config never do.
-      projectFilePaths: new Map(projectFiles.map((file) => [stripBranchPrefix(file.path, branchName), file.id])),
-      projectFilesById: new Map(projectFiles.map((file) => [file.id, file])),
+      projectFiles,
       expectedProjectFilePaths: new Set(
         patternFilePaths.flatMap(({ files }) => files.map(({ projectPath }) => toProjectPath(projectPath))),
       ),
@@ -205,7 +200,7 @@ export default class UploadSourcesCommand {
     };
 
     if (options.deleteObsolete && !isStringsBased) {
-      await this.deleteObsoleteEntries(run, config, projectFiles, projectDirectoryList);
+      await this.deleteObsoleteEntries(run, config, projectDirectoryList);
     }
 
     // A machine --output emits the bare sorted in-project paths and wins over --tree; otherwise fall
@@ -388,10 +383,10 @@ export default class UploadSourcesCommand {
       return;
     }
 
-    const existingFile = fileLookup(toProjectPath(projectPath), run.projectFilePaths, run.expectedProjectFilePaths);
+    const existing = run.projectFiles.soft(projectPath, run.expectedProjectFilePaths);
 
-    if (existingFile) {
-      await this.updateFile(run, upload, existingFile);
+    if (existing) {
+      await this.updateFile(run, upload, existing.file, existing.exact);
     } else {
       await this.createFile(run, upload);
     }
@@ -429,7 +424,12 @@ export default class UploadSourcesCommand {
     this.reportUploaded(run, upload, 'uploaded', checksum);
   }
 
-  private async updateFile(run: UploadRun, upload: SourceUpload, existingFile: FileLookupResult): Promise<void> {
+  private async updateFile(
+    run: UploadRun,
+    upload: SourceUpload,
+    projectFile: SourceFilesModel.File,
+    exactMatch: boolean,
+  ): Promise<void> {
     const { options, output } = run;
     const { localFile, localFilePath, projectPath, patterns, fileOptions, labelIds } = upload;
 
@@ -452,21 +452,31 @@ export default class UploadSourcesCommand {
 
     const srxStorageId = await upload.srxStorageIdPromise;
     const storage = await run.storageService.addStorage(localFile);
-    const changedSettings = changedFileSettings(run.projectFilesById.get(existingFile.id), {
-      context: await this.readContext(run, upload),
-      excludedTargetLanguages: fileOptions.excluded_target_languages,
-    });
+    // biome-ignore format: one argument per line
+    const changedSettings = changedFileSettings(
+      projectFile,
+      {
+        context: await this.readContext(run, upload),
+        excludedTargetLanguages: fileOptions.excluded_target_languages,
+      },
+    );
 
     try {
-      await run.fileService.updateProjectFile(existingFile.id, storage.id, localFilePath, {
-        exportOptions: buildExportOptions(localFilePath, patterns, patterns.translation),
-        importOptions: buildImportOptions(localFilePath, patterns, srxStorageId),
-        updateOption: patterns.update_option as SourceFilesModel.UpdateOption | undefined,
-        attachLabelIds: labelIds,
-        // On a soft match the project file has a different name/extension; rename it to the source.
-        name: existingFile.exact ? undefined : path.parse(localFilePath).base,
-        ...changedSettings,
-      });
+      // biome-ignore format: one argument per line
+      await run.fileService.updateProjectFile(
+        projectFile.id,
+        storage.id,
+        localFilePath,
+        {
+          exportOptions: buildExportOptions(localFilePath, patterns, patterns.translation),
+          importOptions: buildImportOptions(localFilePath, patterns, srxStorageId),
+          updateOption: patterns.update_option as SourceFilesModel.UpdateOption | undefined,
+          attachLabelIds: labelIds,
+          // On a soft match the project file has a different name/extension; rename it to the source.
+          name: exactMatch ? undefined : path.parse(localFilePath).base,
+          ...changedSettings,
+        },
+      );
     } catch (error) {
       if (error instanceof FileInUpdateError) {
         output.warning(`File '${projectPath}' is currently being updated`);
@@ -616,23 +626,22 @@ export default class UploadSourcesCommand {
   private async deleteObsoleteEntries(
     run: UploadRun,
     config: Config,
-    projectFiles: SourceFilesModel.File[],
     projectDirectories: SourceFilesModel.Directory[],
   ): Promise<void> {
     const { output, fileService, directoryService, expectedProjectFilePaths } = run;
+    const projectFiles = run.projectFiles.files;
     const dryRun = Boolean(run.options.dryrun);
-    // Server paths carry the branch name; expectedProjectFilePaths (and the source patterns matched
-    // below) never do, so drop it before comparing.
+    // Directory paths carry the branch name; the file paths and the patterns matched below never do.
     const stripBranch = (projectPath: string) => stripBranchPrefix(projectPath, run.branch?.name);
     // Retain every project file the upload would match — including soft (extension-insensitive)
     // matches — so a file that will be updated/renamed is never deleted as obsolete first.
     const retainedFileIds = new Set<number>();
 
     for (const expectedPath of expectedProjectFilePaths) {
-      const match = fileLookup(expectedPath, run.projectFilePaths, expectedProjectFilePaths);
+      const match = run.projectFiles.soft(expectedPath, expectedProjectFilePaths);
 
       if (match) {
-        retainedFileIds.add(match.id);
+        retainedFileIds.add(match.file.id);
       }
     }
 
@@ -641,17 +650,16 @@ export default class UploadSourcesCommand {
     const obsoleteFiles = projectFiles.filter(
       (projectFile) =>
         !retainedFileIds.has(projectFile.id) &&
-        this.isManagedByConfig(stripBranch(projectFile.path), getExportPattern(projectFile.exportOptions), config),
+        this.isManagedByConfig(projectFile.path, getExportPattern(projectFile.exportOptions), config),
     );
 
     for (const projectFile of obsoleteFiles) {
-      const projectFilePath = stripBranch(projectFile.path);
-      const displayPath = stripLeadingSlashes(projectFilePath);
+      const displayPath = stripLeadingSlashes(projectFile.path);
 
       if (dryRun) {
         output.info(`'${displayPath}' file would be deleted`);
       } else {
-        await fileService.deleteProjectFile(projectFile.id, projectFilePath);
+        await fileService.deleteProjectFile(projectFile.id, projectFile.path);
         output.success(`'${displayPath}' file was deleted`);
       }
     }
@@ -659,7 +667,7 @@ export default class UploadSourcesCommand {
     const remainingProjectFilePaths = new Set([
       ...projectFiles
         .filter((projectFile) => !obsoleteFiles.includes(projectFile))
-        .map((projectFile) => stripBranch(projectFile.path)),
+        .map((projectFile) => projectFile.path),
       ...expectedProjectFilePaths,
     ]);
     // Only directories that held a just-deleted file, plus their ancestors, are candidates. Scanning
@@ -668,7 +676,7 @@ export default class UploadSourcesCommand {
     const obsoleteDirectoryCandidates = new Set<string>();
 
     for (const projectFile of obsoleteFiles) {
-      let parent = this.parentDirectory(stripBranch(projectFile.path));
+      let parent = this.parentDirectory(projectFile.path);
 
       while (parent !== '') {
         obsoleteDirectoryCandidates.add(parent);

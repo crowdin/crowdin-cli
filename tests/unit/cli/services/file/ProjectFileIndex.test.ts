@@ -31,4 +31,39 @@ describe('ProjectFileIndex', () => {
 
     expect(index.soft('src/app.yaml', new Set(['/src/app.yml']))).toBeUndefined();
   });
+
+  test('soft falls back to a path with one extra extension', () => {
+    expect(new ProjectFileIndex([file(10, '/src/app.json')]).soft('src/app')).toEqual({
+      file: expect.objectContaining({ id: 10 }),
+      exact: false,
+    });
+  });
+
+  test('soft prefers the exact path over an extra-extension fallback', () => {
+    const index = new ProjectFileIndex([file(1, '/src/app'), file(2, '/src/app.json')]);
+
+    expect(index.soft('src/app.json')).toEqual({ file: expect.objectContaining({ id: 2 }), exact: true });
+  });
+
+  test('soft prefers a different extension over an earlier extra-extension fallback', () => {
+    // '/src/app.json.bak' only differs by an extra extension; '/src/app.xml' by the extension itself.
+    const index = new ProjectFileIndex([file(1, '/src/app.json.bak'), file(2, '/src/app.xml')]);
+
+    expect(index.soft('src/app.json')).toEqual({ file: expect.objectContaining({ id: 2 }), exact: false });
+  });
+
+  test('soft leaves a sibling alone when it is uploaded from its own local file', () => {
+    const index = new ProjectFileIndex([file(42, '/de.lproj/Foo.stringsdict')]);
+    const localPaths = new Set(['/de.lproj/Foo.strings', '/de.lproj/Foo.stringsdict']);
+
+    expect(index.soft('de.lproj/Foo.strings', localPaths)).toBeUndefined();
+    expect(index.soft('de.lproj/Foo.strings', new Set(['/de.lproj/Foo.strings']))?.file.id).toBe(42);
+  });
+
+  test.each([
+    ['/src.v2/app', '/src.json'],
+    ['/src/.env', '/src/.npmrc'],
+  ])('soft takes the extension from the file name only: %p does not match %p', (wanted, existing) => {
+    expect(new ProjectFileIndex([file(1, existing)]).soft(wanted)).toBeUndefined();
+  });
 });
