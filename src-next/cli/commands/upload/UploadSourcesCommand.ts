@@ -33,10 +33,8 @@ import type {
 } from '@/cli/services.ts';
 import { isMachineFormat, isStructuredFormat } from '@/cli/utils/formatter.ts';
 import type { Output } from '@/cli/utils/output.ts';
-import { matchesExportPattern, matchesSourcePattern } from '@/lib/config/projectFileMatch.ts';
 import SourceFileLoader from '@/lib/config/SourceFileLoader.ts';
 import { assertFilesConfigured, type Config } from '@/lib/config.ts';
-import { getExportPattern } from '@/lib/download/projectTranslations.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { isStringsBasedProject } from '@/lib/project/type.ts';
 import {
@@ -44,7 +42,6 @@ import {
   buildImportOptions,
   buildStringsImportOptions,
   changedFileSettings,
-  prepareDest,
   replaceFileDependentPlaceholders,
   resolveProjectPath,
 } from '@/lib/upload/fileOptions.ts';
@@ -55,9 +52,16 @@ import {
   stripBranchPrefix,
   stripLeadingSlashes,
   toPosixPath,
-  toProjectPath,
   toSortedRelativePaths,
 } from '@/lib/utils/path.ts';
+import {
+  type PlannedFile,
+  type SkipReason,
+  type SourceFileOptions,
+  type SourcePaths,
+  type UploadSourcesPlan,
+  UploadSourcesPlanner,
+} from './UploadSourcesPlanner.ts';
 import { type UploadedFile, uploadedFileView } from './views.ts';
 
 interface UploadSourcesOptions extends GlobalOptions {
@@ -70,16 +74,6 @@ interface UploadSourcesOptions extends GlobalOptions {
   dryrun?: boolean;
   tree?: boolean;
   cache?: boolean;
-}
-
-interface SourceFileOptions {
-  labels?: string[];
-  excluded_target_languages?: string[];
-}
-
-interface SourcePaths {
-  localFilePath: string;
-  projectPath: string;
 }
 
 interface SourceGroup {
@@ -104,15 +98,12 @@ interface UploadRun {
   stringService: StringService;
   branch: SourceFilesModel.Branch | undefined;
   isStringsBased: boolean;
-  projectFiles: ProjectFileIndex;
-  expectedProjectFilePaths: Set<string>;
   projectDirectories: Map<string, number>;
   sourceHashes: Map<string, string> | undefined;
   // Shared per-path promise cache ensures concurrent tasks don't double-create directories
   directoryCreationPromises: Map<string, Promise<number>>;
   // Shared cache so files sharing the same customSegmentation reuse the uploaded srx storage id
   srxStorageIds: Map<string, Promise<number>>;
-  seenFilePaths: Set<string>;
   uploadedSources: UploadedFile[];
 }
 
@@ -187,20 +178,27 @@ export default class UploadSourcesCommand {
       stringService,
       branch,
       isStringsBased,
-      projectFiles,
-      expectedProjectFilePaths: new Set(
-        patternFilePaths.flatMap(({ files }) => files.map(({ projectPath }) => toProjectPath(projectPath))),
-      ),
       projectDirectories: new Map(projectDirectoryList.map((directory) => [directory.path, directory.id])),
       sourceHashes: undefined,
       directoryCreationPromises: new Map(),
       srxStorageIds: new Map(),
-      seenFilePaths: new Set(),
       uploadedSources: [],
     };
 
-    if (options.deleteObsolete && !isStringsBased) {
-      await this.deleteObsoleteEntries(run, config, projectDirectoryList);
+    const deleteObsolete = Boolean(options.deleteObsolete) && !isStringsBased;
+    const plan = new UploadSourcesPlanner().plan({
+      config,
+      groups: patternFilePaths,
+      isStringsBased,
+      autoUpdate: options.autoUpdate !== false,
+      deleteObsolete,
+      projectFiles,
+      projectDirectories: projectDirectoryList,
+      branchName: branch?.name,
+    });
+
+    if (deleteObsolete) {
+      await this.deleteObsoleteEntries(run, plan);
     }
 
     // A machine --output emits the bare sorted in-project paths and wins over --tree; otherwise fall
@@ -224,7 +222,7 @@ export default class UploadSourcesCommand {
 
     let hasErrors = false;
 
-    for (const { patterns, fileOptions, files } of patternFilePaths) {
+    for (const { patterns, fileOptions, files } of plan.groups) {
       if (files.length === 0) {
         // plain drops the message but still fails the run: a plain consumer is a script, and a
         // script that reads success from a broken pattern uploads nothing and says nothing.
@@ -252,7 +250,7 @@ export default class UploadSourcesCommand {
             : await labelService.resolveLabelIds(fileOptions.labels),
         srxStorageIdPromise: this.uploadSrx(run, patterns),
       };
-      const results = await runConcurrently(files.map((file) => () => this.uploadSource(run, group, file)));
+      const results = await runConcurrently(files.map((file) => () => this.runPlannedFile(run, group, file)));
 
       if (reportFailures(results, output)) {
         hasErrors = true;
@@ -360,51 +358,51 @@ export default class UploadSourcesCommand {
     return srxStorageId;
   }
 
-  private async uploadSource(run: UploadRun, group: SourceGroup, paths: SourcePaths): Promise<void> {
-    const { output, seenFilePaths, uploadedSources } = run;
-    const { projectPath, localFilePath } = paths;
+  private async runPlannedFile(run: UploadRun, group: SourceGroup, planned: PlannedFile): Promise<void> {
+    const { projectPath, localFilePath } = planned.paths;
 
-    if (seenFilePaths.has(projectPath)) {
-      output.warning(`Skipping file '${projectPath}' because it is already uploading/uploaded`);
-      uploadedSources.push({ path: projectPath, action: 'skipped', reason: 'already uploading' });
+    if (planned.action === 'skip') {
+      this.reportSkip(run, projectPath, planned.reason);
       return;
     }
 
-    seenFilePaths.add(projectPath);
-
-    const localFile = Bun.file(path.join(run.basePath, localFilePath));
-
-    if (localFile.size === 0) {
-      output.warning(`File '${projectPath}' was skipped since it is empty`);
-      uploadedSources.push({ path: projectPath, action: 'skipped', reason: 'empty' });
+    if (run.options.dryrun) {
+      const verb = { create: 'created', update: 'updated', 'upload-strings': 'uploaded' }[planned.action];
+      run.output.info(`File '${projectPath}' would be ${verb}`);
       return;
     }
 
-    const upload: SourceUpload = { ...group, ...paths, localFile };
+    const upload: SourceUpload = {
+      ...group,
+      ...planned.paths,
+      localFile: Bun.file(path.join(run.basePath, localFilePath)),
+    };
 
-    if (run.isStringsBased) {
+    if (planned.action === 'upload-strings') {
       await this.uploadStrings(run, upload);
-      return;
-    }
-
-    const existing = run.projectFiles.soft(projectPath, run.expectedProjectFilePaths);
-
-    if (existing) {
-      await this.updateFile(run, upload, existing.file, existing.exact);
+    } else if (planned.action === 'update') {
+      await this.updateFile(run, upload, planned.projectFile, planned.rename);
     } else {
       await this.createFile(run, upload);
     }
   }
 
-  private async uploadStrings(run: UploadRun, upload: SourceUpload): Promise<void> {
-    const { localFile, localFilePath, projectPath, patterns, labelIds } = upload;
-
-    if (run.options.dryrun) {
-      run.output.info(`File '${projectPath}' would be uploaded`);
-      return;
+  private reportSkip(run: UploadRun, projectPath: string, reason: SkipReason): void {
+    if (reason === 'already uploading') {
+      run.output.warning(`Skipping file '${projectPath}' because it is already uploading/uploaded`);
+    } else if (reason === 'empty') {
+      run.output.warning(`File '${projectPath}' was skipped since it is empty`);
+    } else {
+      run.output.info(`File '${projectPath}' already exists and will not be updated`);
     }
 
-    // Only a dry run may lack the branch, and it returned above; a real run requires one up front.
+    run.uploadedSources.push({ path: projectPath, action: 'skipped', reason });
+  }
+
+  private async uploadStrings(run: UploadRun, upload: SourceUpload): Promise<void> {
+    const { localFile, localFilePath, patterns, labelIds } = upload;
+
+    // Only a dry run may lack the branch, and it never executes; a real run requires one up front.
     const branchId = run.branch?.id as number;
     const checksum = run.sourceHashes ? await computeChecksum(localFile) : undefined;
 
@@ -432,21 +430,10 @@ export default class UploadSourcesCommand {
     run: UploadRun,
     upload: SourceUpload,
     projectFile: SourceFilesModel.File,
-    exactMatch: boolean,
+    rename: boolean,
   ): Promise<void> {
-    const { options, output } = run;
+    const { output } = run;
     const { localFile, localFilePath, projectPath, patterns, fileOptions, labelIds } = upload;
-
-    if (options.autoUpdate === false) {
-      output.info(`File '${projectPath}' already exists and will not be updated`);
-      run.uploadedSources.push({ path: projectPath, action: 'skipped', reason: 'auto-update disabled' });
-      return;
-    }
-
-    if (options.dryrun) {
-      output.info(`File '${projectPath}' would be updated`);
-      return;
-    }
 
     const checksum = run.sourceHashes ? await computeChecksum(localFile) : undefined;
 
@@ -477,7 +464,7 @@ export default class UploadSourcesCommand {
           updateOption: patterns.update_option as SourceFilesModel.UpdateOption | undefined,
           attachLabelIds: labelIds,
           // On a soft match the project file has a different name/extension; rename it to the source.
-          name: exactMatch ? undefined : path.parse(localFilePath).base,
+          name: rename ? path.parse(localFilePath).base : undefined,
           ...changedSettings,
         },
       );
@@ -496,12 +483,6 @@ export default class UploadSourcesCommand {
 
   private async createFile(run: UploadRun, upload: SourceUpload): Promise<void> {
     const { localFile, localFilePath, projectPath, patterns, fileOptions, labelIds } = upload;
-
-    if (run.options.dryrun) {
-      run.output.info(`File '${projectPath}' would be created`);
-      return;
-    }
-
     const pathDetails = path.parse(projectPath);
     const srxStorageId = await upload.srxStorageIdPromise;
     const storage = await run.storageService.addStorage(localFile);
@@ -627,37 +608,11 @@ export default class UploadSourcesCommand {
     return Array.isArray(optionValue) ? optionValue : [optionValue];
   }
 
-  private async deleteObsoleteEntries(
-    run: UploadRun,
-    config: Config,
-    projectDirectories: SourceFilesModel.Directory[],
-  ): Promise<void> {
-    const { output, fileService, directoryService, expectedProjectFilePaths } = run;
-    const projectFiles = run.projectFiles.files;
+  private async deleteObsoleteEntries(run: UploadRun, plan: UploadSourcesPlan): Promise<void> {
+    const { output, fileService, directoryService } = run;
     const dryRun = Boolean(run.options.dryrun);
-    // Directory paths carry the branch name; the file paths and the patterns matched below never do.
-    const stripBranch = (projectPath: string) => stripBranchPrefix(projectPath, run.branch?.name);
-    // Retain every project file the upload would match — including soft (extension-insensitive)
-    // matches — so a file that will be updated/renamed is never deleted as obsolete first.
-    const retainedFileIds = new Set<number>();
 
-    for (const expectedPath of expectedProjectFilePaths) {
-      const match = run.projectFiles.soft(expectedPath, expectedProjectFilePaths);
-
-      if (match) {
-        retainedFileIds.add(match.file.id);
-      }
-    }
-
-    // Only delete files that fall under a configured `source` pattern (and aren't ignored): files
-    // outside every source pattern are not this config's to delete.
-    const obsoleteFiles = projectFiles.filter(
-      (projectFile) =>
-        !retainedFileIds.has(projectFile.id) &&
-        this.isManagedByConfig(projectFile.path, getExportPattern(projectFile.exportOptions), config),
-    );
-
-    for (const projectFile of obsoleteFiles) {
+    for (const projectFile of plan.obsoleteFiles) {
       const displayPath = stripLeadingSlashes(projectFile.path);
 
       if (dryRun) {
@@ -668,113 +623,26 @@ export default class UploadSourcesCommand {
       }
     }
 
-    const remainingProjectFilePaths = new Set([
-      ...projectFiles
-        .filter((projectFile) => !obsoleteFiles.includes(projectFile))
-        .map((projectFile) => projectFile.path),
-      ...expectedProjectFilePaths,
-    ]);
-    // Only directories that held a just-deleted file, plus their ancestors, are candidates. Scanning
-    // every project directory instead would delete empty directories that no config references — ones
-    // a manager created in the Crowdin UI, say.
-    const obsoleteDirectoryCandidates = new Set<string>();
-
-    for (const projectFile of obsoleteFiles) {
-      let parent = this.parentDirectory(projectFile.path);
-
-      while (parent !== '') {
-        obsoleteDirectoryCandidates.add(parent);
-        parent = this.parentDirectory(parent);
-      }
-    }
-
-    const obsoleteDirectories = projectDirectories
-      .filter((directory) => {
-        const directoryPath = stripBranch(directory.path);
-
-        return (
-          obsoleteDirectoryCandidates.has(directoryPath) &&
-          !this.hasFileUnderDirectory(remainingProjectFilePaths, directoryPath)
-        );
-      })
-      .sort((left, right) => right.path.length - left.path.length);
-
-    for (const directory of obsoleteDirectories) {
-      const directoryPath = stripBranch(directory.path);
-      const displayPath = `${stripLeadingSlashes(directoryPath)}/`;
+    for (const directory of plan.obsoleteDirectories) {
+      const displayPath = `${stripLeadingSlashes(directory.path)}/`;
 
       if (dryRun) {
         output.info(`'${displayPath}' directory would be deleted`);
       } else {
-        await directoryService.deleteProjectDirectory(directory.id, directoryPath);
+        await directoryService.deleteProjectDirectory(directory.id, directory.path);
         output.success(`'${displayPath}' directory was deleted`);
       }
     }
 
     if (!dryRun) {
-      if (obsoleteFiles.length === 0) {
+      if (plan.obsoleteFiles.length === 0) {
         output.success('No obsolete files were found');
       }
 
-      if (obsoleteDirectories.length === 0) {
+      if (plan.obsoleteDirectories.length === 0) {
         output.success('No obsolete directories found');
       }
     }
-  }
-
-  /**
-   * Whether a project file is covered by any configured group (and not ignored). Checked per group,
-   * so the path pattern and `translation` stay paired: a file only counts as managed when the same
-   * group both matches its path and accepts its stored export pattern. A group with `dest` uploads
-   * under the dest path, so its files are found by the dest pattern, its file placeholders filled
-   * from `source` the way an upload fills them from each local file.
-   *
-   * Matching goes through `matchesSourcePattern`, not `cli/utils/pathMatcher`: that one is for
-   * user-supplied CLI file filters and expands no placeholders, so a `source` carrying
-   * `%original_file_name%` would match nothing.
-   */
-  private isManagedByConfig(
-    projectPath: string,
-    fileExportPattern: string | undefined,
-    { files, preserveHierarchy }: Config,
-  ): boolean {
-    return files.some(({ source, dest, translation, ignore }) => {
-      const pathPattern = dest === undefined ? source : prepareDest(dest, stripLeadingSlashes(source));
-
-      if (!matchesSourcePattern(projectPath, pathPattern, preserveHierarchy)) {
-        return false;
-      }
-
-      // A file whose translations land outside this group's `translation` belongs to another group;
-      // deleting it here would destroy that group's translations.
-      if (!matchesExportPattern(fileExportPattern, translation, preserveHierarchy)) {
-        return false;
-      }
-
-      return !(ignore ?? []).some((ignorePattern) =>
-        matchesSourcePattern(projectPath, ignorePattern, preserveHierarchy),
-      );
-    });
-  }
-
-  /** Parent of a project path, or '' at the root. */
-  private parentDirectory(projectPath: string): string {
-    const lastSeparator = toProjectPath(projectPath).lastIndexOf('/');
-
-    return lastSeparator <= 0 ? '' : toProjectPath(projectPath).slice(0, lastSeparator);
-  }
-
-  private hasFileUnderDirectory(filePaths: Set<string>, directoryPath: string): boolean {
-    const normalizedDirectoryPath = toProjectPath(directoryPath);
-    const prefix = normalizedDirectoryPath.endsWith('/') ? normalizedDirectoryPath : `${normalizedDirectoryPath}/`;
-
-    for (const filePath of filePaths) {
-      if (toProjectPath(filePath).startsWith(prefix)) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   private async addProjectDirectories(run: UploadRun, projectDirectory: string) {
