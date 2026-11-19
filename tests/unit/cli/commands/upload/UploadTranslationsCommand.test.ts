@@ -8,10 +8,7 @@ import WrongLanguageError from '@/cli/errors/WrongLanguageError.ts';
 import { ProjectFileIndex } from '@/cli/services/file/ProjectFileIndex.ts';
 import type { TranslationService } from '@/cli/services/TranslationService.ts';
 import {
-  baseBranchServiceMock,
-  baseDirectoryServiceMock,
   baseFileServiceMock,
-  baseLabelServiceMock,
   baseTranslationServiceMock,
   commandContext,
   createOutputMock,
@@ -42,17 +39,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      projectService,
-      storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      baseFileServiceMock(),
-      baseLabelServiceMock(),
-      translationService,
-    );
+    const command = createUploadCommand(tempDir, output, { projectService, storageService, translationService });
 
     await command.uploadTranslationsAction(commandContext({}));
 
@@ -76,17 +63,12 @@ describe('UploadTranslationsCommand', () => {
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
       translationService,
-    );
+    });
 
     await command.uploadTranslationsAction(commandContext({}));
 
@@ -114,18 +96,13 @@ describe('UploadTranslationsCommand', () => {
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
       translationService,
-      { translation: '%two_letters_code%/%original_file_name%' },
-    );
+      files: { translation: '%two_letters_code%/%original_file_name%' },
+    });
 
     await command.uploadTranslationsAction(commandContext({}));
 
@@ -163,18 +140,12 @@ describe('UploadTranslationsCommand', () => {
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
       translationService,
-      {},
-      {
+      config: {
         files: [
           // The first group would match emails/welcome.json by `source` alone, but ignores it.
           {
@@ -185,7 +156,7 @@ describe('UploadTranslationsCommand', () => {
           { source: '/emails/*.json', translation: '/emails/%two_letters_code%/%original_file_name%' },
         ],
       },
-    );
+    });
 
     await command.uploadTranslationsAction(commandContext({}));
 
@@ -230,17 +201,12 @@ describe('UploadTranslationsCommand', () => {
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
       translationService,
-    );
+    });
 
     await command.uploadTranslationsAction(
       commandContext({
@@ -289,17 +255,12 @@ describe('UploadTranslationsCommand', () => {
       }),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
       translationService,
-    );
+    });
 
     await command.uploadTranslationsAction(commandContext({}));
 
@@ -330,17 +291,12 @@ describe('UploadTranslationsCommand', () => {
       }),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
       translationService,
-    );
+    });
 
     expect(command.uploadTranslationsAction(commandContext({}))).rejects.toThrow(
       'Current execution finished with errors',
@@ -368,17 +324,13 @@ describe('UploadTranslationsCommand', () => {
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
       branchService,
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
       translationService,
-    );
+    });
 
     await command.uploadTranslationsAction(commandContext({ branch: 'feature' }));
 
@@ -422,17 +374,12 @@ describe('UploadTranslationsCommand', () => {
       }),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
       translationService,
-    );
+    });
 
     await command.uploadTranslationsAction(commandContext({}));
 
@@ -457,17 +404,12 @@ describe('UploadTranslationsCommand', () => {
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
       translationService,
-    );
+    });
 
     await command.uploadTranslationsAction(commandContext({}));
 
@@ -496,17 +438,12 @@ describe('UploadTranslationsCommand', () => {
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
       translationService,
-    );
+    });
 
     await command.uploadTranslationsAction(commandContext({}));
 
@@ -545,17 +482,12 @@ describe('UploadTranslationsCommand', () => {
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
       translationService,
-    );
+    });
 
     await command.uploadTranslationsAction(commandContext({ dryrun: true }));
 
@@ -576,17 +508,12 @@ describe('UploadTranslationsCommand', () => {
     const fileService = { ...baseFileServiceMock(), loadIndex: mock(async () => new ProjectFileIndex([] as never)) };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
       translationService,
-    );
+    });
 
     // Must neither throw nor complain, even though the project has no files at all.
     await command.uploadTranslationsAction(commandContext({ dryrun: true }));
@@ -604,17 +531,11 @@ describe('UploadTranslationsCommand', () => {
       loadProject: mock(async () => ({ id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] })),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
-      { addStorage: mock(async () => ({ id: 10 })) },
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      { ...baseFileServiceMock(), loadIndex: mock(async () => new ProjectFileIndex([] as never)) },
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-    );
+      storageService: { addStorage: mock(async () => ({ id: 10 })) },
+      fileService: { ...baseFileServiceMock(), loadIndex: mock(async () => new ProjectFileIndex([] as never)) },
+    });
 
     await command.uploadTranslationsAction(commandContext({ dryrun: true, output: 'plain' }));
 
@@ -628,17 +549,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      projectService,
-      storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      baseFileServiceMock(),
-      baseLabelServiceMock(),
-      translationService,
-    );
+    const command = createUploadCommand(tempDir, output, { projectService, storageService, translationService });
 
     await command.uploadTranslationsAction(commandContext({}));
 
@@ -665,17 +576,12 @@ describe('UploadTranslationsCommand', () => {
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
       translationService,
-    );
+    });
 
     await command.uploadTranslationsAction(commandContext({ language: 'fr' }));
 
@@ -704,7 +610,7 @@ describe('UploadTranslationsCommand', () => {
       loadProject: mock(async () => ({ id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] })),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(tempDir, output, projectService, storageService);
+    const command = createUploadCommand(tempDir, output, { projectService, storageService });
 
     expect(command.uploadTranslationsAction(commandContext({ language: 'fr' }))).rejects.toThrow(
       "Language 'fr' does not exist in the project",
@@ -730,17 +636,12 @@ describe('UploadTranslationsCommand', () => {
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
       branchService,
-      baseDirectoryServiceMock(),
-      baseFileServiceMock(),
-      baseLabelServiceMock(),
       translationService,
-    );
+    });
 
     await command.uploadTranslationsAction(commandContext({}));
 
@@ -769,17 +670,7 @@ describe('UploadTranslationsCommand', () => {
       })),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      projectService,
-      storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      baseFileServiceMock(),
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-    );
+    const command = createUploadCommand(tempDir, output, { projectService, storageService });
 
     expect(command.uploadTranslationsAction(commandContext({}))).rejects.toThrow(
       'A branch is required to upload translations for a strings-based project',
@@ -799,19 +690,14 @@ describe('UploadTranslationsCommand', () => {
       loadIndex: mock(async () => new ProjectFileIndex([{ id: 88, path: '/foo/app.json' }] as never)),
     };
     const translationService = baseTranslationServiceMock();
-    const command = createUploadCommand(
-      tempDir,
-      createOutputMock(),
+    const command = createUploadCommand(tempDir, createOutputMock(), {
       projectService,
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
       translationService,
-      { dest: '/foo/%original_file_name%' },
-      { preserveHierarchy: true },
-    );
+      files: { dest: '/foo/%original_file_name%' },
+      config: { preserveHierarchy: true },
+    });
 
     await command.uploadTranslationsAction(commandContext({}));
 
@@ -836,17 +722,12 @@ describe('UploadTranslationsCommand', () => {
     const fileService = { ...baseFileServiceMock(), loadIndex: mock(async () => new ProjectFileIndex([] as never)) };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
       translationService,
-    );
+    });
 
     expect(command.uploadTranslationsAction(commandContext({}))).rejects.toThrow(
       'Current execution finished with errors',
@@ -876,18 +757,13 @@ describe('UploadTranslationsCommand', () => {
       ),
     };
     const translationService = baseTranslationServiceMock();
-    const command = createUploadCommand(
-      tempDir,
-      createOutputMock(),
+    const command = createUploadCommand(tempDir, createOutputMock(), {
       projectService,
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
       translationService,
-      { ignore: ['src/skip.json'] },
-    );
+      files: { ignore: ['src/skip.json'] },
+    });
 
     await command.uploadTranslationsAction(commandContext({}));
 
@@ -919,19 +795,14 @@ describe('UploadTranslationsCommand', () => {
       loadIndex: mock(async () => new ProjectFileIndex([{ id: 90, path: '/src/data.csv' }] as never)),
     };
     const translationService = baseTranslationServiceMock();
-    const command = createUploadCommand(
-      tempDir,
-      createOutputMock(),
+    const command = createUploadCommand(tempDir, createOutputMock(), {
       projectService,
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
       translationService,
-      { source: '/src/*.csv', translation: '/translations.csv', scheme: 'identifier,source_phrase' },
-      { preserveHierarchy: true },
-    );
+      files: { source: '/src/*.csv', translation: '/translations.csv', scheme: 'identifier,source_phrase' },
+      config: { preserveHierarchy: true },
+    });
 
     await command.uploadTranslationsAction(commandContext({}));
 
@@ -963,19 +834,14 @@ describe('UploadTranslationsCommand', () => {
       loadIndex: mock(async () => new ProjectFileIndex([{ id: 90, path: '/src/Localizable.xcstrings' }] as never)),
     };
     const translationService = baseTranslationServiceMock();
-    const command = createUploadCommand(
-      tempDir,
-      createOutputMock(),
+    const command = createUploadCommand(tempDir, createOutputMock(), {
       projectService,
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
       translationService,
-      { source: '/src/*.xcstrings', translation: '/%original_file_name%', multilingual: true },
-      { preserveHierarchy: true },
-    );
+      files: { source: '/src/*.xcstrings', translation: '/%original_file_name%', multilingual: true },
+      config: { preserveHierarchy: true },
+    });
 
     await command.uploadTranslationsAction(commandContext({}));
 
@@ -997,18 +863,12 @@ describe('UploadTranslationsCommand', () => {
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      baseFileServiceMock(),
-      baseLabelServiceMock(),
       translationService,
-      { source: '/src/*.json' },
-    );
+      files: { source: '/src/*.json' },
+    });
 
     await command.uploadTranslationsAction(commandContext({}));
 
@@ -1037,23 +897,18 @@ describe('UploadTranslationsCommand', () => {
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
       translationService,
-      {
+      files: {
         source: '/src/*.po',
         ignore: ['src/*-%locale%.po'],
         translation: '/locale/%language_id%/%original_file_name%',
       },
-      { preserveHierarchy: true },
-    );
+      config: { preserveHierarchy: true },
+    });
 
     await command.uploadTranslationsAction(commandContext({}));
 
@@ -1080,20 +935,14 @@ describe('UploadTranslationsCommand', () => {
     };
 
     const commandFor = (output: ReturnType<typeof createOutputMock>) =>
-      createUploadCommand(
-        tempDir,
-        output,
-        spanishProject,
-        { addStorage: mock(async () => ({ id: 10 })) },
-        baseBranchServiceMock(),
-        baseDirectoryServiceMock(),
-        {
+      createUploadCommand(tempDir, output, {
+        projectService: spanishProject,
+        storageService: { addStorage: mock(async () => ({ id: 10 })) },
+        fileService: {
           ...baseFileServiceMock(),
           loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/app.json' }] as never)),
         },
-        baseLabelServiceMock(),
-        baseTranslationServiceMock(),
-      );
+      });
 
     test('reports each imported translation', async () => {
       await Bun.write(`${tempDir}/src/app.json`, '{}');
@@ -1137,14 +986,10 @@ describe('UploadTranslationsCommand', () => {
       }
 
       const output = createOutputMock();
-      const command = createUploadCommand(
-        tempDir,
-        output,
-        spanishProject,
-        { addStorage: mock(async () => ({ id: 10 })) },
-        baseBranchServiceMock(),
-        baseDirectoryServiceMock(),
-        {
+      const command = createUploadCommand(tempDir, output, {
+        projectService: spanishProject,
+        storageService: { addStorage: mock(async () => ({ id: 10 })) },
+        fileService: {
           ...baseFileServiceMock(),
           loadIndex: mock(
             async () =>
@@ -1154,14 +999,13 @@ describe('UploadTranslationsCommand', () => {
               ] as never),
           ),
         },
-        baseLabelServiceMock(),
-        {
+        translationService: {
           ...baseTranslationServiceMock(),
           importProjectTranslation: mock(async (_storage: number, _file: number, _langs: string[], p: string) => {
             await Bun.sleep(p.endsWith('a.json') ? 30 : 0);
           }),
         },
-      );
+      });
 
       await command.uploadTranslationsAction(commandContext({ output: 'json' }));
 
