@@ -10,13 +10,10 @@ import type { ProjectFileUpdate } from '@/cli/services/file/FileService.ts';
 import { ProjectFileIndex } from '@/cli/services/file/ProjectFileIndex.ts';
 import { computeChecksum } from '@/lib/upload/sourceCache.ts';
 import {
-  baseBranchServiceMock,
   baseDirectoryServiceMock,
   baseFileServiceMock,
-  baseLabelServiceMock,
   baseProjectServiceMock,
   baseStringServiceMock,
-  baseTranslationServiceMock,
   commandContext,
   createOutputMock,
   createUploadCommand,
@@ -56,15 +53,12 @@ describe('UploadSourcesCommand', () => {
     const directoryService = baseDirectoryServiceMock();
     const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
-      baseBranchServiceMock(),
       directoryService,
       fileService,
-    );
+    });
 
     await command.defaultAction(commandContext({}));
 
@@ -83,15 +77,7 @@ describe('UploadSourcesCommand', () => {
       createProjectFile: mock(async () => undefined),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      projectService,
-      storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      fileService,
-    );
+    const command = createUploadCommand(tempDir, output, { projectService, storageService, fileService });
 
     await command.uploadSourcesAction(commandContext({ autoUpdate: false }));
 
@@ -109,15 +95,12 @@ describe('UploadSourcesCommand', () => {
     const directoryService = baseDirectoryServiceMock();
     const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
-      baseBranchServiceMock(),
       directoryService,
       fileService,
-    );
+    });
 
     await command.uploadSourcesAction(commandContext({ dryrun: true }));
 
@@ -135,15 +118,10 @@ describe('UploadSourcesCommand', () => {
       loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/app.json' }] as never)),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      baseProjectServiceMock(),
-      { addStorage: mock(async () => ({ id: 10 })) },
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
+    const command = createUploadCommand(tempDir, output, {
+      storageService: { addStorage: mock(async () => ({ id: 10 })) },
       fileService,
-    );
+    });
 
     await command.uploadSourcesAction(commandContext({ dryrun: true, branch: 'feature' }));
 
@@ -164,20 +142,11 @@ describe('UploadSourcesCommand', () => {
     };
     const stringService = baseStringServiceMock();
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
-      { addStorage: mock(async () => ({ id: 10 })) },
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      baseFileServiceMock(),
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      {},
-      {},
+      storageService: { addStorage: mock(async () => ({ id: 10 })) },
       stringService,
-    );
+    });
 
     await command.uploadSourcesAction(commandContext({ dryrun: true, branch: 'feature' }));
 
@@ -214,26 +183,39 @@ describe('UploadSourcesCommand', () => {
     await Bun.write(`${tempDir}/public/locales/en/translation.json`, '{}');
 
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      baseProjectServiceMock(),
-      { addStorage: mock(async () => ({ id: 10 })) },
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) },
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      {
+    const command = createUploadCommand(tempDir, output, {
+      storageService: { addStorage: mock(async () => ({ id: 10 })) },
+      fileService: { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) },
+      files: {
         source: '/public/locales/en/translation.json',
         translation: '/public/locales/%two_letters_code%/%original_file_name%',
       },
-      { preserveHierarchy: false },
-    );
+      config: { preserveHierarchy: false },
+    });
 
     await command.uploadSourcesAction(commandContext({ dryrun: true }));
 
     expect(output.info).toHaveBeenCalledWith("File 'translation.json' would be created");
+  });
+
+  test('machine dry-run lists only files the run would upload', async () => {
+    await Bun.write(`${tempDir}/src/new.json`, '{}');
+    await Bun.write(`${tempDir}/src/existing.json`, '{}');
+    await Bun.write(`${tempDir}/src/empty.json`, '');
+
+    const output = createOutputMock();
+    const command = createUploadCommand(tempDir, output, {
+      storageService: { addStorage: mock(async () => ({ id: 10 })) },
+      fileService: {
+        ...baseFileServiceMock(),
+        loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/existing.json' }] as never)),
+      },
+    });
+
+    await command.uploadSourcesAction(commandContext({ dryrun: true, output: 'json', autoUpdate: false }));
+
+    expect(output.list).toHaveBeenCalledTimes(1);
+    expect(output.list).toHaveBeenCalledWith(['src/new.json'], expect.anything());
   });
 
   test('reports the in-project path for a skipped existing file when preserve_hierarchy is off', async () => {
@@ -241,25 +223,18 @@ describe('UploadSourcesCommand', () => {
     await Bun.write(`${tempDir}/public/locales/en/translation.json`, '{}');
 
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      baseProjectServiceMock(),
-      { addStorage: mock(async () => ({ id: 10 })) },
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      {
+    const command = createUploadCommand(tempDir, output, {
+      storageService: { addStorage: mock(async () => ({ id: 10 })) },
+      fileService: {
         ...baseFileServiceMock(),
         loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/translation.json' }] as never)),
       },
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      {
+      files: {
         source: '/public/locales/en/translation.json',
         translation: '/public/locales/%two_letters_code%/%original_file_name%',
       },
-      { preserveHierarchy: false },
-    );
+      config: { preserveHierarchy: false },
+    });
 
     await command.uploadSourcesAction(commandContext({ autoUpdate: false }));
 
@@ -274,18 +249,13 @@ describe('UploadSourcesCommand', () => {
     const labelService = { resolveLabelIds: mock(async () => [11, 12]) };
     const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
       labelService,
-      baseTranslationServiceMock(),
-      { labels: ['existing-label'], excluded_target_languages: ['uk'] },
-    );
+      files: { labels: ['existing-label'], excluded_target_languages: ['uk'] },
+    });
 
     await command.uploadSourcesAction(
       commandContext({
@@ -313,22 +283,15 @@ describe('UploadSourcesCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      baseProjectServiceMock(),
+    const command = createUploadCommand(tempDir, output, {
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      {
+      files: {
         source: '/src/*.properties',
         escape_quotes: 3,
         escape_special_characters: 0,
       },
-    );
+    });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -353,21 +316,14 @@ describe('UploadSourcesCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      baseProjectServiceMock(),
+    const command = createUploadCommand(tempDir, output, {
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      {
+      files: {
         source: '/src/**/*.json',
         translation: '/locale/%two_letters_code%/**/%original_file_name%',
       },
-    );
+    });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -384,21 +340,14 @@ describe('UploadSourcesCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      baseProjectServiceMock(),
+    const command = createUploadCommand(tempDir, output, {
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      {
+      files: {
         source: '/src/*.js',
         export_quotes: 'double',
       },
-    );
+    });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -422,24 +371,17 @@ describe('UploadSourcesCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      baseProjectServiceMock(),
+    const command = createUploadCommand(tempDir, output, {
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      {
+      files: {
         source: '/src/*.xml',
         translate_content: true,
         translate_attributes: false,
         content_segmentation: true,
         translatable_elements: ['/string'],
       },
-    );
+    });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -466,23 +408,16 @@ describe('UploadSourcesCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      baseProjectServiceMock(),
+    const command = createUploadCommand(tempDir, output, {
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      {
+      files: {
         source: '/src/*.csv',
         first_line_contains_header: true,
         scheme: 'identifier,source_phrase,context',
         import_translations: true,
       },
-    );
+    });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -508,18 +443,7 @@ describe('UploadSourcesCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      baseProjectServiceMock(),
-      storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      { type: 'android' },
-    );
+    const command = createUploadCommand(tempDir, output, { storageService, fileService, files: { type: 'android' } });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -544,22 +468,15 @@ describe('UploadSourcesCommand', () => {
       loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/app.properties' }] as never)),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      baseProjectServiceMock(),
+    const command = createUploadCommand(tempDir, output, {
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      {
+      files: {
         source: '/src/*.properties',
         escape_quotes: 2,
         update_option: 'update_without_changes',
       },
-    );
+    });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -582,21 +499,14 @@ describe('UploadSourcesCommand', () => {
     };
     const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      baseProjectServiceMock(),
+    const command = createUploadCommand(tempDir, output, {
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      {
+      files: {
         source: '/src/*.xml',
         custom_segmentation: '/segmentation.srx',
       },
-    );
+    });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -632,21 +542,14 @@ describe('UploadSourcesCommand', () => {
     };
     const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      baseProjectServiceMock(),
+    const command = createUploadCommand(tempDir, output, {
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      {
+      files: {
         source: '/src/*.xml',
         custom_segmentation: '/segmentation.srx',
       },
-    );
+    });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -665,18 +568,11 @@ describe('UploadSourcesCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      baseProjectServiceMock(),
+    const command = createUploadCommand(tempDir, output, {
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      { context: '/context/%original_file_name%.txt' },
-    );
+      files: { context: '/context/%original_file_name%.txt' },
+    });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -696,18 +592,11 @@ describe('UploadSourcesCommand', () => {
       loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/app.json' }] as never)),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      baseProjectServiceMock(),
+    const command = createUploadCommand(tempDir, output, {
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      { context: '/context/%original_file_name%.txt' },
-    );
+      files: { context: '/context/%original_file_name%.txt' },
+    });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -731,18 +620,11 @@ describe('UploadSourcesCommand', () => {
             ] as never),
         ),
       };
-      const command = createUploadCommand(
-        tempDir,
-        createOutputMock(),
-        baseProjectServiceMock(),
+      const command = createUploadCommand(tempDir, createOutputMock(), {
         storageService,
-        baseBranchServiceMock(),
-        baseDirectoryServiceMock(),
         fileService,
-        baseLabelServiceMock(),
-        baseTranslationServiceMock(),
-        { excluded_target_languages: ['uk', 'es'] },
-      );
+        files: { excluded_target_languages: ['uk', 'es'] },
+      });
 
       await command.uploadSourcesAction(commandContext({}));
 
@@ -770,18 +652,11 @@ describe('UploadSourcesCommand', () => {
       ),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      baseProjectServiceMock(),
+    const command = createUploadCommand(tempDir, output, {
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      { context: '/context/%original_file_name%.txt' },
-    );
+      files: { context: '/context/%original_file_name%.txt' },
+    });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -809,20 +684,14 @@ describe('UploadSourcesCommand', () => {
       getOrCreateBranch: mock(async () => ({ branch: { id: 5, name: 'main' }, created: false })),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
       branchService,
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      { context: '/context/%original_file_name%.txt' },
-      {},
+      files: { context: '/context/%original_file_name%.txt' },
       stringService,
-    );
+    });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -843,15 +712,7 @@ describe('UploadSourcesCommand', () => {
     };
     const fileService = baseFileServiceMock();
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      projectService,
-      storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      fileService,
-    );
+    const command = createUploadCommand(tempDir, output, { projectService, storageService, fileService });
 
     await command.uploadSourcesAction(commandContext({ deleteObsolete: true }));
 
@@ -867,18 +728,10 @@ describe('UploadSourcesCommand', () => {
 
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      baseProjectServiceMock(),
+    const command = createUploadCommand(tempDir, output, {
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      baseFileServiceMock(),
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      { excluded_target_languages: ['xx'] },
-    );
+      files: { excluded_target_languages: ['xx'] },
+    });
 
     expect(command.uploadSourcesAction(commandContext({}))).rejects.toThrow("Project doesn't have 'xx' language(s)");
   });
@@ -889,24 +742,16 @@ describe('UploadSourcesCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      baseProjectServiceMock(),
+    const command = createUploadCommand(tempDir, output, {
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      {},
-      {
+      config: {
         files: [
           { source: '/src/*.json', translation: '/locale/%two_letters_code%/%original_file_name%' },
           { source: '/src/app.json', translation: '/locale/%two_letters_code%/%original_file_name%' },
         ],
       },
-    );
+    });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -922,15 +767,7 @@ describe('UploadSourcesCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      baseProjectServiceMock(),
-      storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      fileService,
-    );
+    const command = createUploadCommand(tempDir, output, { storageService, fileService });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -961,15 +798,13 @@ describe('UploadSourcesCommand', () => {
       deleteProjectDirectory: mock(async () => undefined),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
       branchService,
       directoryService,
       fileService,
-    );
+    });
 
     await command.uploadSourcesAction(commandContext({ branch: 'feature' }));
 
@@ -1005,15 +840,12 @@ describe('UploadSourcesCommand', () => {
     };
     const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
-      baseBranchServiceMock(),
       directoryService,
       fileService,
-    );
+    });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -1055,15 +887,12 @@ describe('UploadSourcesCommand', () => {
     };
     const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
-      baseBranchServiceMock(),
       directoryService,
       fileService,
-    );
+    });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -1100,15 +929,12 @@ describe('UploadSourcesCommand', () => {
       deleteProjectDirectory: mock(async () => undefined),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
-      baseBranchServiceMock(),
       directoryService,
       fileService,
-    );
+    });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -1140,15 +966,7 @@ describe('UploadSourcesCommand', () => {
       loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/app.xml' }] as never)),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      projectService,
-      storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      fileService,
-    );
+    const command = createUploadCommand(tempDir, output, { projectService, storageService, fileService });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -1173,15 +991,7 @@ describe('UploadSourcesCommand', () => {
       loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/app.json' }] as never)),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      projectService,
-      storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      fileService,
-    );
+    const command = createUploadCommand(tempDir, output, { projectService, storageService, fileService });
 
     await command.uploadSourcesAction(commandContext({ cache: true }));
 
@@ -1204,15 +1014,7 @@ describe('UploadSourcesCommand', () => {
       loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/app.json' }] as never)),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      projectService,
-      storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      fileService,
-    );
+    const command = createUploadCommand(tempDir, output, { projectService, storageService, fileService });
 
     await command.uploadSourcesAction(commandContext({ cache: true }));
 
@@ -1231,15 +1033,7 @@ describe('UploadSourcesCommand', () => {
     const projectService = baseProjectServiceMock();
     const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      projectService,
-      storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      fileService,
-    );
+    const command = createUploadCommand(tempDir, output, { projectService, storageService, fileService });
 
     await command.uploadSourcesAction(commandContext({ cache: true }));
 
@@ -1264,15 +1058,7 @@ describe('UploadSourcesCommand', () => {
       loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/app.json' }] as never)),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      projectService,
-      storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      fileService,
-    );
+    const command = createUploadCommand(tempDir, output, { projectService, storageService, fileService });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -1310,18 +1096,13 @@ describe('UploadSourcesCommand', () => {
       deleteProjectDirectory: mock(async () => undefined),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
-      baseBranchServiceMock(),
       directoryService,
       fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      { source: '/src/**/*.json' },
-    );
+      files: { source: '/src/**/*.json' },
+    });
 
     await command.uploadSourcesAction(commandContext({ deleteObsolete: true, autoUpdate: false }));
 
@@ -1353,18 +1134,13 @@ describe('UploadSourcesCommand', () => {
       deleteProjectDirectory: mock(async () => undefined),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
-      baseBranchServiceMock(),
       directoryService,
       fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      { source: '/src/**/*.json' },
-    );
+      files: { source: '/src/**/*.json' },
+    });
 
     await command.uploadSourcesAction(commandContext({ deleteObsolete: true, autoUpdate: false }));
 
@@ -1372,128 +1148,6 @@ describe('UploadSourcesCommand', () => {
     expect(directoryService.deleteProjectDirectory).not.toHaveBeenCalled();
     expect(output.success).toHaveBeenCalledWith('No obsolete files were found');
     expect(output.success).toHaveBeenCalledWith('No obsolete directories found');
-  });
-
-  test('does not delete a soft-matched project file as obsolete', async () => {
-    await Bun.write(`${tempDir}/src/app.json`, '{}');
-
-    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
-    const projectService = baseProjectServiceMock();
-    const fileService = {
-      // Same file with a different extension (soft match) + a genuinely obsolete file under the pattern.
-      loadIndex: mock(
-        async () =>
-          new ProjectFileIndex([
-            { id: 77, path: '/src/app.xml' },
-            { id: 88, path: '/src/stale.json' },
-          ] as never),
-      ),
-      updateProjectFile: mock(async () => undefined),
-      deleteProjectFile: mock(async () => undefined),
-      createProjectFile: mock(async () => undefined),
-    };
-    const directoryService = {
-      loadProjectDirectories: mock(async () => [{ id: 1, path: '/src' }]),
-      createProjectDirectory: mock(async () => ({ id: 1, path: '/src' })),
-      deleteProjectDirectory: mock(async () => undefined),
-    };
-    const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      projectService,
-      storageService,
-      baseBranchServiceMock(),
-      directoryService,
-      fileService,
-    );
-
-    await command.uploadSourcesAction(commandContext({ deleteObsolete: true }));
-
-    // Soft-matched file is updated/renamed, never deleted.
-    expect(fileService.deleteProjectFile).not.toHaveBeenCalledWith(77, expect.anything());
-    expect(fileService.deleteProjectFile).toHaveBeenCalledWith(88, '/src/stale.json');
-    expect(fileService.updateProjectFile).toHaveBeenCalledWith(77, 10, 'src/app.json', {
-      exportOptions: { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
-      name: 'app.json',
-    });
-    expect(output.success).toHaveBeenCalledWith("'src/stale.json' file was deleted");
-    expect(output.success).toHaveBeenCalledWith('No obsolete directories found');
-    expect(output.success).not.toHaveBeenCalledWith('No obsolete files were found');
-  });
-
-  test('scopes obsolete deletion by trailing segments when preserve_hierarchy is off', async () => {
-    await Bun.write(`${tempDir}/src/app.json`, '{}');
-
-    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
-    const projectService = baseProjectServiceMock();
-    const fileService = {
-      loadIndex: mock(
-        async () =>
-          new ProjectFileIndex([
-            { id: 77, path: '/app.json' }, // retained (local source, common path stripped)
-            { id: 88, path: '/stale.json' }, // matches trailing *.json -> obsolete
-            { id: 99, path: '/notes.txt' }, // does not match the pattern -> kept
-          ] as never),
-      ),
-      updateProjectFile: mock(async () => undefined),
-      deleteProjectFile: mock(async () => undefined),
-      createProjectFile: mock(async () => undefined),
-    };
-    const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      projectService,
-      storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      { source: '/src/*.json' },
-      { preserveHierarchy: false },
-    );
-
-    await command.uploadSourcesAction(commandContext({ deleteObsolete: true, autoUpdate: false }));
-
-    expect(fileService.deleteProjectFile).toHaveBeenCalledWith(88, '/stale.json');
-    expect(fileService.deleteProjectFile).not.toHaveBeenCalledWith(99, expect.anything());
-    expect(fileService.deleteProjectFile).not.toHaveBeenCalledWith(77, expect.anything());
-  });
-
-  test('matches obsolete files of a dest-mapped group by its dest pattern, not its source', async () => {
-    await Bun.write(`${tempDir}/src/app.json`, '{}');
-
-    const fileService = {
-      ...baseFileServiceMock(),
-      loadIndex: mock(
-        async () =>
-          new ProjectFileIndex([
-            { id: 77, path: '/out/app.json' }, // the local source's upload target -> retained
-            { id: 88, path: '/out/stale.json' }, // matches dest 'out/*.json' -> obsolete
-            { id: 99, path: '/out/notes.txt' }, // outside the dest pattern -> kept
-            { id: 66, path: '/src/legacy.json' }, // matches source, but this group uploads under dest -> kept
-          ] as never),
-      ),
-    };
-    const command = createUploadCommand(
-      tempDir,
-      createOutputMock(),
-      baseProjectServiceMock(),
-      { addStorage: mock(async () => ({ id: 10 })) },
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      { dest: '/out/%original_file_name%' },
-    );
-
-    await command.uploadSourcesAction(commandContext({ deleteObsolete: true, autoUpdate: false }));
-
-    expect(fileService.deleteProjectFile).toHaveBeenCalledWith(88, '/out/stale.json');
-    expect(fileService.deleteProjectFile).toHaveBeenCalledTimes(1);
   });
 
   test('dry-runs obsolete project deletion without mutating project', async () => {
@@ -1524,18 +1178,13 @@ describe('UploadSourcesCommand', () => {
       deleteProjectDirectory: mock(async () => undefined),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
-      baseBranchServiceMock(),
       directoryService,
       fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      { source: '/src/**/*.json' },
-    );
+      files: { source: '/src/**/*.json' },
+    });
 
     await command.uploadSourcesAction(commandContext({ deleteObsolete: true, dryrun: true }));
 
@@ -1545,105 +1194,6 @@ describe('UploadSourcesCommand', () => {
     expect(output.info).toHaveBeenCalledWith("'src/legacy/' directory would be deleted");
     // Outside the source pattern -> not reported as obsolete.
     expect(output.info).not.toHaveBeenCalledWith("'external/keep.json' file would be deleted");
-  });
-
-  test('does not delete a project file matching an ignore pattern as obsolete', async () => {
-    await Bun.write(`${tempDir}/src/app.json`, '{}');
-
-    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
-    const projectService = baseProjectServiceMock();
-    const fileService = {
-      loadIndex: mock(
-        async () =>
-          new ProjectFileIndex([
-            { id: 77, path: '/src/app.json' }, // retained (local source)
-            { id: 88, path: '/src/vendor/lib.json' }, // under source pattern but ignored -> kept
-            { id: 99, path: '/src/legacy/stale.json' }, // under source pattern, not ignored -> obsolete
-          ] as never),
-      ),
-      updateProjectFile: mock(async () => undefined),
-      deleteProjectFile: mock(async () => undefined),
-      createProjectFile: mock(async () => undefined),
-    };
-    const directoryService = {
-      loadProjectDirectories: mock(async () => [
-        { id: 1, path: '/src' },
-        { id: 2, path: '/src/vendor' },
-        { id: 3, path: '/src/legacy' },
-      ]),
-      createProjectDirectory: mock(async () => ({ id: 1, path: '/src' })),
-      deleteProjectDirectory: mock(async () => undefined),
-    };
-    const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      projectService,
-      storageService,
-      baseBranchServiceMock(),
-      directoryService,
-      fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      { source: '/src/**/*.json', ignore: ['/src/vendor/**'] },
-    );
-
-    await command.uploadSourcesAction(commandContext({ deleteObsolete: true, autoUpdate: false }));
-
-    // Ignored file (and its directory) survive; the non-ignored obsolete file is removed.
-    expect(fileService.deleteProjectFile).not.toHaveBeenCalledWith(88, expect.anything());
-    expect(directoryService.deleteProjectDirectory).not.toHaveBeenCalledWith(2, '/src/vendor');
-    expect(fileService.deleteProjectFile).toHaveBeenCalledWith(99, '/src/legacy/stale.json');
-    expect(directoryService.deleteProjectDirectory).toHaveBeenCalledWith(3, '/src/legacy');
-  });
-
-  test('deletes multiple obsolete directories deepest-first', async () => {
-    await Bun.write(`${tempDir}/src/app.json`, '{}');
-
-    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
-    const projectService = baseProjectServiceMock();
-    const fileService = {
-      loadIndex: mock(
-        async () =>
-          new ProjectFileIndex([
-            { id: 77, path: '/src/app.json' }, // retained
-            { id: 88, path: '/src/old/deep/stale.json' }, // obsolete, leaves two empty dirs
-          ] as never),
-      ),
-      updateProjectFile: mock(async () => undefined),
-      deleteProjectFile: mock(async () => undefined),
-      createProjectFile: mock(async () => undefined),
-    };
-    const deletedDirectories: string[] = [];
-    const directoryService = {
-      loadProjectDirectories: mock(async () => [
-        { id: 1, path: '/src' }, // keeps app.json -> retained
-        { id: 2, path: '/src/old' }, // empty after deletion -> obsolete
-        { id: 3, path: '/src/old/deep' }, // empty after deletion -> obsolete
-      ]),
-      createProjectDirectory: mock(async () => ({ id: 1, path: '/src' })),
-      deleteProjectDirectory: mock(async (_id: number, path: string) => {
-        deletedDirectories.push(path);
-      }),
-    };
-    const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      projectService,
-      storageService,
-      baseBranchServiceMock(),
-      directoryService,
-      fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      { source: '/src/**/*.json' },
-    );
-
-    await command.uploadSourcesAction(commandContext({ deleteObsolete: true, autoUpdate: false }));
-
-    // The directory holding the retained file is never deleted; the two empty ones are, deepest first.
-    expect(deletedDirectories).toEqual(['/src/old/deep', '/src/old']);
   });
 
   test('uploads source strings for a strings-based project and polls until finished', async () => {
@@ -1668,20 +1218,12 @@ describe('UploadSourcesCommand', () => {
     };
 
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
       branchService,
-      baseDirectoryServiceMock(),
-      baseFileServiceMock(),
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      {},
-      {},
       stringService,
-    );
+    });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -1705,20 +1247,7 @@ describe('UploadSourcesCommand', () => {
       })),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      projectService,
-      storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      baseFileServiceMock(),
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      {},
-      {},
-      baseStringServiceMock(),
-    );
+    const command = createUploadCommand(tempDir, output, { projectService, storageService });
 
     expect(command.uploadSourcesAction(commandContext({}))).rejects.toThrow(
       'A branch is required to upload sources for a strings-based project',
@@ -1749,20 +1278,12 @@ describe('UploadSourcesCommand', () => {
       }),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
+    const command = createUploadCommand(tempDir, output, {
       projectService,
       storageService,
       branchService,
-      baseDirectoryServiceMock(),
-      baseFileServiceMock(),
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      {},
-      {},
       stringService,
-    );
+    });
 
     expect(command.uploadSourcesAction(commandContext({}))).rejects.toThrow('Current execution finished with errors');
     expect(output.error).toHaveBeenCalledWith('Failed to upload strings for file src/app.json');
@@ -1774,18 +1295,11 @@ describe('UploadSourcesCommand', () => {
 
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
-    const command = createUploadCommand(
-      tempDir,
-      createOutputMock(),
-      baseProjectServiceMock(),
+    const command = createUploadCommand(tempDir, createOutputMock(), {
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      { ignore: ['src/ignore-me.json'] },
-    );
+      files: { ignore: ['src/ignore-me.json'] },
+    });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -1802,19 +1316,13 @@ describe('UploadSourcesCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const directoryService = baseDirectoryServiceMock();
     const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
-    const command = createUploadCommand(
-      tempDir,
-      createOutputMock(),
-      baseProjectServiceMock(),
+    const command = createUploadCommand(tempDir, createOutputMock(), {
       storageService,
-      baseBranchServiceMock(),
       directoryService,
       fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      { source: '/src/**/*.json' },
-      { preserveHierarchy: false },
-    );
+      files: { source: '/src/**/*.json' },
+      config: { preserveHierarchy: false },
+    });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -1837,19 +1345,13 @@ describe('UploadSourcesCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const directoryService = baseDirectoryServiceMock();
     const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
-    const command = createUploadCommand(
-      tempDir,
-      createOutputMock(),
-      baseProjectServiceMock(),
+    const command = createUploadCommand(tempDir, createOutputMock(), {
       storageService,
-      baseBranchServiceMock(),
       directoryService,
       fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      { source: '/src/**/*.json' },
-      { preserveHierarchy: true },
-    );
+      files: { source: '/src/**/*.json' },
+      config: { preserveHierarchy: true },
+    });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -1864,19 +1366,13 @@ describe('UploadSourcesCommand', () => {
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const directoryService = baseDirectoryServiceMock();
     const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
-    const command = createUploadCommand(
-      tempDir,
-      createOutputMock(),
-      baseProjectServiceMock(),
+    const command = createUploadCommand(tempDir, createOutputMock(), {
       storageService,
-      baseBranchServiceMock(),
       directoryService,
       fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      { dest: '/foo/%original_file_name%' },
-      { preserveHierarchy: true },
-    );
+      files: { dest: '/foo/%original_file_name%' },
+      config: { preserveHierarchy: true },
+    });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -1893,24 +1389,16 @@ describe('UploadSourcesCommand', () => {
     const output = createOutputMock();
     const storageService = { addStorage: mock(async () => ({ id: 10 })) };
     const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      baseProjectServiceMock(),
+    const command = createUploadCommand(tempDir, output, {
       storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
       fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      {},
-      {
+      config: {
         files: [
           { source: '/src/*.json', translation: '/locale/%two_letters_code%/%original_file_name%' },
           { source: '/other/*.json', translation: '/locale/%two_letters_code%/%original_file_name%' },
         ],
       },
-    );
+    });
 
     expect(command.uploadSourcesAction(commandContext({}))).rejects.toThrow('Current execution finished with errors');
 
@@ -1925,19 +1413,10 @@ describe('UploadSourcesCommand', () => {
   // same as `upload translations`.
   test('keeps the exit code in plain, message suppressed, when a pattern matches nothing', async () => {
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      baseProjectServiceMock(),
-      { addStorage: mock(async () => ({ id: 10 })) },
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      baseFileServiceMock(),
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      {},
-      { files: [{ source: '/src/*.json', translation: '/locale/%two_letters_code%/%original_file_name%' }] },
-    );
+    const command = createUploadCommand(tempDir, output, {
+      storageService: { addStorage: mock(async () => ({ id: 10 })) },
+      config: { files: [{ source: '/src/*.json', translation: '/locale/%two_letters_code%/%original_file_name%' }] },
+    });
 
     expect(command.uploadSourcesAction(commandContext({ output: 'plain' }))).rejects.toThrow(
       'Current execution finished with errors',
@@ -1958,15 +1437,7 @@ describe('UploadSourcesCommand', () => {
       }),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      baseProjectServiceMock(),
-      storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      fileService,
-    );
+    const command = createUploadCommand(tempDir, output, { storageService, fileService });
 
     await command.uploadSourcesAction(commandContext({}));
 
@@ -1985,15 +1456,7 @@ describe('UploadSourcesCommand', () => {
       }),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      baseProjectServiceMock(),
-      storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      fileService,
-    );
+    const command = createUploadCommand(tempDir, output, { storageService, fileService });
 
     expect(command.uploadSourcesAction(commandContext({}))).rejects.toThrow('Current execution finished with errors');
     expect(output.error).toHaveBeenCalledWith("Project already contains the file 'src/app.json'");
@@ -2011,15 +1474,7 @@ describe('UploadSourcesCommand', () => {
       }),
     };
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      baseProjectServiceMock(),
-      storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      fileService,
-    );
+    const command = createUploadCommand(tempDir, output, { storageService, fileService });
 
     expect(command.uploadSourcesAction(commandContext({}))).rejects.toThrow('Current execution finished with errors');
     expect(output.error).toHaveBeenCalledWith('boom a.json');
@@ -2037,18 +1492,13 @@ describe('UploadSourcesCommand', () => {
       await Bun.write(`${tempDir}/src/updated.json`, '{}');
 
       const output = createOutputMock();
-      const command = createUploadCommand(
-        tempDir,
-        output,
-        baseProjectServiceMock(),
-        { addStorage: mock(async () => ({ id: 10 })) },
-        baseBranchServiceMock(),
-        baseDirectoryServiceMock(),
-        {
+      const command = createUploadCommand(tempDir, output, {
+        storageService: { addStorage: mock(async () => ({ id: 10 })) },
+        fileService: {
           ...baseFileServiceMock(),
           loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/updated.json' }] as never)),
         },
-      );
+      });
 
       await command.uploadSourcesAction(commandContext({ output: 'json' }));
 
@@ -2062,18 +1512,13 @@ describe('UploadSourcesCommand', () => {
       await Bun.write(`${tempDir}/src/app.json`, '{}');
 
       const output = createOutputMock();
-      const command = createUploadCommand(
-        tempDir,
-        output,
-        baseProjectServiceMock(),
-        { addStorage: mock(async () => ({ id: 10 })) },
-        baseBranchServiceMock(),
-        baseDirectoryServiceMock(),
-        {
+      const command = createUploadCommand(tempDir, output, {
+        storageService: { addStorage: mock(async () => ({ id: 10 })) },
+        fileService: {
           ...baseFileServiceMock(),
           loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/app.json' }] as never)),
         },
-      );
+      });
 
       await command.uploadSourcesAction(commandContext({ output: 'json', autoUpdate: false }));
 
@@ -2084,21 +1529,16 @@ describe('UploadSourcesCommand', () => {
       await Bun.write(`${tempDir}/src/app.json`, '{}');
 
       const output = createOutputMock();
-      const command = createUploadCommand(
-        tempDir,
-        output,
-        baseProjectServiceMock(),
-        { addStorage: mock(async () => ({ id: 10 })) },
-        baseBranchServiceMock(),
-        baseDirectoryServiceMock(),
-        {
+      const command = createUploadCommand(tempDir, output, {
+        storageService: { addStorage: mock(async () => ({ id: 10 })) },
+        fileService: {
           ...baseFileServiceMock(),
           loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/app.json' }] as never)),
           updateProjectFile: mock(async () => {
             throw new FileInUpdateError();
           }),
         },
-      );
+      });
 
       await command.uploadSourcesAction(commandContext({ output: 'json' }));
 
@@ -2112,18 +1552,13 @@ describe('UploadSourcesCommand', () => {
       await Bun.write(`${tempDir}/src/kept.json`, '{}');
 
       const output = createOutputMock();
-      const command = createUploadCommand(
-        tempDir,
-        output,
-        baseProjectServiceMock(),
-        { addStorage: mock(async () => ({ id: 10 })) },
-        baseBranchServiceMock(),
-        baseDirectoryServiceMock(),
-        {
+      const command = createUploadCommand(tempDir, output, {
+        storageService: { addStorage: mock(async () => ({ id: 10 })) },
+        fileService: {
           ...baseFileServiceMock(),
           loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/kept.json' }] as never)),
         },
-      );
+      });
 
       await command.uploadSourcesAction(commandContext({ output: 'plain', autoUpdate: false }));
 
@@ -2138,20 +1573,15 @@ describe('UploadSourcesCommand', () => {
       await Bun.write(`${tempDir}/src/b.json`, '{}');
 
       const output = createOutputMock();
-      const command = createUploadCommand(
-        tempDir,
-        output,
-        baseProjectServiceMock(),
-        { addStorage: mock(async () => ({ id: 10 })) },
-        baseBranchServiceMock(),
-        baseDirectoryServiceMock(),
-        {
+      const command = createUploadCommand(tempDir, output, {
+        storageService: { addStorage: mock(async () => ({ id: 10 })) },
+        fileService: {
           ...baseFileServiceMock(),
           createProjectFile: mock(async (request: SourceFilesModel.CreateFileRequest) => {
             await Bun.sleep(request.name === 'a.json' ? 30 : 0);
           }),
         },
-      );
+      });
 
       await command.uploadSourcesAction(commandContext({ output: 'json' }));
 
@@ -2162,129 +1592,16 @@ describe('UploadSourcesCommand', () => {
       await Bun.write(`${tempDir}/src/app.json`, '{}');
 
       const output = createOutputMock();
-      const command = createUploadCommand(tempDir, output, baseProjectServiceMock(), {
-        addStorage: mock(async () => ({ id: 10 })),
+      const command = createUploadCommand(tempDir, output, {
+        storageService: {
+          addStorage: mock(async () => ({ id: 10 })),
+        },
       });
 
       await command.uploadSourcesAction(commandContext({}));
 
       expect(output.list).not.toHaveBeenCalled();
       expect(output.success).toHaveBeenCalledWith("File 'src/app.json'");
-    });
-  });
-
-  describe('delete-obsolete scope', () => {
-    const translation = '/l/%locale%/%original_file_name%';
-
-    // src/app.json is always a live local source, so '/src' itself never empties.
-    const deleteObsolete = async (options: {
-      projectFiles?: { id: number; path: string; exportOptions?: unknown }[];
-      projectDirectories?: { id: number; path: string }[];
-      source?: string;
-      noLocalSources?: boolean;
-    }) => {
-      await Bun.write(`${tempDir}/src/app.json`, '{}');
-
-      const fileService = {
-        ...baseFileServiceMock(),
-        loadIndex: mock(
-          async () =>
-            new ProjectFileIndex([{ id: 1, path: '/src/app.json' }, ...(options.projectFiles ?? [])] as never),
-        ),
-        deleteProjectFile: mock(async (_id: number, _path: string) => undefined),
-      };
-      const directoryService = {
-        ...baseDirectoryServiceMock(),
-        loadProjectDirectories: mock(async () => options.projectDirectories ?? []),
-        deleteProjectDirectory: mock(async (_id: number, _path: string) => undefined),
-      };
-      const command = createUploadCommand(
-        tempDir,
-        createOutputMock(),
-        baseProjectServiceMock(),
-        {},
-        baseBranchServiceMock(),
-        directoryService,
-        fileService,
-        baseLabelServiceMock(),
-        baseTranslationServiceMock(),
-        { source: options.source ?? '/src/**/*.json', translation },
-      );
-
-      const upload = command.uploadSourcesAction(commandContext({ deleteObsolete: true, autoUpdate: false }));
-
-      // Deletion runs first, then a pattern with no local source fails the run.
-      if (options.noLocalSources) {
-        expect(upload).rejects.toThrow('Current execution finished with errors');
-      } else {
-        await upload;
-      }
-
-      return {
-        deletedFiles: fileService.deleteProjectFile.mock.calls.map(([, path]) => path),
-        deletedDirectories: directoryService.deleteProjectDirectory.mock.calls.map(([, path]) => path),
-      };
-    };
-
-    // Directory candidates come from the files just deleted, so a directory nobody's
-    // config references (created in the Crowdin UI, say) is never touched.
-    test('leaves an unrelated empty directory alone', async () => {
-      const result = await deleteObsolete({
-        projectFiles: [{ id: 2, path: '/src/stale.json' }],
-        projectDirectories: [
-          { id: 10, path: '/src' },
-          { id: 11, path: '/manual-empty-dir' },
-        ],
-      });
-
-      expect(result.deletedFiles).toEqual(['/src/stale.json']);
-      expect(result.deletedDirectories).toEqual([]);
-    });
-
-    test('deletes the directories an obsolete file leaves empty, deepest first', async () => {
-      const result = await deleteObsolete({
-        projectFiles: [{ id: 2, path: '/src/gone/deep/old.json' }],
-        projectDirectories: [
-          { id: 10, path: '/src' },
-          { id: 11, path: '/src/gone' },
-          { id: 12, path: '/src/gone/deep' },
-        ],
-      });
-
-      expect(result.deletedFiles).toEqual(['/src/gone/deep/old.json']);
-      expect(result.deletedDirectories).toEqual(['/src/gone/deep', '/src/gone']);
-    });
-
-    // The file's stored export pattern has to satisfy the same group's `translation`, otherwise
-    // the file belongs to another group.
-    test('keeps a path-matching file whose export pattern belongs to another group', async () => {
-      const result = await deleteObsolete({
-        projectFiles: [
-          { id: 2, path: '/src/other.json', exportOptions: { exportPattern: '/elsewhere/%original_file_name%' } },
-        ],
-      });
-
-      expect(result.deletedFiles).toEqual([]);
-    });
-
-    test('deletes a path-matching file whose export pattern satisfies the group', async () => {
-      const result = await deleteObsolete({
-        projectFiles: [{ id: 2, path: '/src/other.json', exportOptions: { exportPattern: '/l/%locale%/other.json' } }],
-      });
-
-      expect(result.deletedFiles).toEqual(['/src/other.json']);
-    });
-
-    // Matching runs on the config-pattern matcher, which expands file placeholders. The CLI-filter
-    // matcher does not, so a placeholder `source` would match nothing and never clean up.
-    test('treats a file as managed when the source pattern carries a file placeholder', async () => {
-      const result = await deleteObsolete({
-        projectFiles: [{ id: 2, path: '/src/stale.json' }],
-        source: '/src/%original_file_name%',
-        noLocalSources: true,
-      });
-
-      expect(result.deletedFiles).toEqual(['/src/app.json', '/src/stale.json']);
     });
   });
 });

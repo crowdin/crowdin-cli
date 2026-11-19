@@ -72,19 +72,36 @@ export function baseStringServiceMock() {
   };
 }
 
+export interface UploadCommandOverrides {
+  projectService?: unknown;
+  storageService?: unknown;
+  branchService?: unknown;
+  directoryService?: unknown;
+  fileService?: unknown;
+  labelService?: unknown;
+  translationService?: unknown;
+  stringService?: unknown;
+  // Merged into the config's single files group.
+  files?: Record<string, unknown>;
+  // Merged into the config itself.
+  config?: Record<string, unknown>;
+}
+
 export function createUploadCommand(
   basePath: string,
   output: ReturnType<typeof createOutputMock>,
-  projectService: unknown = baseProjectServiceMock(),
-  storageService: unknown = {},
-  branchService: unknown = baseBranchServiceMock(),
-  directoryService: unknown = baseDirectoryServiceMock(),
-  fileService: unknown = baseFileServiceMock(),
-  labelService: unknown = baseLabelServiceMock(),
-  translationService: unknown = baseTranslationServiceMock(),
-  fileOverrides: Record<string, unknown> = {},
-  configOverrides: Record<string, unknown> = {},
-  stringService: unknown = baseStringServiceMock(),
+  {
+    projectService = baseProjectServiceMock(),
+    storageService = {},
+    branchService = baseBranchServiceMock(),
+    directoryService = baseDirectoryServiceMock(),
+    fileService = baseFileServiceMock(),
+    labelService = baseLabelServiceMock(),
+    translationService = baseTranslationServiceMock(),
+    stringService = baseStringServiceMock(),
+    files: fileOverrides = {},
+    config: configOverrides = {},
+  }: UploadCommandOverrides = {},
 ) {
   const config = ConfigSchema.parse({
     projectId: 123,
