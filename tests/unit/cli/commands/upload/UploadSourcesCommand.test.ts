@@ -185,6 +185,30 @@ describe('UploadSourcesCommand', () => {
     expect(output.info).toHaveBeenCalledWith("File 'src/app.json' would be uploaded");
   });
 
+  test('dry-run leaves labels alone, creating none', async () => {
+    await Bun.write(`${tempDir}/src/app.json`, '{}');
+
+    const labelService = baseLabelServiceMock();
+    const output = createOutputMock();
+    const command = createUploadCommand(
+      tempDir,
+      output,
+      baseProjectServiceMock(),
+      { addStorage: mock(async () => ({ id: 10 })) },
+      baseBranchServiceMock(),
+      baseDirectoryServiceMock(),
+      baseFileServiceMock(),
+      labelService,
+      baseTranslationServiceMock(),
+      { labels: ['new-label'] },
+    );
+
+    await command.uploadSourcesAction(commandContext({ dryrun: true }));
+
+    expect(labelService.resolveLabelIds).not.toHaveBeenCalled();
+    expect(output.info).toHaveBeenCalledWith("File 'src/app.json' would be created");
+  });
+
   test('dry-run reports the in-project path, not the local one, when preserve_hierarchy is off', async () => {
     await Bun.$`mkdir -p ${tempDir}/public/locales/en`.quiet();
     await Bun.write(`${tempDir}/public/locales/en/translation.json`, '{}');
