@@ -52,10 +52,16 @@ import {
   stripBranchPrefix,
   stripLeadingSlashes,
   toPosixPath,
-  toProjectPath,
   toSortedRelativePaths,
 } from '@/lib/utils/path.ts';
-import { type UploadSourcesPlan, UploadSourcesPlanner } from './UploadSourcesPlanner.ts';
+import {
+  type PlannedFile,
+  type SkipReason,
+  type SourceFileOptions,
+  type SourcePaths,
+  type UploadSourcesPlan,
+  UploadSourcesPlanner,
+} from './UploadSourcesPlanner.ts';
 import { type UploadedFile, uploadedFileView } from './views.ts';
 
 interface UploadSourcesOptions extends GlobalOptions {
@@ -68,16 +74,6 @@ interface UploadSourcesOptions extends GlobalOptions {
   dryrun?: boolean;
   tree?: boolean;
   cache?: boolean;
-}
-
-interface SourceFileOptions {
-  labels?: string[];
-  excluded_target_languages?: string[];
-}
-
-interface SourcePaths {
-  localFilePath: string;
-  projectPath: string;
 }
 
 interface SourceGroup {
@@ -102,15 +98,12 @@ interface UploadRun {
   stringService: StringService;
   branch: SourceFilesModel.Branch | undefined;
   isStringsBased: boolean;
-  projectFiles: ProjectFileIndex;
-  expectedProjectFilePaths: Set<string>;
   projectDirectories: Map<string, number>;
   sourceHashes: Map<string, string> | undefined;
   // Shared per-path promise cache ensures concurrent tasks don't double-create directories
   directoryCreationPromises: Map<string, Promise<number>>;
   // Shared cache so files sharing the same customSegmentation reuse the uploaded srx storage id
   srxStorageIds: Map<string, Promise<number>>;
-  seenFilePaths: Set<string>;
   uploadedSources: UploadedFile[];
 }
 
@@ -185,25 +178,22 @@ export default class UploadSourcesCommand {
       stringService,
       branch,
       isStringsBased,
-      projectFiles,
-      expectedProjectFilePaths: new Set(
-        patternFilePaths.flatMap(({ files }) => files.map(({ projectPath }) => toProjectPath(projectPath))),
-      ),
       projectDirectories: new Map(projectDirectoryList.map((directory) => [directory.path, directory.id])),
       sourceHashes: undefined,
       directoryCreationPromises: new Map(),
       srxStorageIds: new Map(),
-      seenFilePaths: new Set(),
       uploadedSources: [],
     };
 
     const deleteObsolete = Boolean(options.deleteObsolete) && !isStringsBased;
     const plan = new UploadSourcesPlanner().plan({
       config,
+      groups: patternFilePaths,
+      isStringsBased,
+      autoUpdate: options.autoUpdate !== false,
       deleteObsolete,
       projectFiles,
       projectDirectories: projectDirectoryList,
-      expectedProjectFilePaths: run.expectedProjectFilePaths,
       branchName: branch?.name,
     });
 
@@ -232,7 +222,7 @@ export default class UploadSourcesCommand {
 
     let hasErrors = false;
 
-    for (const { patterns, fileOptions, files } of patternFilePaths) {
+    for (const { patterns, fileOptions, files } of plan.groups) {
       if (files.length === 0) {
         // plain drops the message but still fails the run: a plain consumer is a script, and a
         // script that reads success from a broken pattern uploads nothing and says nothing.
@@ -256,7 +246,7 @@ export default class UploadSourcesCommand {
         labelIds: fileOptions.labels !== undefined ? await labelService.resolveLabelIds(fileOptions.labels) : undefined,
         srxStorageIdPromise: this.uploadSrx(run, patterns),
       };
-      const results = await runConcurrently(files.map((file) => () => this.uploadSource(run, group, file)));
+      const results = await runConcurrently(files.map((file) => () => this.runPlannedFile(run, group, file)));
 
       if (reportFailures(results, output)) {
         hasErrors = true;
@@ -364,51 +354,51 @@ export default class UploadSourcesCommand {
     return srxStorageId;
   }
 
-  private async uploadSource(run: UploadRun, group: SourceGroup, paths: SourcePaths): Promise<void> {
-    const { output, seenFilePaths, uploadedSources } = run;
-    const { projectPath, localFilePath } = paths;
+  private async runPlannedFile(run: UploadRun, group: SourceGroup, planned: PlannedFile): Promise<void> {
+    const { projectPath, localFilePath } = planned.paths;
 
-    if (seenFilePaths.has(projectPath)) {
-      output.warning(`Skipping file '${projectPath}' because it is already uploading/uploaded`);
-      uploadedSources.push({ path: projectPath, action: 'skipped', reason: 'already uploading' });
+    if (planned.action === 'skip') {
+      this.reportSkip(run, projectPath, planned.reason);
       return;
     }
 
-    seenFilePaths.add(projectPath);
-
-    const localFile = Bun.file(path.join(run.basePath, localFilePath));
-
-    if (localFile.size === 0) {
-      output.warning(`File '${projectPath}' was skipped since it is empty`);
-      uploadedSources.push({ path: projectPath, action: 'skipped', reason: 'empty' });
+    if (run.options.dryrun) {
+      const verb = { create: 'created', update: 'updated', 'upload-strings': 'uploaded' }[planned.action];
+      run.output.info(`File '${projectPath}' would be ${verb}`);
       return;
     }
 
-    const upload: SourceUpload = { ...group, ...paths, localFile };
+    const upload: SourceUpload = {
+      ...group,
+      ...planned.paths,
+      localFile: Bun.file(path.join(run.basePath, localFilePath)),
+    };
 
-    if (run.isStringsBased) {
+    if (planned.action === 'upload-strings') {
       await this.uploadStrings(run, upload);
-      return;
-    }
-
-    const existing = run.projectFiles.soft(projectPath, run.expectedProjectFilePaths);
-
-    if (existing) {
-      await this.updateFile(run, upload, existing.file, existing.exact);
+    } else if (planned.action === 'update') {
+      await this.updateFile(run, upload, planned.projectFile, planned.rename);
     } else {
       await this.createFile(run, upload);
     }
   }
 
-  private async uploadStrings(run: UploadRun, upload: SourceUpload): Promise<void> {
-    const { localFile, localFilePath, projectPath, patterns, labelIds } = upload;
-
-    if (run.options.dryrun) {
-      run.output.info(`File '${projectPath}' would be uploaded`);
-      return;
+  private reportSkip(run: UploadRun, projectPath: string, reason: SkipReason): void {
+    if (reason === 'already uploading') {
+      run.output.warning(`Skipping file '${projectPath}' because it is already uploading/uploaded`);
+    } else if (reason === 'empty') {
+      run.output.warning(`File '${projectPath}' was skipped since it is empty`);
+    } else {
+      run.output.info(`File '${projectPath}' already exists and will not be updated`);
     }
 
-    // Only a dry run may lack the branch, and it returned above; a real run requires one up front.
+    run.uploadedSources.push({ path: projectPath, action: 'skipped', reason });
+  }
+
+  private async uploadStrings(run: UploadRun, upload: SourceUpload): Promise<void> {
+    const { localFile, localFilePath, patterns, labelIds } = upload;
+
+    // Only a dry run may lack the branch, and it never executes; a real run requires one up front.
     const branchId = run.branch?.id as number;
     const checksum = run.sourceHashes ? await computeChecksum(localFile) : undefined;
 
@@ -436,21 +426,10 @@ export default class UploadSourcesCommand {
     run: UploadRun,
     upload: SourceUpload,
     projectFile: SourceFilesModel.File,
-    exactMatch: boolean,
+    rename: boolean,
   ): Promise<void> {
-    const { options, output } = run;
+    const { output } = run;
     const { localFile, localFilePath, projectPath, patterns, fileOptions, labelIds } = upload;
-
-    if (options.autoUpdate === false) {
-      output.info(`File '${projectPath}' already exists and will not be updated`);
-      run.uploadedSources.push({ path: projectPath, action: 'skipped', reason: 'auto-update disabled' });
-      return;
-    }
-
-    if (options.dryrun) {
-      output.info(`File '${projectPath}' would be updated`);
-      return;
-    }
 
     const checksum = run.sourceHashes ? await computeChecksum(localFile) : undefined;
 
@@ -481,7 +460,7 @@ export default class UploadSourcesCommand {
           updateOption: patterns.update_option as SourceFilesModel.UpdateOption | undefined,
           attachLabelIds: labelIds,
           // On a soft match the project file has a different name/extension; rename it to the source.
-          name: exactMatch ? undefined : path.parse(localFilePath).base,
+          name: rename ? path.parse(localFilePath).base : undefined,
           ...changedSettings,
         },
       );
@@ -500,12 +479,6 @@ export default class UploadSourcesCommand {
 
   private async createFile(run: UploadRun, upload: SourceUpload): Promise<void> {
     const { localFile, localFilePath, projectPath, patterns, fileOptions, labelIds } = upload;
-
-    if (run.options.dryrun) {
-      run.output.info(`File '${projectPath}' would be created`);
-      return;
-    }
-
     const pathDetails = path.parse(projectPath);
     const srxStorageId = await upload.srxStorageIdPromise;
     const storage = await run.storageService.addStorage(localFile);
