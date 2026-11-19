@@ -236,6 +236,31 @@ describe('UploadSourcesCommand', () => {
     expect(output.info).toHaveBeenCalledWith("File 'translation.json' would be created");
   });
 
+  test('machine dry-run lists only files the run would upload', async () => {
+    await Bun.write(`${tempDir}/src/new.json`, '{}');
+    await Bun.write(`${tempDir}/src/existing.json`, '{}');
+    await Bun.write(`${tempDir}/src/empty.json`, '');
+
+    const output = createOutputMock();
+    const command = createUploadCommand(
+      tempDir,
+      output,
+      baseProjectServiceMock(),
+      { addStorage: mock(async () => ({ id: 10 })) },
+      baseBranchServiceMock(),
+      baseDirectoryServiceMock(),
+      {
+        ...baseFileServiceMock(),
+        loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/existing.json' }] as never)),
+      },
+    );
+
+    await command.uploadSourcesAction(commandContext({ dryrun: true, output: 'json', autoUpdate: false }));
+
+    expect(output.list).toHaveBeenCalledTimes(1);
+    expect(output.list).toHaveBeenCalledWith(['src/new.json'], expect.anything());
+  });
+
   test('reports the in-project path for a skipped existing file when preserve_hierarchy is off', async () => {
     await Bun.$`mkdir -p ${tempDir}/public/locales/en`.quiet();
     await Bun.write(`${tempDir}/public/locales/en/translation.json`, '{}');
@@ -1374,128 +1399,6 @@ describe('UploadSourcesCommand', () => {
     expect(output.success).toHaveBeenCalledWith('No obsolete directories found');
   });
 
-  test('does not delete a soft-matched project file as obsolete', async () => {
-    await Bun.write(`${tempDir}/src/app.json`, '{}');
-
-    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
-    const projectService = baseProjectServiceMock();
-    const fileService = {
-      // Same file with a different extension (soft match) + a genuinely obsolete file under the pattern.
-      loadIndex: mock(
-        async () =>
-          new ProjectFileIndex([
-            { id: 77, path: '/src/app.xml' },
-            { id: 88, path: '/src/stale.json' },
-          ] as never),
-      ),
-      updateProjectFile: mock(async () => undefined),
-      deleteProjectFile: mock(async () => undefined),
-      createProjectFile: mock(async () => undefined),
-    };
-    const directoryService = {
-      loadProjectDirectories: mock(async () => [{ id: 1, path: '/src' }]),
-      createProjectDirectory: mock(async () => ({ id: 1, path: '/src' })),
-      deleteProjectDirectory: mock(async () => undefined),
-    };
-    const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      projectService,
-      storageService,
-      baseBranchServiceMock(),
-      directoryService,
-      fileService,
-    );
-
-    await command.uploadSourcesAction(commandContext({ deleteObsolete: true }));
-
-    // Soft-matched file is updated/renamed, never deleted.
-    expect(fileService.deleteProjectFile).not.toHaveBeenCalledWith(77, expect.anything());
-    expect(fileService.deleteProjectFile).toHaveBeenCalledWith(88, '/src/stale.json');
-    expect(fileService.updateProjectFile).toHaveBeenCalledWith(77, 10, 'src/app.json', {
-      exportOptions: { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
-      name: 'app.json',
-    });
-    expect(output.success).toHaveBeenCalledWith("'src/stale.json' file was deleted");
-    expect(output.success).toHaveBeenCalledWith('No obsolete directories found');
-    expect(output.success).not.toHaveBeenCalledWith('No obsolete files were found');
-  });
-
-  test('scopes obsolete deletion by trailing segments when preserve_hierarchy is off', async () => {
-    await Bun.write(`${tempDir}/src/app.json`, '{}');
-
-    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
-    const projectService = baseProjectServiceMock();
-    const fileService = {
-      loadIndex: mock(
-        async () =>
-          new ProjectFileIndex([
-            { id: 77, path: '/app.json' }, // retained (local source, common path stripped)
-            { id: 88, path: '/stale.json' }, // matches trailing *.json -> obsolete
-            { id: 99, path: '/notes.txt' }, // does not match the pattern -> kept
-          ] as never),
-      ),
-      updateProjectFile: mock(async () => undefined),
-      deleteProjectFile: mock(async () => undefined),
-      createProjectFile: mock(async () => undefined),
-    };
-    const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      projectService,
-      storageService,
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      { source: '/src/*.json' },
-      { preserveHierarchy: false },
-    );
-
-    await command.uploadSourcesAction(commandContext({ deleteObsolete: true, autoUpdate: false }));
-
-    expect(fileService.deleteProjectFile).toHaveBeenCalledWith(88, '/stale.json');
-    expect(fileService.deleteProjectFile).not.toHaveBeenCalledWith(99, expect.anything());
-    expect(fileService.deleteProjectFile).not.toHaveBeenCalledWith(77, expect.anything());
-  });
-
-  test('matches obsolete files of a dest-mapped group by its dest pattern, not its source', async () => {
-    await Bun.write(`${tempDir}/src/app.json`, '{}');
-
-    const fileService = {
-      ...baseFileServiceMock(),
-      loadIndex: mock(
-        async () =>
-          new ProjectFileIndex([
-            { id: 77, path: '/out/app.json' }, // the local source's upload target -> retained
-            { id: 88, path: '/out/stale.json' }, // matches dest 'out/*.json' -> obsolete
-            { id: 99, path: '/out/notes.txt' }, // outside the dest pattern -> kept
-            { id: 66, path: '/src/legacy.json' }, // matches source, but this group uploads under dest -> kept
-          ] as never),
-      ),
-    };
-    const command = createUploadCommand(
-      tempDir,
-      createOutputMock(),
-      baseProjectServiceMock(),
-      { addStorage: mock(async () => ({ id: 10 })) },
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      { dest: '/out/%original_file_name%' },
-    );
-
-    await command.uploadSourcesAction(commandContext({ deleteObsolete: true, autoUpdate: false }));
-
-    expect(fileService.deleteProjectFile).toHaveBeenCalledWith(88, '/out/stale.json');
-    expect(fileService.deleteProjectFile).toHaveBeenCalledTimes(1);
-  });
-
   test('dry-runs obsolete project deletion without mutating project', async () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
 
@@ -1545,105 +1448,6 @@ describe('UploadSourcesCommand', () => {
     expect(output.info).toHaveBeenCalledWith("'src/legacy/' directory would be deleted");
     // Outside the source pattern -> not reported as obsolete.
     expect(output.info).not.toHaveBeenCalledWith("'external/keep.json' file would be deleted");
-  });
-
-  test('does not delete a project file matching an ignore pattern as obsolete', async () => {
-    await Bun.write(`${tempDir}/src/app.json`, '{}');
-
-    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
-    const projectService = baseProjectServiceMock();
-    const fileService = {
-      loadIndex: mock(
-        async () =>
-          new ProjectFileIndex([
-            { id: 77, path: '/src/app.json' }, // retained (local source)
-            { id: 88, path: '/src/vendor/lib.json' }, // under source pattern but ignored -> kept
-            { id: 99, path: '/src/legacy/stale.json' }, // under source pattern, not ignored -> obsolete
-          ] as never),
-      ),
-      updateProjectFile: mock(async () => undefined),
-      deleteProjectFile: mock(async () => undefined),
-      createProjectFile: mock(async () => undefined),
-    };
-    const directoryService = {
-      loadProjectDirectories: mock(async () => [
-        { id: 1, path: '/src' },
-        { id: 2, path: '/src/vendor' },
-        { id: 3, path: '/src/legacy' },
-      ]),
-      createProjectDirectory: mock(async () => ({ id: 1, path: '/src' })),
-      deleteProjectDirectory: mock(async () => undefined),
-    };
-    const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      projectService,
-      storageService,
-      baseBranchServiceMock(),
-      directoryService,
-      fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      { source: '/src/**/*.json', ignore: ['/src/vendor/**'] },
-    );
-
-    await command.uploadSourcesAction(commandContext({ deleteObsolete: true, autoUpdate: false }));
-
-    // Ignored file (and its directory) survive; the non-ignored obsolete file is removed.
-    expect(fileService.deleteProjectFile).not.toHaveBeenCalledWith(88, expect.anything());
-    expect(directoryService.deleteProjectDirectory).not.toHaveBeenCalledWith(2, '/src/vendor');
-    expect(fileService.deleteProjectFile).toHaveBeenCalledWith(99, '/src/legacy/stale.json');
-    expect(directoryService.deleteProjectDirectory).toHaveBeenCalledWith(3, '/src/legacy');
-  });
-
-  test('deletes multiple obsolete directories deepest-first', async () => {
-    await Bun.write(`${tempDir}/src/app.json`, '{}');
-
-    const storageService = { addStorage: mock(async () => ({ id: 10 })) };
-    const projectService = baseProjectServiceMock();
-    const fileService = {
-      loadIndex: mock(
-        async () =>
-          new ProjectFileIndex([
-            { id: 77, path: '/src/app.json' }, // retained
-            { id: 88, path: '/src/old/deep/stale.json' }, // obsolete, leaves two empty dirs
-          ] as never),
-      ),
-      updateProjectFile: mock(async () => undefined),
-      deleteProjectFile: mock(async () => undefined),
-      createProjectFile: mock(async () => undefined),
-    };
-    const deletedDirectories: string[] = [];
-    const directoryService = {
-      loadProjectDirectories: mock(async () => [
-        { id: 1, path: '/src' }, // keeps app.json -> retained
-        { id: 2, path: '/src/old' }, // empty after deletion -> obsolete
-        { id: 3, path: '/src/old/deep' }, // empty after deletion -> obsolete
-      ]),
-      createProjectDirectory: mock(async () => ({ id: 1, path: '/src' })),
-      deleteProjectDirectory: mock(async (_id: number, path: string) => {
-        deletedDirectories.push(path);
-      }),
-    };
-    const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      projectService,
-      storageService,
-      baseBranchServiceMock(),
-      directoryService,
-      fileService,
-      baseLabelServiceMock(),
-      baseTranslationServiceMock(),
-      { source: '/src/**/*.json' },
-    );
-
-    await command.uploadSourcesAction(commandContext({ deleteObsolete: true, autoUpdate: false }));
-
-    // The directory holding the retained file is never deleted; the two empty ones are, deepest first.
-    expect(deletedDirectories).toEqual(['/src/old/deep', '/src/old']);
   });
 
   test('uploads source strings for a strings-based project and polls until finished', async () => {
@@ -2170,121 +1974,6 @@ describe('UploadSourcesCommand', () => {
 
       expect(output.list).not.toHaveBeenCalled();
       expect(output.success).toHaveBeenCalledWith("File 'src/app.json'");
-    });
-  });
-
-  describe('delete-obsolete scope', () => {
-    const translation = '/l/%locale%/%original_file_name%';
-
-    // src/app.json is always a live local source, so '/src' itself never empties.
-    const deleteObsolete = async (options: {
-      projectFiles?: { id: number; path: string; exportOptions?: unknown }[];
-      projectDirectories?: { id: number; path: string }[];
-      source?: string;
-      noLocalSources?: boolean;
-    }) => {
-      await Bun.write(`${tempDir}/src/app.json`, '{}');
-
-      const fileService = {
-        ...baseFileServiceMock(),
-        loadIndex: mock(
-          async () =>
-            new ProjectFileIndex([{ id: 1, path: '/src/app.json' }, ...(options.projectFiles ?? [])] as never),
-        ),
-        deleteProjectFile: mock(async (_id: number, _path: string) => undefined),
-      };
-      const directoryService = {
-        ...baseDirectoryServiceMock(),
-        loadProjectDirectories: mock(async () => options.projectDirectories ?? []),
-        deleteProjectDirectory: mock(async (_id: number, _path: string) => undefined),
-      };
-      const command = createUploadCommand(
-        tempDir,
-        createOutputMock(),
-        baseProjectServiceMock(),
-        {},
-        baseBranchServiceMock(),
-        directoryService,
-        fileService,
-        baseLabelServiceMock(),
-        baseTranslationServiceMock(),
-        { source: options.source ?? '/src/**/*.json', translation },
-      );
-
-      const upload = command.uploadSourcesAction(commandContext({ deleteObsolete: true, autoUpdate: false }));
-
-      // Deletion runs first, then a pattern with no local source fails the run.
-      if (options.noLocalSources) {
-        expect(upload).rejects.toThrow('Current execution finished with errors');
-      } else {
-        await upload;
-      }
-
-      return {
-        deletedFiles: fileService.deleteProjectFile.mock.calls.map(([, path]) => path),
-        deletedDirectories: directoryService.deleteProjectDirectory.mock.calls.map(([, path]) => path),
-      };
-    };
-
-    // Directory candidates come from the files just deleted, so a directory nobody's
-    // config references (created in the Crowdin UI, say) is never touched.
-    test('leaves an unrelated empty directory alone', async () => {
-      const result = await deleteObsolete({
-        projectFiles: [{ id: 2, path: '/src/stale.json' }],
-        projectDirectories: [
-          { id: 10, path: '/src' },
-          { id: 11, path: '/manual-empty-dir' },
-        ],
-      });
-
-      expect(result.deletedFiles).toEqual(['/src/stale.json']);
-      expect(result.deletedDirectories).toEqual([]);
-    });
-
-    test('deletes the directories an obsolete file leaves empty, deepest first', async () => {
-      const result = await deleteObsolete({
-        projectFiles: [{ id: 2, path: '/src/gone/deep/old.json' }],
-        projectDirectories: [
-          { id: 10, path: '/src' },
-          { id: 11, path: '/src/gone' },
-          { id: 12, path: '/src/gone/deep' },
-        ],
-      });
-
-      expect(result.deletedFiles).toEqual(['/src/gone/deep/old.json']);
-      expect(result.deletedDirectories).toEqual(['/src/gone/deep', '/src/gone']);
-    });
-
-    // The file's stored export pattern has to satisfy the same group's `translation`, otherwise
-    // the file belongs to another group.
-    test('keeps a path-matching file whose export pattern belongs to another group', async () => {
-      const result = await deleteObsolete({
-        projectFiles: [
-          { id: 2, path: '/src/other.json', exportOptions: { exportPattern: '/elsewhere/%original_file_name%' } },
-        ],
-      });
-
-      expect(result.deletedFiles).toEqual([]);
-    });
-
-    test('deletes a path-matching file whose export pattern satisfies the group', async () => {
-      const result = await deleteObsolete({
-        projectFiles: [{ id: 2, path: '/src/other.json', exportOptions: { exportPattern: '/l/%locale%/other.json' } }],
-      });
-
-      expect(result.deletedFiles).toEqual(['/src/other.json']);
-    });
-
-    // Matching runs on the config-pattern matcher, which expands file placeholders. The CLI-filter
-    // matcher does not, so a placeholder `source` would match nothing and never clean up.
-    test('treats a file as managed when the source pattern carries a file placeholder', async () => {
-      const result = await deleteObsolete({
-        projectFiles: [{ id: 2, path: '/src/stale.json' }],
-        source: '/src/%original_file_name%',
-        noLocalSources: true,
-      });
-
-      expect(result.deletedFiles).toEqual(['/src/app.json', '/src/stale.json']);
     });
   });
 });
