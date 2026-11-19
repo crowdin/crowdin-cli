@@ -212,6 +212,31 @@ describe('UploadSourcesCommand', () => {
     expect(output.info).toHaveBeenCalledWith("File 'translation.json' would be created");
   });
 
+  test('machine dry-run lists only files the run would upload', async () => {
+    await Bun.write(`${tempDir}/src/new.json`, '{}');
+    await Bun.write(`${tempDir}/src/existing.json`, '{}');
+    await Bun.write(`${tempDir}/src/empty.json`, '');
+
+    const output = createOutputMock();
+    const command = createUploadCommand(
+      tempDir,
+      output,
+      baseProjectServiceMock(),
+      { addStorage: mock(async () => ({ id: 10 })) },
+      baseBranchServiceMock(),
+      baseDirectoryServiceMock(),
+      {
+        ...baseFileServiceMock(),
+        loadIndex: mock(async () => new ProjectFileIndex([{ id: 77, path: '/src/existing.json' }] as never)),
+      },
+    );
+
+    await command.uploadSourcesAction(commandContext({ dryrun: true, output: 'json', autoUpdate: false }));
+
+    expect(output.list).toHaveBeenCalledTimes(1);
+    expect(output.list).toHaveBeenCalledWith(['src/new.json'], expect.anything());
+  });
+
   test('reports the in-project path for a skipped existing file when preserve_hierarchy is off', async () => {
     await Bun.$`mkdir -p ${tempDir}/public/locales/en`.quiet();
     await Bun.write(`${tempDir}/public/locales/en/translation.json`, '{}');

@@ -202,17 +202,10 @@ export default class UploadSourcesCommand {
     }
 
     // A machine --output emits the bare sorted in-project paths and wins over --tree; otherwise fall
-    // through to the per-file "would be created/updated" messages. Paths are the resolved project
-    // paths, not the local ones: a dry run has to show where the file lands in Crowdin, which `dest`
-    // and a stripped common path (preserve_hierarchy: false) both move away from the repo layout.
-    if (
-      options.dryrun &&
-      printDryRunPaths(
-        toSortedRelativePaths(patternFilePaths.flatMap(({ files }) => files.map(({ projectPath }) => projectPath))),
-        options,
-        output,
-      )
-    ) {
+    // through to the per-file "would be created/updated" messages. Only files the run would upload
+    // are listed, under their project paths: `dest` and preserve_hierarchy: false move them away
+    // from the repo layout.
+    if (options.dryrun && printDryRunPaths(this.plannedUploadPaths(plan), options, output)) {
       return;
     }
 
@@ -263,6 +256,14 @@ export default class UploadSourcesCommand {
       throw new CliError(EXECUTION_FINISHED_WITH_ERRORS);
     }
   };
+
+  private plannedUploadPaths(plan: UploadSourcesPlan): string[] {
+    return toSortedRelativePaths(
+      plan.groups.flatMap(({ files }) =>
+        files.filter((file) => file.action !== 'skip').map(({ paths }) => paths.projectPath),
+      ),
+    );
+  }
 
   private collectPatternFilePaths(
     config: Config,
