@@ -12,6 +12,7 @@ import { computeChecksum } from '@/lib/upload/sourceCache.ts';
 import {
   baseDirectoryServiceMock,
   baseFileServiceMock,
+  baseLabelServiceMock,
   baseProjectServiceMock,
   baseStringServiceMock,
   commandContext,
@@ -159,18 +160,11 @@ describe('UploadSourcesCommand', () => {
 
     const labelService = baseLabelServiceMock();
     const output = createOutputMock();
-    const command = createUploadCommand(
-      tempDir,
-      output,
-      baseProjectServiceMock(),
-      { addStorage: mock(async () => ({ id: 10 })) },
-      baseBranchServiceMock(),
-      baseDirectoryServiceMock(),
-      baseFileServiceMock(),
+    const command = createUploadCommand(tempDir, output, {
+      storageService: { addStorage: mock(async () => ({ id: 10 })) },
       labelService,
-      baseTranslationServiceMock(),
-      { labels: ['new-label'] },
-    );
+      files: { labels: ['new-label'] },
+    });
 
     await command.uploadSourcesAction(commandContext({ dryrun: true }));
 
