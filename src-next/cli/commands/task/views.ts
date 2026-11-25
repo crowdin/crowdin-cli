@@ -1,6 +1,5 @@
+import { colors, type View } from '@/cli/output.ts';
 import type { TaskRecord } from '@/cli/services/TaskService.ts';
-import { colors } from '@/cli/utils/colors.ts';
-import type { View } from '@/cli/utils/output.ts';
 
 // Plain ignores the verbose flag, and 'NoDueDate' stays display-only.
 export const taskView: View<TaskRecord> = {

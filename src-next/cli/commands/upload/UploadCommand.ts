@@ -10,7 +10,7 @@ import type {
   GetStorageService,
   GetStringService,
   GetTranslationService,
-} from '@/cli/services.ts';
+} from '@/cli/di/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { branch, dryRun, filesConfigGroup, tree } from '../common/options.ts';
 import {

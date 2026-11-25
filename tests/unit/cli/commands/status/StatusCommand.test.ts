@@ -4,13 +4,13 @@ import type { Command } from 'commander';
 import StatusCommand from '@/cli/commands/status/StatusCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { createOutput, type Output } from '@/cli/output.ts';
 import { BranchService } from '@/cli/services/BranchService.ts';
 import { DirectoryService } from '@/cli/services/DirectoryService.ts';
 import { FileService } from '@/cli/services/file/FileService.ts';
 import { ProjectFileIndex } from '@/cli/services/file/ProjectFileIndex.ts';
 import { ProgressService } from '@/cli/services/ProgressService.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
-import { createOutput, type Output } from '@/cli/utils/output.ts';
 
 type StatusTestOptions = GlobalOptions & {
   language?: string;

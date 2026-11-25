@@ -7,9 +7,9 @@ import type { Command } from 'commander';
 import TmCommand from '@/cli/commands/tm/TmCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { createOutput, type Output } from '@/cli/output.ts';
 import type { StorageService } from '@/cli/services/StorageService.ts';
 import type { TmService } from '@/cli/services/TmService.ts';
-import { createOutput, type Output } from '@/cli/utils/output.ts';
 import { assertProjectConfigured, type Config } from '@/lib/config.ts';
 
 describe('TmCommand', () => {

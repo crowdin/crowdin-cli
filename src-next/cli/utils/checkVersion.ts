@@ -1,7 +1,6 @@
 import os from 'node:os';
 import path from 'node:path';
-import { colors } from './colors.ts';
-import type { Output } from './output.ts';
+import { colors, type Output } from '../output.ts';
 
 const VERSION_FILE_URL = 'https://github.com/crowdin/crowdin-cli/releases/latest/download/version.txt';
 const TIMEOUT_MS = 3000;

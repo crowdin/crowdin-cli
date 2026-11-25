@@ -11,9 +11,6 @@ import type { Command } from 'commander';
 import { printDryRunPaths } from '@/cli/commands/common/dryRunPaths.ts';
 import { reportNoManagerAccess } from '@/cli/commands/common/managerAccess.ts';
 import { pathView } from '@/cli/commands/common/views.ts';
-import CliError from '@/cli/errors/CliError.ts';
-import type { GlobalOptions } from '@/cli/options.ts';
-import type { TranslationService } from '@/cli/services/TranslationService.ts';
 import type {
   GetBranchService,
   GetConfig,
@@ -21,10 +18,13 @@ import type {
   GetOutput,
   GetProjectService,
   GetTranslationService,
-} from '@/cli/services.ts';
+} from '@/cli/di/services.ts';
+import CliError from '@/cli/errors/CliError.ts';
+import type { GlobalOptions } from '@/cli/options.ts';
+import { isMachineFormat, isStructuredFormat } from '@/cli/output/format.ts';
+import type { Output } from '@/cli/output.ts';
+import type { TranslationService } from '@/cli/services/TranslationService.ts';
 import { withDownloadedArchive } from '@/cli/utils/downloadToFile.ts';
-import { isMachineFormat, isStructuredFormat } from '@/cli/utils/formatter.ts';
-import type { Output } from '@/cli/utils/output.ts';
 import { assertFilesConfigured, type Config } from '@/lib/config.ts';
 import { resolveDownloadLanguages } from '@/lib/download/languages.ts';
 import { buildAllProjectTranslations } from '@/lib/download/projectTranslations.ts';

@@ -4,8 +4,8 @@ import { mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import CliError from '@/cli/errors/CliError.ts';
+import type { Output } from '@/cli/output.ts';
 import { downloadToFile, withDownloadedArchive } from '@/cli/utils/downloadToFile.ts';
-import type { Output } from '@/cli/utils/output.ts';
 
 describe('downloadToFile', () => {
   let tempDir: string;

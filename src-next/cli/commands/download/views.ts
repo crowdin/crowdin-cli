@@ -1,4 +1,4 @@
-import type { View } from '@/cli/utils/output.ts';
+import type { View } from '@/cli/output.ts';
 
 /**
  * What became of one downloaded file. Text output streams its own per-file messages as the

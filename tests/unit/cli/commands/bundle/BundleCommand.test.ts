@@ -6,12 +6,12 @@ import AdmZip from 'adm-zip';
 import type { Command } from 'commander';
 import { buildCommand } from '@/cli/builder.ts';
 import BundleCommand from '@/cli/commands/bundle/BundleCommand.ts';
+import type { GetConfig } from '@/cli/di/services.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { createOutput, type Output } from '@/cli/output.ts';
 import type { BundleService, BundleView } from '@/cli/services/BundleService.ts';
 import type { LabelService } from '@/cli/services/LabelService.ts';
-import type { GetConfig } from '@/cli/services.ts';
-import { createOutput, type Output } from '@/cli/utils/output.ts';
 import { toPosixPath } from '@/lib/utils/path.ts';
 
 describe('BundleCommand', () => {

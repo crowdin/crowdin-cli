@@ -5,9 +5,6 @@ import { Glob } from 'bun';
 import type { Command } from 'commander';
 import { EXECUTION_FINISHED_WITH_ERRORS, reportFailures } from '@/cli/commands/common/failures.ts';
 import { projectConfigGroup } from '@/cli/commands/common/options.ts';
-import CliError from '@/cli/errors/CliError.ts';
-import type { GlobalOptions } from '@/cli/options.ts';
-import type { ScreenshotView } from '@/cli/services/ScreenshotService.ts';
 import type {
   GetBranchService,
   GetDirectoryService,
@@ -16,11 +13,13 @@ import type {
   GetOutput,
   GetScreenshotService,
   GetStorageService,
-} from '@/cli/services.ts';
+} from '@/cli/di/services.ts';
+import CliError from '@/cli/errors/CliError.ts';
+import type { GlobalOptions } from '@/cli/options.ts';
+import { isStructuredFormat } from '@/cli/output/format.ts';
+import { colors, type View } from '@/cli/output.ts';
+import type { ScreenshotView } from '@/cli/services/ScreenshotService.ts';
 import type { CommandDef } from '@/cli/types.ts';
-import { colors } from '@/cli/utils/colors.ts';
-import { isStructuredFormat } from '@/cli/utils/formatter.ts';
-import type { View } from '@/cli/utils/output.ts';
 import { parseNumericId, toArray } from '@/cli/utils/parsing.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
 import {

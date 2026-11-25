@@ -1,7 +1,6 @@
 import type { StringCommentsModel } from '@crowdin/crowdin-api-client';
 import { toSingleLine } from '@/cli/commands/common/views.ts';
-import { colors } from '@/cli/utils/colors.ts';
-import type { View } from '@/cli/utils/output.ts';
+import { colors, type View } from '@/cli/output.ts';
 
 // Shared by list and the add echo.
 export const commentView: View<StringCommentsModel.StringComment> = {

@@ -1,9 +1,9 @@
 import type { StringCommentsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { projectConfigGroup } from '@/cli/commands/common/options.ts';
+import type { GetCommentService, GetOutput } from '@/cli/di/services.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { GetCommentService, GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { parseNumericId } from '@/cli/utils/parsing.ts';
 import { add, list } from './options.ts';

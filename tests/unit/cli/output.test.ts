@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, spyOn, test } from 'bun:test';
 import type { GlobalOptions } from '@/cli/options.ts';
-import { createOutput, getOutputFormatFromArgs, uncoloredStdout, type View } from '@/cli/utils/output.ts';
+import { createOutput, getOutputFormatFromArgs, uncoloredStdout, type View } from '@/cli/output.ts';
 
 describe('getOutputFormat', () => {
   test('defaults to text when no output flag is present', () => {

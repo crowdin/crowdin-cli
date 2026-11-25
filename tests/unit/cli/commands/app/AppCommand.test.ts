@@ -10,8 +10,8 @@ import CliError, { ExitCode } from '@/cli/errors/CliError.ts';
 import NotFoundError from '@/cli/errors/NotFoundError.ts';
 import ValidationError from '@/cli/errors/ValidationError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { createOutput, type Output } from '@/cli/output.ts';
 import type { AppService } from '@/cli/services/AppService.ts';
-import { createOutput, type Output } from '@/cli/utils/output.ts';
 import { parseApiMethods } from '@/lib/apps/manifest.ts';
 
 describe('AppCommand', () => {

@@ -6,10 +6,10 @@ import NotFoundError from '@/cli/errors/NotFoundError.ts';
 import { expandTilde } from '@/cli/utils/localPath.ts';
 import InvalidConfigurationError from '@/lib/config/errors/InvalidConfigurationError.ts';
 import { loadRawFromFile, mapConfig } from '@/lib/config/yamlLoader.ts';
-import { assertProjectConfigured, type Config, ConfigSchema, type ProjectConfig } from '@/lib/config.ts';
+import { type Config, ConfigSchema } from '@/lib/config.ts';
 import { getIdentityFilePath, IDENTITY_FILE_NAMES } from '@/lib/identityFiles.ts';
 import type { ConfigOptions, GlobalOptions } from './options.ts';
-import type { Output } from './utils/output.ts';
+import type { Output } from './output.ts';
 
 // When --config is omitted, the first existing one in the cwd is used; if neither exists,
 // crowdin.yml is returned so the ensuing load surfaces a not-found error naming it.
@@ -18,79 +18,43 @@ const DEFAULT_CONFIG_FILES = ['crowdin.yml', 'crowdin.yaml'] as const;
 // The two facts the post-merge checks need: whether the config file was read (a missing one is the
 // error reported when there are no credentials at all) and whether any file was read (which picks
 // the error title).
-type LoadedConfig = { config: Config; fromConfigFile: boolean; fromIdentityFile: boolean };
+export type LoadedConfig = { config: Config; fromConfigFile: boolean; fromIdentityFile: boolean };
 
-export function createGetConfig(getOutput: (command: Command) => Output) {
-  let cachedLoad: LoadedConfig | undefined;
-  let cachedConfigPath: string | undefined;
+// The config file is read when present, but credentials may come entirely from flags or the
+// environment, so a missing default file is not an error. Only the files tier (and an explicit
+// --config) insists the file be there.
+export async function loadConfig(command: Command, configPath: string, output: Output): Promise<LoadedConfig> {
+  const options = command.optsWithGlobals() as GlobalOptions & ConfigOptions;
 
-  // The config file is read when present, but credentials may come entirely from flags or the
-  // environment, so a missing default file is not an error. Only the files tier (and an explicit
-  // --config) insists the file be there.
-  const loadConfig = async (command: Command): Promise<LoadedConfig> => {
-    const output = getOutput(command);
-    const options = command.optsWithGlobals() as GlobalOptions & ConfigOptions;
-    const configPath = await resolveConfigPath(options.config);
+  output.debug(`Loading configuration from '${configPath}' file`);
 
-    if (cachedLoad && cachedConfigPath === configPath) {
-      return cachedLoad;
-    }
+  const readConfigFile = await needsConfigFile(command, options, configPath);
+  const raw = readConfigFile ? await loadRawFromFile(configPath) : {};
+  const identity = await identityLayer(options, output);
 
-    output.debug(`Loading configuration from '${configPath}' file`);
+  // Single resolution pipeline, lowest priority first. Every scenario — CROWDIN_* fallback,
+  // config file, `*_env` vars, ~/.crowdin.yml token, --identity file, CLI flags — is a layer
+  // here; assembleConfig folds and validates them into a ready-to-use Config.
+  //
+  // Env resolution is two layers straddling the config file: `*_env` outranks a literal key,
+  // CROWDIN_* underranks it. Bun auto-loads `.env` into
+  // process.env, so `.env` and shell vars are both covered natively.
+  const config = assembleConfig(
+    [envFallbackLayer(), mapConfig(raw), envKeyLayer(raw), identity ?? {}, cliLayer(options, isFilesTier(command))],
+    readConfigFile || identity !== undefined,
+  );
 
-    const readConfigFile = await needsConfigFile(command, options, configPath);
-    const raw = readConfigFile ? await loadRawFromFile(configPath) : {};
-    const identity = await identityLayer(options, output);
+  config.basePath = resolveBasePath(config.basePath, configPath);
 
-    // Single resolution pipeline, lowest priority first. Every scenario — CROWDIN_* fallback,
-    // config file, `*_env` vars, ~/.crowdin.yml token, --identity file, CLI flags — is a layer
-    // here; assembleConfig folds and validates them into a ready-to-use Config.
-    //
-    // Env resolution is two layers straddling the config file: `*_env` outranks a literal key,
-    // CROWDIN_* underranks it. Bun auto-loads `.env` into
-    // process.env, so `.env` and shell vars are both covered natively.
-    const config = assembleConfig(
-      [envFallbackLayer(), mapConfig(raw), envKeyLayer(raw), identity ?? {}, cliLayer(options, isFilesTier(command))],
-      readConfigFile || identity !== undefined,
-    );
-
-    config.basePath = resolveBasePath(config.basePath, configPath);
-
-    cachedLoad = { config, fromConfigFile: readConfigFile, fromIdentityFile: identity !== undefined };
-    cachedConfigPath = configPath;
-
-    return cachedLoad;
-  };
-
-  const getConfig = async (command: Command): Promise<Config> => {
-    const loaded = await loadConfig(command);
-
-    checkResolvedConfig(loaded, command);
-
-    return loaded.config;
-  };
-
-  // checkResolvedConfig already reports a missing project_id for every command that declares
-  // --project-id, so this only narrows the type for the services that read it.
-  const getProjectConfig = async (command: Command): Promise<ProjectConfig> => {
-    const config = await getConfig(command);
-
-    assertProjectConfigured(config);
-
-    return config;
-  };
-
-  // Same load, without the "credentials are present" checks: `language list --all` needs to know
-  // whether a token/project resolved, since Crowdin serves the supported-language list publicly.
-  // A malformed config file still throws here — only missing credentials come back as undefined.
-  const tryGetConfig = async (command: Command): Promise<Config> => (await loadConfig(command)).config;
-
-  return { getConfig, getProjectConfig, tryGetConfig };
+  return { config, fromConfigFile: readConfigFile, fromIdentityFile: identity !== undefined };
 }
 
 // Checks that need every source merged and base_path resolved. They are collected rather than
 // failing on the first, so a single run tells you everything that needs fixing.
-function checkResolvedConfig({ config, fromConfigFile, fromIdentityFile }: LoadedConfig, command: Command): void {
+export function checkResolvedConfig(
+  { config, fromConfigFile, fromIdentityFile }: LoadedConfig,
+  command: Command,
+): void {
   const errors: string[] = [];
   const basePath = statSync(config.basePath, { throwIfNoEntry: false });
 
@@ -165,7 +129,7 @@ function hasOption(command: Command, attributeName: string): boolean {
   return command.options.some((option) => option.attributeName() === attributeName);
 }
 
-async function resolveConfigPath(explicit: string | undefined): Promise<string> {
+export async function resolveConfigPath(explicit: string | undefined): Promise<string> {
   if (explicit) {
     assertNotDirectory(explicit);
 

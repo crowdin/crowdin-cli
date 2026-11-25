@@ -1,4 +1,4 @@
-import { enableColors } from '@/cli/utils/colors.ts';
+import { enableColors } from '@/cli/output.ts';
 
 // Colors default to on, and the color state is module-global. View tests assert raw strings, so
 // whether they passed used to depend on some earlier test file happening to call createOutput with

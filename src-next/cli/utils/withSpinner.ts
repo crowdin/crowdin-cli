@@ -1,6 +1,6 @@
 import type CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
-import type { Output } from '@/cli/utils/output.ts';
+import type { Output } from '@/cli/output.ts';
 
 export interface SpinnerMessages<T> {
   start: string;

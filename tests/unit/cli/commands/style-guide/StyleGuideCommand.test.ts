@@ -8,9 +8,9 @@ import StyleGuideCommand from '@/cli/commands/style-guide/StyleGuideCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import ValidationError from '@/cli/errors/ValidationError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { createOutput, type Output } from '@/cli/output.ts';
 import type { StorageService } from '@/cli/services/StorageService.ts';
 import type { StyleGuideService } from '@/cli/services/StyleGuideService.ts';
-import { createOutput, type Output } from '@/cli/utils/output.ts';
 import { assertProjectConfigured, type Config } from '@/lib/config.ts';
 
 const signedLink = (disposition?: string) =>

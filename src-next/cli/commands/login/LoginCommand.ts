@@ -1,12 +1,12 @@
 import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
+import type { GetOutput } from '@/cli/di/services.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { GetOutput } from '@/cli/services.ts';
+import { isMachineFormat } from '@/cli/output/format.ts';
+import type { Output } from '@/cli/output.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { authorizeViaBrowser, type BrowserAuthorization } from '@/cli/utils/browserAuth.ts';
-import { isMachineFormat } from '@/cli/utils/formatter.ts';
-import type { Output } from '@/cli/utils/output.ts';
 import { buildUserAgent } from '@/cli/utils/userAgent.ts';
 import { withSpinner } from '@/cli/utils/withSpinner.ts';
 import { DEFAULT_IDENTITY_FILE, getIdentityFilePath, saveCredentials } from '@/lib/identityFiles.ts';

@@ -7,12 +7,12 @@ import type { Command } from 'commander';
 import ContextCommand from '@/cli/commands/context/ContextCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { createOutput, type Output } from '@/cli/output.ts';
 import type { BranchService } from '@/cli/services/BranchService.ts';
 import type { FileService, ProjectFilePath } from '@/cli/services/file/FileService.ts';
 import type { LabelService } from '@/cli/services/LabelService.ts';
 import type { ProjectService } from '@/cli/services/ProjectService.ts';
 import type { StringService } from '@/cli/services/StringService.ts';
-import { createOutput, type Output } from '@/cli/utils/output.ts';
 
 const AI_CONTEXT = (manual: string, ai: string) => `${manual}\n\n✨ AI Context\n${ai}\n✨ 🔚`;
 

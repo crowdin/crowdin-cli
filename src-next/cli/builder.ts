@@ -1,7 +1,7 @@
 import { Command, InvalidArgumentError, Option } from 'commander';
 import getGlobalOptions from './options.ts';
+import { colors } from './output.ts';
 import type { ArgumentDef, CommandDef, OptionDef, OptionGroupDef } from './types.ts';
-import { colors } from './utils/colors.ts';
 
 export function buildCommand(def: CommandDef): Command {
   const cmd = new Command(def.name);

@@ -2,17 +2,9 @@ import { existsSync, statSync } from 'node:fs';
 import path from 'node:path';
 import type { ProjectsGroupsModel, SourceFilesModel, UploadStorageModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
+import { printFileTree } from '@/cli/commands/common/fileTree.ts';
 import { reportNoManagerAccess } from '@/cli/commands/common/managerAccess.ts';
 import { branch as branchOption, projectConfigGroup, tree as treeOption } from '@/cli/commands/common/options.ts';
-import CliError from '@/cli/errors/CliError.ts';
-import FileExistsError from '@/cli/errors/FileExistsError.ts';
-import FileInUpdateError from '@/cli/errors/FileInUpdateError.ts';
-import { toCliError } from '@/cli/errors/toCliError.ts';
-import WrongLanguageError from '@/cli/errors/WrongLanguageError.ts';
-import type { GlobalOptions } from '@/cli/options.ts';
-import type { DirectoryService } from '@/cli/services/DirectoryService.ts';
-import type { StorageService } from '@/cli/services/StorageService.ts';
-import type { ImportProgress } from '@/cli/services/TranslationService.ts';
 import type {
   GetBranchService,
   GetConfig,
@@ -24,12 +16,20 @@ import type {
   GetStorageService,
   GetStringService,
   GetTranslationService,
-} from '@/cli/services.ts';
+} from '@/cli/di/services.ts';
+import CliError from '@/cli/errors/CliError.ts';
+import FileExistsError from '@/cli/errors/FileExistsError.ts';
+import FileInUpdateError from '@/cli/errors/FileInUpdateError.ts';
+import { toCliError } from '@/cli/errors/toCliError.ts';
+import WrongLanguageError from '@/cli/errors/WrongLanguageError.ts';
+import type { GlobalOptions } from '@/cli/options.ts';
+import { isMachineFormat, isStructuredFormat } from '@/cli/output/format.ts';
+import type { Output, View } from '@/cli/output.ts';
+import type { DirectoryService } from '@/cli/services/DirectoryService.ts';
+import type { StorageService } from '@/cli/services/StorageService.ts';
+import type { ImportProgress } from '@/cli/services/TranslationService.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { downloadToFile } from '@/cli/utils/downloadToFile.ts';
-import { printFileTree } from '@/cli/utils/fileTree.ts';
-import { isMachineFormat, isStructuredFormat } from '@/cli/utils/formatter.ts';
-import type { Output, View } from '@/cli/utils/output.ts';
 import type { Config } from '@/lib/config.ts';
 import { resolveLanguagePlaceholders } from '@/lib/export/languagePlaceholders.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';

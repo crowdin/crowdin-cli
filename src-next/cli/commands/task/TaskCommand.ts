@@ -1,9 +1,6 @@
 import type { TasksModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
-import CliError from '@/cli/errors/CliError.ts';
-import type { GlobalOptions } from '@/cli/options.ts';
-import type { TaskStatus } from '@/cli/services/TaskService.ts';
 import type {
   GetApiClient,
   GetBranchService,
@@ -11,7 +8,10 @@ import type {
   GetLabelService,
   GetOutput,
   GetTaskService,
-} from '@/cli/services.ts';
+} from '@/cli/di/services.ts';
+import CliError from '@/cli/errors/CliError.ts';
+import type { GlobalOptions } from '@/cli/options.ts';
+import type { TaskStatus } from '@/cli/services/TaskService.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { toArray } from '@/cli/utils/parsing.ts';
 import {

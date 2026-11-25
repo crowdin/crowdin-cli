@@ -4,8 +4,8 @@ import type { Command } from 'commander';
 import DistributionCommand from '@/cli/commands/distribution/DistributionCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { createOutput, type Output } from '@/cli/output.ts';
 import type { DistributionService, DistributionView } from '@/cli/services/DistributionService.ts';
-import { createOutput, type Output } from '@/cli/utils/output.ts';
 
 describe('DistributionCommand', () => {
   let output: Output;

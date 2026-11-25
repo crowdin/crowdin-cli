@@ -1,9 +1,9 @@
 import type { Command } from 'commander';
 import { projectConfigGroup } from '@/cli/commands/common/options.ts';
+import type { GetOutput, GetProjectService } from '@/cli/di/services.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { CreateProjectPayload } from '@/cli/services/ProjectService.ts';
-import type { GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { openUrl } from '@/cli/utils/open.ts';
 import { language, languageAccessPolicy, sourceLanguage, stringBased } from './options.ts';

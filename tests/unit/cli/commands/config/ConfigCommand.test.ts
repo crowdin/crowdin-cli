@@ -5,12 +5,12 @@ import { join } from 'node:path';
 import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import ConfigCommand from '@/cli/commands/config/ConfigCommand.ts';
-import { createGetConfig } from '@/cli/config.ts';
+import { createGetConfig } from '@/cli/di/config.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { createOutput, type Output } from '@/cli/output.ts';
 import { LanguageService } from '@/cli/services/LanguageService.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
-import { createOutput, type Output } from '@/cli/utils/output.ts';
 import { ConfigSchema, type ProjectConfig } from '@/lib/config.ts';
 
 const globalOptions: GlobalOptions = {

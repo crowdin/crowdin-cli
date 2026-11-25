@@ -4,20 +4,20 @@ import type { GlossariesModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { assigned as assignedOption, baseConfigGroup } from '@/cli/commands/common/options.ts';
 import { downloadedPathView } from '@/cli/commands/common/views.ts';
-import CliError from '@/cli/errors/CliError.ts';
-import { toCliError } from '@/cli/errors/toCliError.ts';
-import type { GlobalOptions } from '@/cli/options.ts';
-import type { GlossaryService } from '@/cli/services/GlossaryService.ts';
 import type {
   GetApiClient,
   GetGlossaryService,
   GetOutput,
   GetProjectConfig,
   GetStorageService,
-} from '@/cli/services.ts';
+} from '@/cli/di/services.ts';
+import CliError from '@/cli/errors/CliError.ts';
+import { toCliError } from '@/cli/errors/toCliError.ts';
+import type { GlobalOptions } from '@/cli/options.ts';
+import type { Output } from '@/cli/output.ts';
+import type { GlossaryService } from '@/cli/services/GlossaryService.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { downloadToFile } from '@/cli/utils/downloadToFile.ts';
-import type { Output } from '@/cli/utils/output.ts';
 import { parseNumericId, parseScheme, toArray } from '@/cli/utils/parsing.ts';
 import { toSafeFileName } from '@/lib/utils/path.ts';
 import {

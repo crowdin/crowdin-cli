@@ -1,12 +1,6 @@
 import type { ProjectsGroupsModel, TranslationsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
-import CliError from '@/cli/errors/CliError.ts';
-import ValidationError from '@/cli/errors/ValidationError.ts';
-import type { GlobalOptions } from '@/cli/options.ts';
-import type { ProjectFileIndex } from '@/cli/services/file/ProjectFileIndex.ts';
-import type { LabelService } from '@/cli/services/LabelService.ts';
-import type { PreTranslationStatus, TranslationService } from '@/cli/services/TranslationService.ts';
 import type {
   GetBranchService,
   GetFileService,
@@ -14,10 +8,16 @@ import type {
   GetOutput,
   GetProjectService,
   GetTranslationService,
-} from '@/cli/services.ts';
+} from '@/cli/di/services.ts';
+import CliError from '@/cli/errors/CliError.ts';
+import ValidationError from '@/cli/errors/ValidationError.ts';
+import type { GlobalOptions } from '@/cli/options.ts';
+import { isMachineFormat } from '@/cli/output/format.ts';
+import type { Output } from '@/cli/output.ts';
+import type { ProjectFileIndex } from '@/cli/services/file/ProjectFileIndex.ts';
+import type { LabelService } from '@/cli/services/LabelService.ts';
+import type { PreTranslationStatus, TranslationService } from '@/cli/services/TranslationService.ts';
 import type { CommandDef } from '@/cli/types.ts';
-import { isMachineFormat } from '@/cli/utils/formatter.ts';
-import type { Output } from '@/cli/utils/output.ts';
 import { normalizePath } from '@/cli/utils/parsing.ts';
 import { withSpinner } from '@/cli/utils/withSpinner.ts';
 import { FILE_MANAGEMENT_UNAVAILABLE, isStringsBasedProject } from '@/lib/project/type.ts';

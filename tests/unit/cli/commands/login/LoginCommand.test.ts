@@ -6,7 +6,7 @@ import type { Command } from 'commander';
 import { load as loadYaml } from 'js-yaml';
 import LoginCommand from '@/cli/commands/login/LoginCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
-import { createOutput } from '@/cli/utils/output.ts';
+import { createOutput } from '@/cli/output.ts';
 import { DEFAULT_IDENTITY_FILE, getIdentityFilePath } from '@/lib/identityFiles.ts';
 
 describe('LoginCommand', () => {

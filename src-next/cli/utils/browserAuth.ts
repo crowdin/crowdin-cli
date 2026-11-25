@@ -1,7 +1,7 @@
 import { decodeJwt } from 'jose';
 import CliError from '@/cli/errors/CliError.ts';
+import type { Output } from '../output.ts';
 import { openUrl } from './open.ts';
-import type { Output } from './output.ts';
 import { withSpinner } from './withSpinner.ts';
 
 const CROWDIN_OAUTH_CLIENT_ID = 'wQEqvhU3vLOa2XicmUyT';

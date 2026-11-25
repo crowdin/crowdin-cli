@@ -7,7 +7,7 @@ description: Use when adding or changing what a CLI command prints - creating or
 
 ## The model
 
-One global flag, four formats: `--output` = `text` (default) | `json` | `toon` | `plain`, implemented in `cli/utils/output.ts` + `cli/utils/formatter.ts`. Two axes classify them:
+One global flag, four formats: `--output` = `text` (default) | `json` | `toon` | `plain`, implemented in `cli/output.ts` + `cli/output/format.ts`. Two axes classify them:
 
 - **Machine vs prose**: json, toon, *and* plain are parseable contracts - the command owes the caller a result document, not narrative.
 - **Structured vs line-oriented**: json/toon serialize a value wholesale; text and plain emit lines.
@@ -65,5 +65,5 @@ Multi-line reports render via `output.item(value, view, { mark: false })` - a re
 | Emitting warnings via `log()`/`console.log`, or assuming they're dropped outside text | `output.warning()` → stderr in every format, structured record in json/toon |
 | Decorating the plain line to make it self-describing | Plain is bare fields, identifier first; self-description lives in json/toon |
 | Branching on `options.output` for a plain list | One `View` + `output.list` covers all four formats |
-| Checking `=== 'plain'` where json/toon also owe the result | Use `isMachineFormat`/`isStructuredFormat` from `formatter.ts` |
+| Checking `=== 'plain'` where json/toon also owe the result | Use `isMachineFormat`/`isStructuredFormat` from `cli/output/format.ts` |
 | Rewording an existing plain line during a refactor | Frozen contract - treat as a breaking change, don't |

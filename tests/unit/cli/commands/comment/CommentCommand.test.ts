@@ -4,8 +4,8 @@ import type { Command } from 'commander';
 import CommentCommand from '@/cli/commands/comment/CommentCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { createOutput, type Output } from '@/cli/output.ts';
 import { CommentService } from '@/cli/services/CommentService.ts';
-import { createOutput, type Output } from '@/cli/utils/output.ts';
 import type { ProjectConfig } from '@/lib/config.ts';
 
 const config: ProjectConfig = {

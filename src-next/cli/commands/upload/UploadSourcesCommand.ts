@@ -10,16 +10,6 @@ import type { Command } from 'commander';
 import { printDryRunPaths } from '@/cli/commands/common/dryRunPaths.ts';
 import { EXECUTION_FINISHED_WITH_ERRORS, reportFailures } from '@/cli/commands/common/failures.ts';
 import { reportNoManagerAccess } from '@/cli/commands/common/managerAccess.ts';
-import CliError from '@/cli/errors/CliError.ts';
-import FileExistsError from '@/cli/errors/FileExistsError.ts';
-import FileInUpdateError from '@/cli/errors/FileInUpdateError.ts';
-import type { GlobalOptions } from '@/cli/options.ts';
-import type { BranchService } from '@/cli/services/BranchService.ts';
-import type { DirectoryService } from '@/cli/services/DirectoryService.ts';
-import type { FileService } from '@/cli/services/file/FileService.ts';
-import { ProjectFileIndex } from '@/cli/services/file/ProjectFileIndex.ts';
-import type { StorageService } from '@/cli/services/StorageService.ts';
-import type { StringService } from '@/cli/services/StringService.ts';
 import type {
   GetBranchService,
   GetConfig,
@@ -30,9 +20,19 @@ import type {
   GetProjectService,
   GetStorageService,
   GetStringService,
-} from '@/cli/services.ts';
-import { isMachineFormat, isStructuredFormat } from '@/cli/utils/formatter.ts';
-import type { Output } from '@/cli/utils/output.ts';
+} from '@/cli/di/services.ts';
+import CliError from '@/cli/errors/CliError.ts';
+import FileExistsError from '@/cli/errors/FileExistsError.ts';
+import FileInUpdateError from '@/cli/errors/FileInUpdateError.ts';
+import type { GlobalOptions } from '@/cli/options.ts';
+import { isMachineFormat, isStructuredFormat } from '@/cli/output/format.ts';
+import type { Output } from '@/cli/output.ts';
+import type { BranchService } from '@/cli/services/BranchService.ts';
+import type { DirectoryService } from '@/cli/services/DirectoryService.ts';
+import type { FileService } from '@/cli/services/file/FileService.ts';
+import { ProjectFileIndex } from '@/cli/services/file/ProjectFileIndex.ts';
+import type { StorageService } from '@/cli/services/StorageService.ts';
+import type { StringService } from '@/cli/services/StringService.ts';
 import SourceFileLoader from '@/lib/config/SourceFileLoader.ts';
 import { assertFilesConfigured, type Config } from '@/lib/config.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';

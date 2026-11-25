@@ -1,4 +1,4 @@
-import type { View } from '@/cli/utils/output.ts';
+import type { View } from '@/cli/output.ts';
 
 // One path per line. Shared by the config listings and the dry-run path listings, whose items are
 // the paths themselves.

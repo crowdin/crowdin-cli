@@ -1,8 +1,6 @@
 import type { LanguagesModel, TranslationStatusModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
-import CliError from '@/cli/errors/CliError.ts';
-import type { GlobalOptions } from '@/cli/options.ts';
 import type {
   GetBranchService,
   GetDirectoryService,
@@ -10,9 +8,11 @@ import type {
   GetOutput,
   GetProgressService,
   GetProjectService,
-} from '@/cli/services.ts';
+} from '@/cli/di/services.ts';
+import CliError from '@/cli/errors/CliError.ts';
+import type { GlobalOptions } from '@/cli/options.ts';
+import { isStructuredFormat } from '@/cli/output/format.ts';
 import type { CommandDef } from '@/cli/types.ts';
-import { isStructuredFormat } from '@/cli/utils/formatter.ts';
 import { directory, file, proofreading, status, translation } from './options.ts';
 import { type ProgressRow, type ProgressView, statusPlainView, statusTableView, toProgressList } from './views.ts';
 

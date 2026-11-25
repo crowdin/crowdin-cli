@@ -5,10 +5,10 @@ import { join, resolve } from 'node:path';
 import { Command } from 'commander';
 import { buildOption } from '@/cli/builder.ts';
 import { filesConfigGroup } from '@/cli/commands/common/options.ts';
-import { createGetConfig } from '@/cli/config.ts';
+import { createGetConfig } from '@/cli/di/config.ts';
 import NotFoundError from '@/cli/errors/NotFoundError.ts';
 import type { ConfigOptions, GlobalOptions } from '@/cli/options.ts';
-import { createOutput, type Output } from '@/cli/utils/output.ts';
+import { createOutput, type Output } from '@/cli/output.ts';
 import InvalidConfigurationError from '@/lib/config/errors/InvalidConfigurationError.ts';
 
 const TOKEN = 'a'.repeat(80);
@@ -546,5 +546,18 @@ describe('createGetConfig', () => {
 
     expect(first.projectId).toBe(111);
     expect(second.projectId).toBe(111);
+  });
+
+  test('loads again when --config points at another file', async () => {
+    const load = getConfig();
+    const otherPath = join(tempDir, 'other.yml');
+
+    await Bun.write(otherPath, CONFIG_YAML.replace('project_id: 111', 'project_id: 222'));
+
+    const first = await load(makeCommand({}));
+    const second = await load(makeCommand({ config: otherPath }));
+
+    expect(first.projectId).toBe(111);
+    expect(second.projectId).toBe(222);
   });
 });

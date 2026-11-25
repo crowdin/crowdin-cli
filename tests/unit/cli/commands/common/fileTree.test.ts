@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { fileTree } from '@/cli/utils/fileTree.ts';
+import { fileTree } from '@/cli/commands/common/fileTree.ts';
 
 describe('fileTree', () => {
   test('empty input returns only root', () => {

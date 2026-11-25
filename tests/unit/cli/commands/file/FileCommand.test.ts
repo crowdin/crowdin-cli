@@ -8,6 +8,7 @@ import FileCommand from '@/cli/commands/file/FileCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import FileInUpdateError from '@/cli/errors/FileInUpdateError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { createOutput, type Output } from '@/cli/output.ts';
 import { BranchService } from '@/cli/services/BranchService.ts';
 import { DirectoryService } from '@/cli/services/DirectoryService.ts';
 import { FileService } from '@/cli/services/file/FileService.ts';
@@ -17,7 +18,6 @@ import { ProjectService } from '@/cli/services/ProjectService.ts';
 import { StorageService } from '@/cli/services/StorageService.ts';
 import { StringService } from '@/cli/services/StringService.ts';
 import { TranslationService } from '@/cli/services/TranslationService.ts';
-import { createOutput, type Output } from '@/cli/utils/output.ts';
 import type { ProjectConfig } from '@/lib/config.ts';
 
 const config: ProjectConfig = {

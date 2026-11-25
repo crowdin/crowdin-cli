@@ -1,4 +1,4 @@
-import type { View } from '@/cli/utils/output.ts';
+import type { View } from '@/cli/output.ts';
 
 /**
  * What became of one uploaded file, source or translation. Text output streams its own per-file

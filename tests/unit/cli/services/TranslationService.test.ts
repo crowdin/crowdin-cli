@@ -3,8 +3,8 @@ import { Client, CrowdinError } from '@crowdin/crowdin-api-client';
 import CliError from '@/cli/errors/CliError.ts';
 import WrongLanguageError from '@/cli/errors/WrongLanguageError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { createOutput, type Output } from '@/cli/output.ts';
 import { TranslationService } from '@/cli/services/TranslationService.ts';
-import { createOutput, type Output } from '@/cli/utils/output.ts';
 
 const PROJECT_ID = 123;
 
