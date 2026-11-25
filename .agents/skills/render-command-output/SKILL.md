@@ -7,7 +7,7 @@ description: Use when adding or changing what a CLI command prints - creating or
 
 ## The model
 
-One global flag, four formats: `--output` = `text` (default) | `json` | `toon` | `plain`, implemented in `cli/output.ts` + `cli/output/format.ts`. Two axes classify them:
+One global flag, four formats: `--output` = `text` (default) | `json` | `toon` | `plain`, implemented in `cli/output.ts` + `cli/output/` (one class per format; format types in `cli/output/format.ts`). Two axes classify them:
 
 - **Machine vs prose**: json, toon, *and* plain are parseable contracts - the command owes the caller a result document, not narrative.
 - **Structured vs line-oriented**: json/toon serialize a value wholesale; text and plain emit lines.

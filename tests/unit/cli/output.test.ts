@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, spyOn, test } from 'bun:test';
 import type { GlobalOptions } from '@/cli/options.ts';
-import { createOutput, getOutputFormatFromArgs, uncoloredStdout, type View } from '@/cli/output.ts';
+import { TextOutput } from '@/cli/output/TextOutput.ts';
+import { createOutput, getOutputFormatFromArgs, type View } from '@/cli/output.ts';
 
 describe('getOutputFormat', () => {
   test('defaults to text when no output flag is present', () => {
@@ -269,12 +270,12 @@ describe('spinner colors', () => {
   // above — off a TTY clack never reaches readline — and then throws in a real terminal. Off-TTY
   // tests cannot reach that path, so assert the stream stays interchangeable with stdout instead.
   test.each(['write', 'on', 'off', 'once', 'removeListener', 'emit'])('forwards %s to the real stream', (method) => {
-    expect(typeof (uncoloredStdout as unknown as Record<string, unknown>)[method]).toBe('function');
+    expect(typeof (TextOutput.uncoloredStdout as unknown as Record<string, unknown>)[method]).toBe('function');
   });
 
   test('forwards the stream properties readline reads', () => {
-    expect(uncoloredStdout.columns).toBe(process.stdout.columns);
-    expect(uncoloredStdout.isTTY).toBe(process.stdout.isTTY);
+    expect(TextOutput.uncoloredStdout.columns).toBe(process.stdout.columns);
+    expect(TextOutput.uncoloredStdout.isTTY).toBe(process.stdout.isTTY);
   });
 
   // console.table bolds its header row on a TTY with no opt-out, which leaked past --no-colors.
