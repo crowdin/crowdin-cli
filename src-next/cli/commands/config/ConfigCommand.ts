@@ -1,14 +1,14 @@
 import type { Command } from 'commander';
 import { ZodError, z } from 'zod';
+import { printFileTree } from '@/cli/commands/common/fileTree.ts';
 import { filesConfigGroup, tree as treeOption } from '@/cli/commands/common/options.ts';
 import { pathView } from '@/cli/commands/common/views.ts';
+import type { GetConfig, GetLanguageService, GetOutput, GetProjectService } from '@/cli/di/services.ts';
 import ForbiddenError from '@/cli/errors/ForbiddenError.ts';
 import NotFoundError from '@/cli/errors/NotFoundError.ts';
 import ValidationError from '@/cli/errors/ValidationError.ts';
-import type { GetConfig, GetLanguageService, GetOutput, GetProjectService } from '@/cli/services.ts';
+import { isMachineFormat, isStructuredFormat } from '@/cli/output/format.ts';
 import type { CommandDef } from '@/cli/types.ts';
-import { printFileTree } from '@/cli/utils/fileTree.ts';
-import { isMachineFormat, isStructuredFormat } from '@/cli/utils/formatter.ts';
 import FileNotFoundError from '@/lib/common/errors/FileNotFoundError.ts';
 import SourceFileLoader from '@/lib/config/SourceFileLoader.ts';
 import { resolveTranslationPath } from '@/lib/config/translationPathResolver.ts';

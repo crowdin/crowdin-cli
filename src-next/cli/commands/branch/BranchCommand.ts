@@ -1,10 +1,10 @@
 import type { PatchRequest, SourceFilesModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { projectConfigGroup } from '@/cli/commands/common/options.ts';
+import type { GetBranchService, GetOutput, GetProjectService } from '@/cli/di/services.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { BranchService } from '@/cli/services/BranchService.ts';
-import type { GetBranchService, GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { normalizeBranchName } from '@/cli/utils/parsing.ts';
 import { withSpinner } from '@/cli/utils/withSpinner.ts';

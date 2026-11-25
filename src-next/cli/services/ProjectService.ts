@@ -1,6 +1,6 @@
 import type { Client, ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import { toCliError } from '../errors/toCliError.ts';
-import type { Output } from '../utils/output.ts';
+import type { Output } from '../output.ts';
 import { withSpinner } from '../utils/withSpinner.ts';
 
 /**

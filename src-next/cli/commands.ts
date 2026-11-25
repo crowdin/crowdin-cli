@@ -22,8 +22,8 @@ import StyleGuideCommand from './commands/style-guide/StyleGuideCommand.ts';
 import TaskCommand from './commands/task/TaskCommand.ts';
 import TmCommand from './commands/tm/TmCommand.ts';
 import UploadCommand from './commands/upload/UploadCommand.ts';
-import { createGetConfig } from './config.ts';
-import { createGetOutput } from './output.ts';
+import { createGetConfig } from './di/config.ts';
+import { createGetOutput } from './di/output.ts';
 import {
   createGetAiService,
   createGetApiClient,
@@ -46,7 +46,7 @@ import {
   createGetTaskService,
   createGetTmService,
   createGetTranslationService,
-} from './services.ts';
+} from './di/services.ts';
 import type { CommandDef } from './types.ts';
 
 const getOutput = createGetOutput();

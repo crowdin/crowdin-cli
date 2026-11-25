@@ -1,9 +1,9 @@
 import { describe, expect, mock, test } from 'bun:test';
 import type { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
+import { createGetAiService, createGetStyleGuideService } from '@/cli/di/services.ts';
 import { AiService } from '@/cli/services/AiService.ts';
 import { StyleGuideService } from '@/cli/services/StyleGuideService.ts';
-import { createGetAiService, createGetStyleGuideService } from '@/cli/services.ts';
 
 describe.each([
   ['createGetStyleGuideService', createGetStyleGuideService, StyleGuideService],

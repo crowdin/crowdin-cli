@@ -2,12 +2,11 @@ import type { LanguagesModel, ProjectsGroupsModel } from '@crowdin/crowdin-api-c
 import type { Command } from 'commander';
 import { reportNoManagerAccess } from '@/cli/commands/common/managerAccess.ts';
 import { projectConfigGroup } from '@/cli/commands/common/options.ts';
+import type { GetConfig, GetLanguageService, GetOutput, GetProjectService } from '@/cli/di/services.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { colors, type Output, type View } from '@/cli/output.ts';
 import { LanguageService } from '@/cli/services/LanguageService.ts';
-import type { GetConfig, GetLanguageService, GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
-import { colors } from '@/cli/utils/colors.ts';
-import type { Output, View } from '@/cli/utils/output.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { all, code } from './options.ts';
 

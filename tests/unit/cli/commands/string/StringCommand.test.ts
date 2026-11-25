@@ -4,13 +4,13 @@ import type { Command } from 'commander';
 import StringCommand from '@/cli/commands/string/StringCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { createOutput, type Output } from '@/cli/output.ts';
 import type { BranchService } from '@/cli/services/BranchService.ts';
 import type { DirectoryService } from '@/cli/services/DirectoryService.ts';
 import type { FileService } from '@/cli/services/file/FileService.ts';
 import type { LabelService } from '@/cli/services/LabelService.ts';
 import type { ProjectService } from '@/cli/services/ProjectService.ts';
 import type { StringService } from '@/cli/services/StringService.ts';
-import { createOutput, type Output } from '@/cli/utils/output.ts';
 
 describe('StringCommand', () => {
   let output: Output;

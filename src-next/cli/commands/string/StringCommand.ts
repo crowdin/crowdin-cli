@@ -1,10 +1,6 @@
 import type { PatchRequest, SourceFilesModel, SourceStringsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
-import CliError from '@/cli/errors/CliError.ts';
-import ValidationError from '@/cli/errors/ValidationError.ts';
-import type { GlobalOptions } from '@/cli/options.ts';
-import type { FileService, ProjectFilePath } from '@/cli/services/file/FileService.ts';
 import type {
   GetBranchService,
   GetDirectoryService,
@@ -13,10 +9,14 @@ import type {
   GetOutput,
   GetProjectService,
   GetStringService,
-} from '@/cli/services.ts';
+} from '@/cli/di/services.ts';
+import CliError from '@/cli/errors/CliError.ts';
+import ValidationError from '@/cli/errors/ValidationError.ts';
+import type { GlobalOptions } from '@/cli/options.ts';
+import { isStructuredFormat } from '@/cli/output/format.ts';
+import type { View } from '@/cli/output.ts';
+import type { FileService, ProjectFilePath } from '@/cli/services/file/FileService.ts';
 import type { CommandDef } from '@/cli/types.ts';
-import { isStructuredFormat } from '@/cli/utils/formatter.ts';
-import type { View } from '@/cli/utils/output.ts';
 import { parseNumericId, toArray } from '@/cli/utils/parsing.ts';
 import { isStringsBasedProject } from '@/lib/project/type.ts';
 import { add, edit, list } from './options.ts';

@@ -4,13 +4,13 @@ import type { Command } from 'commander';
 import AutoTranslateCommand from '@/cli/commands/auto-translate/AutoTranslateCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { createOutput, type Output } from '@/cli/output.ts';
 import { BranchService } from '@/cli/services/BranchService.ts';
 import { FileService } from '@/cli/services/file/FileService.ts';
 import { ProjectFileIndex } from '@/cli/services/file/ProjectFileIndex.ts';
 import { LabelService } from '@/cli/services/LabelService.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
 import { TranslationService } from '@/cli/services/TranslationService.ts';
-import { createOutput, type Output } from '@/cli/utils/output.ts';
 
 type AutoTranslateTestOptions = GlobalOptions & {
   language?: string[];

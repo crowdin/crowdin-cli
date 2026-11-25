@@ -2,7 +2,7 @@ import type { Client, PatchRequest, SourceFilesModel } from '@crowdin/crowdin-ap
 import FileExistsError from '@/cli/errors/FileExistsError.ts';
 import FileInUpdateError from '@/cli/errors/FileInUpdateError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
-import type { Output } from '@/cli/utils/output.ts';
+import type { Output } from '@/cli/output.ts';
 import { normalizePath } from '@/cli/utils/parsing.ts';
 import { withSpinner } from '@/cli/utils/withSpinner.ts';
 import { pollUntilFinished } from '@/lib/api/pollStatus.ts';

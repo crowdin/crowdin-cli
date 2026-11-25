@@ -4,8 +4,8 @@ import type { Command } from 'commander';
 import LabelCommand from '@/cli/commands/label/LabelCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { createOutput, type Output } from '@/cli/output.ts';
 import type { LabelService } from '@/cli/services/LabelService.ts';
-import { createOutput, type Output } from '@/cli/utils/output.ts';
 
 describe('LabelCommand', () => {
   let output: Output;

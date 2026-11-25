@@ -5,8 +5,8 @@ import type { Command } from 'commander';
 import ProjectCommand from '@/cli/commands/project/ProjectCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { createOutput, type Output } from '@/cli/output.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
-import { createOutput, type Output } from '@/cli/utils/output.ts';
 import type { ProjectConfig } from '@/lib/config.ts';
 
 const config: ProjectConfig = {

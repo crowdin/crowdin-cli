@@ -4,11 +4,6 @@ import type { Command } from 'commander';
 import { printDryRunPaths } from '@/cli/commands/common/dryRunPaths.ts';
 import { EXECUTION_FINISHED_WITH_ERRORS, reportFailures } from '@/cli/commands/common/failures.ts';
 import { reportNoManagerAccess } from '@/cli/commands/common/managerAccess.ts';
-import CliError from '@/cli/errors/CliError.ts';
-import WrongLanguageError from '@/cli/errors/WrongLanguageError.ts';
-import type { GlobalOptions } from '@/cli/options.ts';
-import type { StorageService } from '@/cli/services/StorageService.ts';
-import type { ImportProgress } from '@/cli/services/TranslationService.ts';
 import type {
   GetBranchService,
   GetConfig,
@@ -17,9 +12,14 @@ import type {
   GetProjectService,
   GetStorageService,
   GetTranslationService,
-} from '@/cli/services.ts';
-import { isMachineFormat, isStructuredFormat } from '@/cli/utils/formatter.ts';
-import type { Output } from '@/cli/utils/output.ts';
+} from '@/cli/di/services.ts';
+import CliError from '@/cli/errors/CliError.ts';
+import WrongLanguageError from '@/cli/errors/WrongLanguageError.ts';
+import type { GlobalOptions } from '@/cli/options.ts';
+import { isMachineFormat, isStructuredFormat } from '@/cli/output/format.ts';
+import type { Output } from '@/cli/output.ts';
+import type { StorageService } from '@/cli/services/StorageService.ts';
+import type { ImportProgress } from '@/cli/services/TranslationService.ts';
 import SourceFileLoader from '@/lib/config/SourceFileLoader.ts';
 import { resolveTranslationPath } from '@/lib/config/translationPathResolver.ts';
 import { assertFilesConfigured, type Config, isMultilingualFile } from '@/lib/config.ts';

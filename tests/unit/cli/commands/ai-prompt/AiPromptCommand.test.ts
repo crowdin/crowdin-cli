@@ -3,8 +3,8 @@ import type { AiModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import AiPromptCommand from '@/cli/commands/ai-prompt/AiPromptCommand.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { createOutput, type Output } from '@/cli/output.ts';
 import type { AiService } from '@/cli/services/AiService.ts';
-import { createOutput, type Output } from '@/cli/utils/output.ts';
 import { assertProjectConfigured, type Config } from '@/lib/config.ts';
 
 describe('AiPromptCommand', () => {

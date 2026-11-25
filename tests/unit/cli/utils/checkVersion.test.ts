@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, spyOn, test } from 'bun:test';
 import os from 'node:os';
 import path from 'node:path';
+import { createOutput } from '@/cli/output.ts';
 import { checkNewVersion } from '@/cli/utils/checkVersion.ts';
-import { createOutput } from '@/cli/utils/output.ts';
 
 const tmpFiles: string[] = [];
 

@@ -1,6 +1,5 @@
 import type { StyleGuidesModel } from '@crowdin/crowdin-api-client';
-import { colors } from '@/cli/utils/colors.ts';
-import type { View } from '@/cli/utils/output.ts';
+import { colors, type View } from '@/cli/output.ts';
 
 // `projectIds` and `languageIds` travel as comma-joined strings, so the verbose listing stays a toon table too.
 export type FlatStyleGuide = Omit<StyleGuidesModel.StyleGuide, 'projectIds' | 'languageIds'> & {

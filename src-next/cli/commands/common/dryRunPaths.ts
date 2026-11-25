@@ -1,7 +1,7 @@
 import { pathView } from '@/cli/commands/common/views.ts';
-import { printFileTree } from '@/cli/utils/fileTree.ts';
-import { isMachineFormat } from '@/cli/utils/formatter.ts';
-import type { Output } from '@/cli/utils/output.ts';
+import { isMachineFormat } from '@/cli/output/format.ts';
+import type { Output } from '@/cli/output.ts';
+import { printFileTree } from './fileTree.ts';
 
 export interface DryRunListingOptions {
   output?: string;

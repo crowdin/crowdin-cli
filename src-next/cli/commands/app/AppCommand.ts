@@ -1,14 +1,14 @@
 import { readFileSync } from 'node:fs';
 import type { Command } from 'commander';
 import { baseConfigGroup, dryRun } from '@/cli/commands/common/options.ts';
+import type { GetAppService, GetOutput } from '@/cli/di/services.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import NotFoundError from '@/cli/errors/NotFoundError.ts';
 import ValidationError from '@/cli/errors/ValidationError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import type { Output } from '@/cli/output.ts';
 import type { ApiRequest, AppService } from '@/cli/services/AppService.ts';
-import type { GetAppService, GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
-import type { Output } from '@/cli/utils/output.ts';
 import { withSpinner } from '@/cli/utils/withSpinner.ts';
 import { type ApiMethod, findMethodsByPath, joinVerbs } from '@/lib/apps/manifest.ts';
 import { describeOperation, type MethodDescription, specUrlFromDocsUrl } from '@/lib/apps/openapi.ts';

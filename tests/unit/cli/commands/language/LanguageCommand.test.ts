@@ -5,9 +5,9 @@ import LanguageCommand from '@/cli/commands/language/LanguageCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import ValidationError from '@/cli/errors/ValidationError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { createOutput, type Output } from '@/cli/output.ts';
 import { LanguageService } from '@/cli/services/LanguageService.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
-import { createOutput, type Output } from '@/cli/utils/output.ts';
 import type { Config } from '@/lib/config.ts';
 
 type LanguageCommandTestOptions = GlobalOptions & {

@@ -1,4 +1,4 @@
-import type { Output } from '@/cli/utils/output.ts';
+import type { Output } from '@/cli/output.ts';
 
 // Every file is attempted, then the run fails with this if any of them failed.
 export const EXECUTION_FINISHED_WITH_ERRORS = 'Current execution finished with errors';

@@ -1,4 +1,4 @@
-import type { View } from '@/cli/utils/output.ts';
+import type { View } from '@/cli/output.ts';
 
 export interface LoginResult {
   username: string;

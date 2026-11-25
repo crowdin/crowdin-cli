@@ -1,6 +1,5 @@
 import type { SourceFilesModel } from '@crowdin/crowdin-api-client';
-import { colors } from '@/cli/utils/colors.ts';
-import type { View } from '@/cli/utils/output.ts';
+import { colors, type View } from '@/cli/output.ts';
 import { stripLeadingSlashes } from '@/lib/utils/path.ts';
 
 const displayPath = (file: SourceFilesModel.File): string => stripLeadingSlashes(file.path);

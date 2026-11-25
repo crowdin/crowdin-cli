@@ -3,7 +3,7 @@ import { pollUntilFinished } from '@/lib/api/pollStatus.ts';
 import CliError from '../errors/CliError.ts';
 import { toCliError } from '../errors/toCliError.ts';
 import WrongLanguageError from '../errors/WrongLanguageError.ts';
-import type { Output } from '../utils/output.ts';
+import type { Output } from '../output.ts';
 import { withSpinner } from '../utils/withSpinner.ts';
 
 // Reported once per poll, so each command can word its own progress line (verbose-only for

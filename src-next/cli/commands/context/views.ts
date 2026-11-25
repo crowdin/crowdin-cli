@@ -1,5 +1,5 @@
 import type { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
-import type { TableGrid, View } from '@/cli/utils/output.ts';
+import type { TableGrid, View } from '@/cli/output.ts';
 
 export interface ContextStats {
   total: number;

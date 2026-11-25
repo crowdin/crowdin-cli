@@ -1,5 +1,5 @@
 import type { TranslationStatusModel } from '@crowdin/crowdin-api-client';
-import type { View } from '@/cli/utils/output.ts';
+import type { View } from '@/cli/output.ts';
 
 export interface ProgressEntry {
   language: string;

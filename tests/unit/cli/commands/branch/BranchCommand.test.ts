@@ -4,9 +4,9 @@ import type { Command } from 'commander';
 import BranchCommand from '@/cli/commands/branch/BranchCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { createOutput, type Output } from '@/cli/output.ts';
 import type { BranchService } from '@/cli/services/BranchService.ts';
 import type { ProjectService } from '@/cli/services/ProjectService.ts';
-import { createOutput, type Output } from '@/cli/utils/output.ts';
 
 describe('BranchCommand', () => {
   let output: Output;

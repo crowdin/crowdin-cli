@@ -1,12 +1,11 @@
 import type { DistributionsModel, PatchRequest } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { projectConfigGroup } from '@/cli/commands/common/options.ts';
+import type { GetDistributionService, GetOutput } from '@/cli/di/services.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { GetDistributionService, GetOutput } from '@/cli/services.ts';
+import { colors, type View } from '@/cli/output.ts';
 import type { CommandDef } from '@/cli/types.ts';
-import { colors } from '@/cli/utils/colors.ts';
-import type { View } from '@/cli/utils/output.ts';
 import { withSpinner } from '@/cli/utils/withSpinner.ts';
 import { bundleId, name } from './options.ts';
 

@@ -1,5 +1,4 @@
-import { colors } from '@/cli/utils/colors.ts';
-import type { View } from '@/cli/utils/output.ts';
+import { colors, type View } from '@/cli/output.ts';
 
 /**
  * The outcome of one pre-translation run. Unlike upload and download this command writes no

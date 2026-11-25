@@ -7,9 +7,9 @@ import type { Command } from 'commander';
 import GlossaryCommand from '@/cli/commands/glossary/GlossaryCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { createOutput, type Output } from '@/cli/output.ts';
 import type { GlossaryService } from '@/cli/services/GlossaryService.ts';
 import type { StorageService } from '@/cli/services/StorageService.ts';
-import { createOutput, type Output } from '@/cli/utils/output.ts';
 import { assertProjectConfigured, type Config } from '@/lib/config.ts';
 
 describe('GlossaryCommand', () => {

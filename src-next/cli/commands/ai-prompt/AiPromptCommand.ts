@@ -1,8 +1,8 @@
 import type { AiModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { assigned as assignedOption, baseConfigGroup } from '@/cli/commands/common/options.ts';
+import type { GetAiService, GetOutput, GetProjectConfig } from '@/cli/di/services.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { GetAiService, GetOutput, GetProjectConfig } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { action as actionOption } from './options.ts';
 import { createAiPromptView } from './views.ts';

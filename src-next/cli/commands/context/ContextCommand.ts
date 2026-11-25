@@ -1,10 +1,6 @@
 import type { PatchRequest, ProjectsGroupsModel, SourceStringsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { dryRun, projectConfigGroup } from '@/cli/commands/common/options.ts';
-import CliError from '@/cli/errors/CliError.ts';
-import { toCliError } from '@/cli/errors/toCliError.ts';
-import type { GlobalOptions } from '@/cli/options.ts';
-import type { ProjectFilePath } from '@/cli/services/file/FileService.ts';
 import type {
   GetBranchService,
   GetFileService,
@@ -12,7 +8,13 @@ import type {
   GetOutput,
   GetProjectService,
   GetStringService,
-} from '@/cli/services.ts';
+} from '@/cli/di/services.ts';
+import CliError from '@/cli/errors/CliError.ts';
+import { toCliError } from '@/cli/errors/toCliError.ts';
+import type { GlobalOptions } from '@/cli/options.ts';
+import { isMachineFormat } from '@/cli/output/format.ts';
+import { type Output, resolveOutputFormat } from '@/cli/output.ts';
+import type { ProjectFilePath } from '@/cli/services/file/FileService.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import {
   fullContext,
@@ -22,8 +24,6 @@ import {
   readContextFile,
   type StringContextRecord,
 } from '@/cli/utils/aiContext.ts';
-import { isMachineFormat } from '@/cli/utils/formatter.ts';
-import { type Output, resolveOutputFormat } from '@/cli/utils/output.ts';
 import { toArray } from '@/cli/utils/parsing.ts';
 import { isPathMatch } from '@/cli/utils/pathMatcher.ts';
 import { isStringsBasedProject } from '@/lib/project/type.ts';

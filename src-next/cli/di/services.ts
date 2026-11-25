@@ -1,6 +1,7 @@
 import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import ValidationError from '@/cli/errors/ValidationError.ts';
+import type { Output, OutputOptions } from '@/cli/output.ts';
 import { AiService } from '@/cli/services/AiService.ts';
 import { AppService } from '@/cli/services/AppService.ts';
 import { BranchService } from '@/cli/services/BranchService.ts';
@@ -21,7 +22,6 @@ import { StyleGuideService } from '@/cli/services/StyleGuideService.ts';
 import { TaskService } from '@/cli/services/TaskService.ts';
 import { TmService } from '@/cli/services/TmService.ts';
 import { TranslationService } from '@/cli/services/TranslationService.ts';
-import type { Output, OutputOptions } from '@/cli/utils/output.ts';
 import { proxyUrlFromEnv } from '@/cli/utils/proxy.ts';
 import { buildUserAgent } from '@/cli/utils/userAgent.ts';
 import type { Config, ProjectConfig } from '@/lib/config.ts';

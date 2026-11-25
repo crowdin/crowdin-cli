@@ -7,7 +7,7 @@ import type { Command } from 'commander';
 import InitCommand from '@/cli/commands/init/InitCommand.ts';
 import AuthorizationError from '@/cli/errors/AuthorizationError.ts';
 import CliError from '@/cli/errors/CliError.ts';
-import { createOutput } from '@/cli/utils/output.ts';
+import { createOutput } from '@/cli/output.ts';
 
 describe('InitCommand', () => {
   let previousCwd: string;

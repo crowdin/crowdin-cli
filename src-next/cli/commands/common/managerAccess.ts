@@ -1,6 +1,6 @@
 import ForbiddenError from '@/cli/errors/ForbiddenError.ts';
-import { isMachineFormat } from '@/cli/utils/formatter.ts';
-import type { Output } from '@/cli/utils/output.ts';
+import { isMachineFormat } from '@/cli/output/format.ts';
+import type { Output } from '@/cli/output.ts';
 
 const NO_MANAGER_ACCESS = 'You must have manager or developer role in the project to perform this action';
 

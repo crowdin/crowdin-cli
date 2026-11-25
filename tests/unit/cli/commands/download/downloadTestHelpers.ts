@@ -6,11 +6,11 @@ import { Client } from '@crowdin/crowdin-api-client';
 import AdmZip from 'adm-zip';
 import type { Command } from 'commander';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { createOutput } from '@/cli/output.ts';
 import { BranchService } from '@/cli/services/BranchService.ts';
 import { FileService } from '@/cli/services/file/FileService.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
 import { TranslationService } from '@/cli/services/TranslationService.ts';
-import { createOutput } from '@/cli/utils/output.ts';
 import type { ProjectConfig } from '@/lib/config.ts';
 
 // Mock fetch to return a real zip so tests exercise the actual adm-zip read path

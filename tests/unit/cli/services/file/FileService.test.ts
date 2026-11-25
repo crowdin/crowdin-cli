@@ -4,8 +4,8 @@ import CliError from '@/cli/errors/CliError.ts';
 import FileExistsError from '@/cli/errors/FileExistsError.ts';
 import FileInUpdateError from '@/cli/errors/FileInUpdateError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { createOutput, type Output } from '@/cli/output.ts';
 import { FileService } from '@/cli/services/file/FileService.ts';
-import { createOutput, type Output } from '@/cli/utils/output.ts';
 
 const PROJECT_ID = 123;
 

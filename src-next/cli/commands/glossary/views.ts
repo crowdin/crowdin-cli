@@ -1,7 +1,6 @@
 import type { GlossariesModel } from '@crowdin/crowdin-api-client';
 import { toSingleLine } from '@/cli/commands/common/views.ts';
-import { colors } from '@/cli/utils/colors.ts';
-import type { View } from '@/cli/utils/output.ts';
+import { colors, type View } from '@/cli/output.ts';
 
 const termLine = (term: GlossariesModel.Term): string =>
   `\t${colors.yellow(`#${term.id}`)} ${colors.green(term.text)}: ${toSingleLine(term.description ?? '')}`;

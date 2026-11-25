@@ -1,7 +1,7 @@
 import { describe, expect, spyOn, test } from 'bun:test';
+import { createOutput } from '@/cli/output.ts';
 import { authorizeViaBrowser, getAuthorizationUrl, startBrowserAuthorization } from '@/cli/utils/browserAuth.ts';
 import * as open from '@/cli/utils/open.ts';
-import { createOutput } from '@/cli/utils/output.ts';
 
 const CALLBACK_URL = 'http://localhost:46221/callback';
 

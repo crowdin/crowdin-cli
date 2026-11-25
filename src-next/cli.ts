@@ -7,11 +7,10 @@ import { commands } from './cli/commands.ts';
 import CliError from './cli/errors/CliError.ts';
 import { description, name, version } from './cli/meta.ts';
 import getGlobalOptions from './cli/options.ts';
+import { isStructuredFormat } from './cli/output/format.ts';
+import { createOutput, enableColors, getOutputFormatFromArgs } from './cli/output.ts';
 import { expandArgFiles } from './cli/utils/argFiles.ts';
 import { checkNewVersion } from './cli/utils/checkVersion.ts';
-import { enableColors } from './cli/utils/colors.ts';
-import { isStructuredFormat } from './cli/utils/formatter.ts';
-import { createOutput, getOutputFormatFromArgs } from './cli/utils/output.ts';
 
 function createProgram(quietErrors: boolean): Command {
   const program = new Command();

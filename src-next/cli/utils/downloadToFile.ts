@@ -5,7 +5,7 @@ import path from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import CliError from '@/cli/errors/CliError.ts';
-import type { Output } from '@/cli/utils/output.ts';
+import type { Output } from '@/cli/output.ts';
 
 /**
  * Streams a download to a local file, creating the parent directory.

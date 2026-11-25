@@ -4,14 +4,13 @@ import type { TranslationMemoryModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { assigned as assignedOption, baseConfigGroup } from '@/cli/commands/common/options.ts';
 import { downloadedPathView } from '@/cli/commands/common/views.ts';
+import type { GetApiClient, GetOutput, GetProjectConfig, GetStorageService, GetTmService } from '@/cli/di/services.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { GetApiClient, GetOutput, GetProjectConfig, GetStorageService, GetTmService } from '@/cli/services.ts';
+import { colors, type View } from '@/cli/output.ts';
 import type { CommandDef } from '@/cli/types.ts';
-import { colors } from '@/cli/utils/colors.ts';
 import { downloadToFile } from '@/cli/utils/downloadToFile.ts';
-import type { View } from '@/cli/utils/output.ts';
 import { parseNumericId, parseScheme, toArray } from '@/cli/utils/parsing.ts';
 import { toSafeFileName } from '@/lib/utils/path.ts';
 import {

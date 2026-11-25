@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:
 import { Client } from '@crowdin/crowdin-api-client';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { createOutput, type Output } from '@/cli/output.ts';
 import { GlossaryService } from '@/cli/services/GlossaryService.ts';
-import { createOutput, type Output } from '@/cli/utils/output.ts';
 
 const globalOptions: GlobalOptions = {
   verbose: false,

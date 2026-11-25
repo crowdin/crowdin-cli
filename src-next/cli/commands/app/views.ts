@@ -1,6 +1,5 @@
 import type { ApplicationsModel } from '@crowdin/crowdin-api-client';
-import { colors } from '@/cli/utils/colors.ts';
-import type { View } from '@/cli/utils/output.ts';
+import { colors, type View } from '@/cli/output.ts';
 import type { ApiMethod } from '@/lib/apps/manifest.ts';
 import { arrayItemType, type JsonSchema, type MethodDescription, schemaType } from '@/lib/apps/openapi.ts';
 

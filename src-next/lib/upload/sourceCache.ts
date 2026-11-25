@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import type { BunFile } from 'bun';
-import type { Output } from '@/cli/utils/output.ts';
+import type { Output } from '@/cli/output.ts';
 
 interface CacheFile {
   sourceHashes?: Record<string, string>;

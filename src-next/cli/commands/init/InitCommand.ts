@@ -4,15 +4,14 @@ import { autocomplete, confirm, isCancel, password, text } from '@clack/prompts'
 import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { load as loadYaml } from 'js-yaml';
+import type { GetOutput } from '@/cli/di/services.ts';
 import AuthorizationError from '@/cli/errors/AuthorizationError.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { GetOutput } from '@/cli/services.ts';
+import { colors, type Output } from '@/cli/output.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { authorizeViaBrowser } from '@/cli/utils/browserAuth.ts';
-import { colors } from '@/cli/utils/colors.ts';
 import { expandTilde } from '@/cli/utils/localPath.ts';
-import type { Output } from '@/cli/utils/output.ts';
 import { buildUserAgent } from '@/cli/utils/userAgent.ts';
 import { withSpinner } from '@/cli/utils/withSpinner.ts';
 import { generate } from '@/lib/config/yamlGenerator.ts';
